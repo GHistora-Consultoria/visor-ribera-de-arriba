@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ribera de Arriba — TERRA Geoportal Analítico</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<!-- Dependencias del export de TERRA, fusionado 15/09/2026 dentro de este mismo mapa -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ljagis/leaflet-measure@2.1.7/dist/leaflet-measure.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ardhi/Leaflet.MousePosition/src/L.Control.MousePosition.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.2/leaflet.draw.css"/>
+<link rel="stylesheet" href="terra_layers.css"/>
+<style>
+  :root {
+    --navy-dark: #0d1b2e; --navy: #1a3a5c; --navy-light: #1b2f4d;
+    --gold: #c9a65a; --gold-bright: #e6c07a; --purple: #6f5590;
+    --text-light: #e8e6df; --text-muted: #9aa4b8; --border: #2a3d5c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: 'Georgia', serif; background: var(--navy-dark); color: var(--text-light); overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+
+  /* PESTAÑAS PRINCIPALES (barra fina, no duplica la cabecera del mapa) */
+  nav.tabs {
+    display: flex; align-items: center; gap: 4px; background: var(--navy-dark);
+    border-bottom: 2px solid var(--gold); padding: 0 16px; flex-shrink: 0; z-index: 40;
+  }
+  nav.tabs img.logo { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--gold); margin-right: 10px; object-fit: cover; }
+  nav.tabs .brand { color: var(--gold-bright); font-size: 14px; margin-right: 24px; white-space: nowrap; }
+  nav.tabs button {
+    background: none; border: none; color: var(--text-muted); font-family: inherit;
+    font-size: 14px; padding: 12px 18px; cursor: pointer; border-bottom: 3px solid transparent;
+    white-space: nowrap; transition: color 0.2s, border-color 0.2s;
+  }
+  nav.tabs button:hover { color: var(--text-light); }
+  nav.tabs button.active { color: var(--gold-bright); border-bottom-color: var(--gold); }
+
+  main { flex: 1; position: relative; overflow: hidden; }
+  .panel { position: absolute; inset: 0; display: none; }
+  .panel.active { display: block; }
+  /* PANEL DEMOGRAFÍA */
+  #panel-demo { overflow-y: auto; padding: 20px clamp(16px, 4vw, 80px); }
+  #panel-demo > *:not(.cielo-estrellado) { position: relative; z-index: 1; }
+  #panel-demo h2 { color: var(--gold-bright); font-weight: normal; }
+  #panel-demo .demo-cap { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+  .dash-section { color: var(--gold-bright); font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin: 30px 0 14px; }
+  .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .dash-card { background: var(--navy-light); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; cursor: pointer; transition: transform 0.12s, border-color 0.12s; position: relative; }
+  .dash-card:hover { transform: translateY(-2px); border-color: var(--gold); }
+  .dash-card::after { content: '🔍 más info'; position: absolute; bottom: 6px; right: 10px; font-size: 9px; color: var(--text-muted); opacity: 0; transition: opacity 0.12s; }
+  .dash-card:hover::after { opacity: 1; }
+  .dash-card.dash-alert { border-left: 3px solid #c0504d; }
+
+  /* MODAL */
+  #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  #modal-overlay.activo { display: flex; }
+  #modal-caja { background: var(--navy); border: 1px solid var(--gold); border-radius: 10px; max-width: 560px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px; position: relative; }
+  #modal-cerrar { position: absolute; top: 12px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1; }
+  #modal-cerrar:hover { color: var(--text-light); }
+  #modal-titulo { color: var(--gold-bright); font-size: 20px; margin: 0 0 4px; padding-right: 30px; }
+  #modal-valor { font-size: 32px; color: var(--gold-bright); margin: 8px 0; }
+  #modal-fuente { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+  #modal-explicacion { font-size: 14px; line-height: 1.65; color: var(--text-light); margin-bottom: 14px; }
+  #modal-recomendacion { font-size: 13px; line-height: 1.6; background: rgba(230,192,122,0.08); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 4px; }
+
+  /* GRÁFICOS */
+  .chart-box { background: var(--navy-light); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 10px; }
+  .chart-titulo { font-size: 13px; color: var(--gold); margin: 0 0 10px; }
+  .charts-lado-a-lado { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .charts-lado-a-lado > div { flex: 1 1 320px; min-width: 280px; }
+  #chart-poblacion svg, #chart-edades svg { width: 100%; height: auto; display: block; }
+  #modal-grafico svg { width: 100%; height: auto; display: block; margin-bottom: 12px; }
+  .chart-explica { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-top: 10px; }
+
+  /* ENTIDADES compactas */
+  #entidades-tabla .entidad-row { cursor: default; }
+  #btn-ver-todas { background: none; border: 1px solid var(--gold); color: var(--gold-bright); font-size: 12px; padding: 6px 14px; border-radius: 4px; cursor: pointer; margin-top: 8px; font-family: inherit; }
+  #btn-ver-todas:hover { background: rgba(230,192,122,0.1); }
+  .entidad-row.entidad-oculta { display: none; }
+  .dash-val { font-size: 22px; color: var(--gold-bright); }
+  .dash-lbl { font-size: 12px; color: var(--text-light); }
+  .dash-src { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+  .dash-rec { font-size: 11px; color: var(--gold-bright); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); line-height: 1.4; }
+  .dash-cajas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px; }
+  .dash-caja { background: var(--navy-light); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: transform 0.15s, border-color 0.15s; }
+  .dash-caja[data-key]:hover { transform: translateY(-2px); border-color: var(--gold); }
+  .dash-caja[data-key]::after { content: '🔍 más info'; display: block; font-size: 10px; color: var(--gold); margin-top: 8px; opacity: 0.7; }
+  .dash-caja .dash-caja-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+  .dash-caja .dash-caja-label { font-size: 13px; color: var(--text-light); }
+  .dash-caja .dash-caja-val { font-size: 22px; color: var(--gold-bright); margin: 8px 0 4px; }
+  .dash-caja .dash-caja-sub { font-size: 11px; color: var(--text-muted); }
+  .dash-bar-row { display: grid; grid-template-columns: 180px 1fr 140px; align-items: center; gap: 10px; font-size: 12px; }
+  .dash-bar-bg { height: 14px; background: var(--navy-light); border-radius: 4px; overflow: hidden; }
+  .dash-bar { height: 100%; }
+  .dash-bar-val { color: var(--text-muted); text-align: right; }
+  .dash-note { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 10px; line-height: 1.5; }
+  .entidad-row { display: grid; grid-template-columns: 1fr 140px 90px; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .entidad-row .entidad-bar-bg { height: 8px; background: var(--navy-light); border-radius: 3px; overflow: hidden; }
+  .entidad-row .entidad-bar { height: 100%; background: var(--gold); }
+  .entidad-row.sin-poblacion { opacity: 0.55; }
+
+  /* PANEL VISTA DE CALLE */
+  #panel-calle.active { display: flex; }
+  #calle-map { flex: 1; }
+  #calle-sidebar { width: 300px; background: var(--navy); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; }
+  #calle-sidebar-contenido { flex: 1; }
+  #calle-sidebar-logo { text-align: center; margin-top: auto; padding-top: 16px; }
+  .boton-ghistora {
+    display: inline-block; margin-top: 12px; padding: 9px 20px; border-radius: 20px;
+    background: linear-gradient(135deg, #e6c07a, #c9a65a); color: #16233a !important;
+    font-weight: bold; font-size: 13px; text-decoration: none; letter-spacing: 0.02em;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.15s;
+  }
+  .boton-ghistora:hover { transform: translateY(-2px); }
+  #calle-sidebar h3 { color: var(--gold); font-size: 13px; text-transform: uppercase; margin: 0 0 8px; }
+  #calle-sidebar h4 { color: var(--gold-bright); font-size: 13px; margin: 14px 0 8px; }
+  .calle-hint { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .calle-ficha-item { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .ficha-explica { font-size: 10px; color: var(--text-muted); line-height: 1.45; margin-top: 2px; font-style: italic; }
+  .ficha-label { color: var(--gold); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; }
+  /* Acordeón de la Ficha técnica (15/09/2026): antes todo el texto explicativo
+     salía siempre desplegado, recargando visualmente el panel. Ahora cada
+     campo empieza cerrado (solo etiqueta + valor) y se expande al clicar. */
+  .ficha-acordeon { border-bottom: 1px solid var(--border); }
+  .ficha-cabecera {
+    width: 100%; background: none; border: none; cursor: pointer; font-family: inherit;
+    display: grid; grid-template-columns: 1fr auto auto; align-items: start; gap: 4px 10px;
+    padding: 7px 2px; text-align: left; color: inherit;
+  }
+  .ficha-cabecera:hover { background: rgba(230,192,122,0.06); }
+  .ficha-cabecera .ficha-label { grid-column: 1 / 2; }
+  .ficha-cabecera .ficha-valor { grid-column: 1 / 2; font-size: 12px; color: var(--text-light); }
+  .ficha-cabecera .ficha-chevron { grid-row: 1 / 3; align-self: center; color: var(--gold); font-size: 11px; transition: transform 0.15s; }
+  .ficha-acordeon[data-abierto="true"] .ficha-chevron { transform: rotate(180deg); }
+  .ficha-detalle {
+    max-height: 0; overflow: hidden; transition: max-height 0.25s ease;
+    font-size: 10px; color: var(--text-muted); line-height: 1.45; font-style: italic; padding: 0 2px;
+  }
+  .ficha-acordeon[data-abierto="true"] .ficha-detalle { max-height: 220px; padding: 0 2px 8px; }
+  #pegman-dock {
+    position: absolute; bottom: 16px; right: 16px; z-index: 1000;
+    background: var(--gold); border: 3px solid #ffffff; border-radius: 999px;
+    display: flex; align-items: center; gap: 6px; padding: 8px 14px 8px 10px;
+    cursor: grab; box-shadow: 0 3px 14px rgba(0,0,0,0.55); user-select: none;
+  }
+  #pegman-dock:active { cursor: grabbing; }
+  #pegman-icon { font-size: 26px; line-height: 1; }
+  #pegman-label { font-size: 12px; color: #201f1d; font-weight: bold; white-space: nowrap; }
+  .leaflet-marker-pegman { font-size: 26px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6)); }
+
+  /* PANEL FAQ */
+  #panel-faq { overflow-y: auto; padding: 30px clamp(16px, 5vw, 120px); }
+  #panel-faq > *:not(.cielo-estrellado) { position: relative; z-index: 1; }
+
+  /* ===== Fondo estrellado (Panel de datos y FAQ) — 15/09/2026 ===== */
+  .cielo-estrellado { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+  .cielo-estrellado .estrella {
+    position: absolute; background: #ffffff; border-radius: 50%;
+    animation: parpadeo-estrella linear infinite;
+  }
+  @keyframes parpadeo-estrella {
+    0%, 100% { opacity: var(--op-min, 0.15); }
+    50% { opacity: var(--op-max, 0.9); }
+  }
+  .cielo-estrellado .estrella-fugaz {
+    position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+    box-shadow: 0 0 6px 1px #fff, 0 0 14px 3px rgba(230,192,122,0.6);
+    animation: cruzar-estrella-fugaz 1.4s linear forwards;
+  }
+  @keyframes cruzar-estrella-fugaz {
+    0% { transform: translate(0, 0); opacity: 1; }
+    75% { opacity: 1; }
+    100% { transform: translate(var(--dx, 260px), var(--dy, 130px)); opacity: 0; }
+  }
+  .cielo-estrellado .estrella-fugaz::before {
+    content: ''; position: absolute; top: 1px; right: 1px; width: 90px; height: 1px;
+    background: linear-gradient(to left, rgba(255,255,255,0.85), transparent);
+    transform-origin: right center;
+    transform: rotate(var(--angulo, 25deg));
+  }
+  #panel-faq h2 { color: var(--gold-bright); font-weight: normal; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .faq-item { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; background: var(--navy-light); }
+  .faq-q { padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--text-light); }
+  .faq-q:hover { color: var(--gold-bright); }
+  .faq-q .icon { color: var(--gold); transition: transform 0.2s; }
+  .faq-item.open .faq-q .icon { transform: rotate(45deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 18px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .faq-item.open .faq-a { max-height: 400px; padding: 0 18px 16px; }
+  .faq-tag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 3px; margin-bottom: 10px; }
+  .faq-tag.tecnica { background: rgba(201,166,90,0.18); color: var(--gold-bright); }
+  .faq-tag.gestion { background: rgba(111,85,144,0.25); color: #c9b8e8; }
+</style>
+</head>
+<body>
+
+<nav class="tabs">
+  <img class="logo" src="assets/logo-ghistora.jpg" alt="Logo GHistora">
+  <span class="brand">GHistora</span>
+  <button class="tab-btn active" data-panel="panel-calle">🗺️ Mapa y Ficha técnica</button>
+  <button class="tab-btn" data-panel="panel-demo">📊 Panel de datos</button>
+  <button class="tab-btn" data-panel="panel-faq">💬 Preguntas frecuentes</button>
+</nav>
+
+<main>
+  <!-- PANEL MAPA + FICHA TÉCNICA (fusionado 15/09/2026): el export de TERRA
+       (capas, control de capas, comparador, herramientas de dibujo/medida,
+       captura PNG/PDF) ahora vive DENTRO de este mismo mapa Leaflet — ya no
+       hay un iframe aparte. Ver terra_layers.js / cargarExportTerra() en visor.js. -->
+  <div id="panel-calle" class="panel active">
+    <div id="calle-map" style="flex:1; position:relative;">
+      <div id="pegman-dock" title="Arrastra sobre el mapa">
+        <span id="pegman-icon">🚶</span>
+        <span id="pegman-label">Arrastrar aquí</span>
+      </div>
+    </div>
+    <div id="calle-sidebar">
+      <div id="calle-sidebar-contenido">
+      <h3>Capas</h3>
+      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:4px;"><input type="checkbox" id="chk-red-natura"> 🌳 Red Natura 2000</div>
+      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:12px;"><input type="checkbox" id="chk-montes"> 🌲 Montes de Utilidad Pública</div>
+      <h3>Ficha técnica del punto</h3>
+      <p id="calle-hint" class="calle-hint">Arrastra el círculo dorado de la esquina inferior derecha del mapa y suéltalo en el lugar que quieras consultar.</p>
+      <div id="calle-resultado" style="display:none;">
+        <h4>Contexto del territorio en este punto</h4>
+        <div class="calle-ficha-item"><span class="ficha-label">Coordenadas</span><span id="ficha-coords">—</span></div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">Uso del suelo (SIOSE)</span>
+            <span class="ficha-valor" id="ficha-siose">Pendiente de conectar a fuente real</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Uso real del suelo detectado por fotointerpretación (SIOSE, Sistema de Información de Ocupación del Suelo de España), agrupado a nivel 1 de la clasificación oficial HILUCS. Refleja lo que hay de verdad sobre el terreno, no necesariamente lo que dice el planeamiento urbanístico para esa parcela.</div>
+        </div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">Espacios naturales protegidos</span>
+            <span class="ficha-valor" id="ficha-espacios">Pendiente de conectar a fuente real</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Comprueba si el punto cae dentro de la Red Natura 2000 (protección europea) o de un Monte de Utilidad Pública catalogado (protección forestal autonómica). Cualquier actuación dentro de estos límites puede necesitar autorización ambiental previa.</div>
+        </div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">Parcela (Catastro)</span>
+            <span class="ficha-valor" id="ficha-catastro">Pendiente de conectar a fuente real</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Referencia catastral oficial (Dirección General del Catastro) de la parcela que contiene este punto exacto. Si el punto cae en una vía pública, monte o zona sin parcela catastrada individual, no habrá referencia.</div>
+        </div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">Riesgo de inundación (SNCZI)</span>
+            <span class="ficha-valor" id="ficha-snczi">—</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Profundidad estimada de la lámina de agua según el Sistema Nacional de Cartografía de Zonas Inundables (MITECO), para tres periodos de retorno: T10 (probabilidad alta, cada ~10 años), T100 (probabilidad media, cada ~100 años) y T500 (evento extremo, cada ~500 años). "NO DATA" en el servicio oficial significa que ese punto exacto no tiene inundación cartografiada en ese periodo, no que sea imposible.</div>
+        </div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">NBR / riesgo de quema</span>
+            <span class="ficha-valor" id="ficha-nbr">—</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Cambio real en el índice de severidad de quema (Normalized Burn Ratio) entre 2018 y 2026, calculado a partir de imágenes de satélite Sentinel-2. Valores positivos altos indican pérdida de vegetación o quema; valores negativos, regeneración de la cubierta vegetal.</div>
+        </div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">Alerta de incendio (NASA FIRMS)</span>
+            <span class="ficha-valor" id="ficha-firms">—</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Detecciones de calor por satélite (sensor VIIRS, NASA FIRMS) compatibles con un incendio activo en los últimos 3 días, en un radio de unos 15 km alrededor del punto. Es información casi en tiempo real, no un histórico.</div>
+        </div>
+        <div class="ficha-acordeon" data-abierto="false">
+          <button class="ficha-cabecera" type="button">
+            <span class="ficha-label">Elevación</span>
+            <span class="ficha-valor" id="ficha-elevacion">—</span>
+            <span class="ficha-chevron">▾</span>
+          </button>
+          <div class="ficha-detalle">Altitud sobre el nivel del mar en este punto exacto, consultada a un servicio gratuito de modelo digital del terreno (Open-Elevation).</div>
+        </div>
+      </div>
+      </div>
+      <div id="calle-sidebar-logo">
+        <img src="assets/logo-ghistora.jpg" alt="GHistora" style="width:130px; height:130px; border-radius:50%; border:2px solid var(--gold); object-fit:cover;">
+        <br><a href="https://bit.ly/ghistora" target="_blank" rel="noopener" class="boton-ghistora">🌐 Conoce GHistora</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DASHBOARD DE DATOS -->
+  <div id="panel-demo" class="panel">
+    <div class="cielo-estrellado" id="cielo-panel-demo"></div>
+    <h2>Panel de datos — Ribera de Arriba</h2>
+    <p class="demo-cap">Indicadores del diagnóstico territorial TERRA — haz clic en cualquier cifra para ver la explicación completa</p>
+
+    <h3 class="dash-section">Población y economía</h3>
+    <div class="dash-grid">
+      <div class="dash-card" data-key="poblacion"><span class="dash-val">1.852</span><span class="dash-lbl">habitantes</span><span class="dash-src">INE, Padrón 2025</span></div>
+      <div class="dash-card dash-alert" data-key="variacion"><span class="dash-val">-2,0%</span><span class="dash-lbl">variación en 10 años (-38 hab.)</span><span class="dash-src">INE, Padrón municipal</span></div>
+      <div class="dash-card" data-key="edadmedia"><span class="dash-val">47,3</span><span class="dash-lbl">edad media (años)</span><span class="dash-src">INE, Atlas 2023</span></div>
+      <div class="dash-card dash-alert" data-key="mayores65"><span class="dash-val">24,2%</span><span class="dash-lbl">mayores de 65 años</span><span class="dash-src">INE, Atlas 2023</span></div>
+      <div class="dash-card" data-key="menores18"><span class="dash-val">13,5%</span><span class="dash-lbl">menores de 18 años</span><span class="dash-src">INE, Atlas 2023</span></div>
+      <div class="dash-card" data-key="renta"><span class="dash-val">33.139 €</span><span class="dash-lbl">renta neta media/hogar</span><span class="dash-src">INE, Atlas de Renta 2023</span></div>
+      <div class="dash-card dash-alert" data-key="paro"><span class="dash-val">30,0%</span><span class="dash-lbl">tasa de paro</span><span class="dash-src">INE, Censo 2021</span></div>
+      <div class="dash-card" data-key="empleo"><span class="dash-val">40,0%</span><span class="dash-lbl">tasa de empleo</span><span class="dash-src">INE, Censo 2021</span></div>
+      <div class="dash-card" data-key="pension"><span class="dash-val">20,0%</span><span class="dash-lbl">población con pensión de jubilación</span><span class="dash-src">INE, Censo 2021</span></div>
+      <div class="dash-card" data-key="hogar"><span class="dash-val">2,3</span><span class="dash-lbl">personas por hogar (media)</span><span class="dash-src">INE, Atlas 2023</span></div>
+      <div class="dash-card" data-key="unipersonal"><span class="dash-val">29,6%</span><span class="dash-lbl">hogares unipersonales</span><span class="dash-src">INE, Atlas 2023</span></div>
+      <div class="dash-card" data-key="gini"><span class="dash-val">32,4</span><span class="dash-lbl">índice de Gini (desigualdad)</span><span class="dash-src">INE, Atlas de Desigualdad 2023</span></div>
+      <div class="dash-card" data-key="viviendas"><span class="dash-val">1.167</span><span class="dash-lbl">viviendas totales</span><span class="dash-src">INE, Censo 2021</span></div>
+      <div class="dash-card dash-alert" data-key="secundaria"><span class="dash-val">34,4%</span><span class="dash-lbl">viviendas secundarias</span><span class="dash-src">INE, Censo 2021</span></div>
+    </div>
+
+    <h3 class="dash-section">Población — evolución y estructura por edad</h3>
+    <div class="charts-lado-a-lado">
+      <div class="chart-box">
+        <p class="chart-titulo">Padrón Municipal (2015-2026) — serie histórica real, 11 años</p>
+        <div id="chart-poblacion"></div>
+        <p class="chart-explica">Ribera de Arriba pasa de 1.890 habitantes en 2015 a 1.852 en 2025: un descenso moderado del 2,0% (-38 habitantes), no un colapso demográfico. La serie no es lineal — hay repuntes en 2021 y 2022 — lo que indica que la tendencia a la baja no es irreversible. La financiación municipal (Fondo de Cooperación Municipal, criterios FEADER) depende en parte de esta cifra, por lo que su seguimiento anual tiene implicación presupuestaria directa. Fuente: INE, Padrón Municipal de Habitantes. Elaboración: Díaz Colodrero, N.P. (2026).</p>
+      </div>
+      <div class="chart-box">
+        <p class="chart-titulo">Pirámide (2022) — sexo y tramo de edad, INE Padrón Continuo (33057)</p>
+        <div id="chart-edades"></div>
+        <p class="chart-explica">La pirámide es regresiva, no expansiva: se estrecha en la base (0-24 años) y se ensancha en los tramos centrales y en la cola de mayores, el patrón típico de un municipio con envejecimiento estructural consolidado. El grupo 40-54 años es el más numeroso; los tramos 90+ ya casi no tienen relevo por debajo. A diferencia del gráfico de evolución (que mira el total año a año), esta pirámide muestra la composición interna en un único momento y permite anticipar cómo va a cambiar la demanda de servicios conforme cada tramo envejece un escalón. Fuente: INE, Padrón Continuo. Elaboración: Díaz Colodrero, N.P. (2026).</p>
+      </div>
+    </div>
+
+    <h3 class="dash-section">Entidades de población (núcleos) — Nomenclátor IGN/CNIG 2026</h3>
+    <div class="chart-box">
+      <div class="dash-cajas-grid">
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#5b8ac9;"></span><span class="dash-caja-label">Entidades registradas</span><div class="dash-caja-val">29</div><div class="dash-caja-sub">Nomenclátor IGN/CNIG 2026</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Sin población residente</span><div class="dash-caja-val">5</div><div class="dash-caja-sub">17,2% del total — lugares abandonados con estatus vigente</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c9a65a;"></span><span class="dash-caja-label">Núcleo con más habitantes</span><div class="dash-caja-val">Ferreros</div><div class="dash-caja-sub">767 hab. (entidad colectiva, agrupa varios lugares)</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Capital del municipio</span><div class="dash-caja-val">Soto Ribera</div><div class="dash-caja-sub">372 hab. — 26,8% de la población del Nomenclátor</div></div>
+      </div>
+      <div id="entidades-tabla"></div>
+      <button id="btn-ver-todas">Ver las 29 entidades ▾</button>
+      <p class="dash-note">5 entidades registradas sin población residente (El Cabornio, La Zoreda, La Casuca, La Candama, Les Mianes): lugares con nombre y estatus administrativo vigente que el poblamiento ha abandonado. 💡 Se recomienda revisar su estado de conservación patrimonial y valorar si procede actualizar su clasificación en el Nomenclátor.</p>
+    </div>
+
+    <h3 class="dash-section">Cobertura vegetal — cambio NDVI 2018–2026 (Sentinel-2)</h3>
+    <div class="chart-box">
+      <div class="dash-cajas-grid">
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Pérdida (ΔNDVI &lt; -0,15)</span><div class="dash-caja-val">19,1%</div><div class="dash-caja-sub">420,85 ha</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#6b7a95;"></span><span class="dash-caja-label">Estable</span><div class="dash-caja-val">79,2%</div><div class="dash-caja-sub">1.741,62 ha</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Regeneración (ΔNDVI &gt; 0,15)</span><div class="dash-caja-val">1,7%</div><div class="dash-caja-sub">37,55 ha</div></div>
+      </div>
+      <p class="dash-note">⚠️ Las 37,55 ha de regeneración espontánea (matorral sin gestionar) elevan el riesgo de incendio si no se desbrozan. Las 420,85 ha de pérdida aumentan la vulnerabilidad a erosión hídrica en pendiente. 💡 Se recomienda priorizar el desbroce preventivo en las zonas de regeneración y valorar restauración de cubierta vegetal donde hubo pérdida en pendiente. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
+    </div>
+
+    <h3 class="dash-section">Riesgo de quema — NBR (Normalized Burn Ratio), 2018→2026</h3>
+    <div class="chart-box">
+      <div class="dash-cajas-grid">
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">🔴 Bajo (quemado/suelo desnudo)</span><div class="dash-caja-val">NBR &lt; 0</div><div class="dash-caja-sub">~8% del municipio</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#d9c9a3;"></span><span class="dash-caja-label">⚪ Medio (vegetación dispersa/estrés)</span><div class="dash-caja-val">NBR 0–0,3</div><div class="dash-caja-sub">~20% del municipio</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">🟢 Alto (vegetación sana)</span><div class="dash-caja-val">NBR &gt; 0,3</div><div class="dash-caja-sub">~72% del municipio</div></div>
+      </div>
+      <p class="dash-note">El NBR (Key &amp; Benson, 2006) usa la misma escala de color en todo TERRA — magenta/rosa para suelo quemado o desnudo, tonos claros para vegetación dispersa o bajo estrés hídrico, y verde para vegetación sana y densa. A diferencia del NDVI (que mide "cuánta" vegetación hay), el NBR está pensado específicamente para detectar quema: es más sensible al agua en la hoja y al carbón residual tras un incendio. El NBR medio municipal ha bajado de 0,237 (2018) a 0,196 (2026): sigue en zona de vegetación sana, pero con una tendencia a la baja que conviene vigilar, sobre todo cruzada con las zonas de pérdida de NDVI ya señaladas arriba. 💡 Ninguna zona del municipio muestra hoy quema activa generalizada (NBR bajo), pero el descenso del NBR medio es una señal temprana a seguir en los próximos informes anuales. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
+    </div>
+
+    <h3 class="dash-section">Medio ambiente — espacios protegidos e hidrografía</h3>
+    <div class="chart-box">
+      <div class="dash-cajas-grid">
+        <div class="dash-caja" data-key="ma-red-natura" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#3A5A8C;"></span><span class="dash-caja-label">Red Natura 2000</span><div class="dash-caja-val">ES1200029</div><div class="dash-caja-sub">Río Nalón</div></div>
+        <div class="dash-caja" data-key="ma-mup" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#7A2D3E;"></span><span class="dash-caja-label">Montes de Utilidad Pública</span><div class="dash-caja-val">2 montes</div><div class="dash-caja-sub">El Carbayón... (nº 296) y Coto de Peñerudes (nº 357)</div></div>
+        <div class="dash-caja" data-key="ma-enp" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#C49A2A;"></span><span class="dash-caja-label">Espacios Naturales Protegidos del entorno</span><div class="dash-caja-val">2</div><div class="dash-caja-sub">Cueva de las Caldas, Desfiladero de las Xanas</div></div>
+        <div class="dash-caja" data-key="ma-superficie" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Superficie bajo protección natural</span><div class="dash-caja-val">~4%</div><div class="dash-caja-sub">≈81 ha del término municipal (Natura2000+ENP+MUP)</div></div>
+      </div>
+      <p class="dash-note">Hidrografía principal: el municipio se articula en torno al <b>río Nalón</b>, con el <b>embalse de los Alfilorios</b> como masa de agua destacada en el sector occidental. La gestión del dominio público hidráulico corresponde a la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027). 💡 Cualquier actuación dentro de Red Natura 2000 o de un Monte de Utilidad Pública catalogado puede necesitar autorización ambiental previa — consulta la Ficha técnica del punto en el mapa para comprobarlo sobre el terreno exacto.</p>
+      <div class="dash-grid" style="margin-top:14px;">
+        <div class="dash-card" data-key="firms-municipio"><span class="dash-val">🔥 FIRMS</span><span class="dash-lbl">focos de incendio activos (NASA, satélite)</span><span class="dash-src">tiempo casi real</span></div>
+      </div>
+    </div>
+
+    <h3 class="dash-section">Buscador de vías de financiación</h3>
+    <div class="chart-box">
+      <p class="chart-titulo">Escribe qué necesitas financiar (ej. "hórreos", "turismo", "empleo", "digitalización", "caminos") — cada línea muestra su propia fecha de verificación</p>
+      <input type="text" id="buscador-subvenciones" placeholder="Ej: patrimonio, caminos, turismo, empleo…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
+      <div id="resultados-subvenciones"></div>
+      <p class="dash-note" style="margin-top:8px;">💡 Los importes, plazos y estados de las líneas de este catálogo son los últimos verificados contra fuentes oficiales (BOPA/BOE/miPrincipado); cada línea muestra su propio estado real a fecha de consulta, no una suposición. Para datos que no se actualizan cada año (un reparto plurianual, una cifra de Censo decenal), se muestra siempre el último periodo confirmado disponible.</p>
+    </div>
+
+    <h3 class="dash-section">Contexto climático — AEMET (estación Oviedo, normales climatológicas 1991-2020)</h3>
+    <div class="dash-grid">
+      <div class="dash-card" data-key="aemet-media"><span class="dash-val">13,4 °C</span><span class="dash-lbl">temperatura media anual</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-maxima"><span class="dash-val">17,5 °C</span><span class="dash-lbl">temperatura máxima media</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-minima"><span class="dash-val">9,3 °C</span><span class="dash-lbl">temperatura mínima media</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-precipitacion"><span class="dash-val">1.028 mm</span><span class="dash-lbl">precipitación media anual</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-dias-lluvia"><span class="dash-val">190</span><span class="dash-lbl">días de lluvia al año</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-humedad"><span class="dash-val">78 %</span><span class="dash-lbl">humedad relativa media</span><span class="dash-src">AEMET</span></div>
+    </div>
+
+    <h3 class="dash-section">Normativa aplicable al municipio</h3>
+    <div class="chart-box">
+      <p class="chart-titulo">Marco normativo verificado para Ribera de Arriba (fuente: informe TERRA + fuentes oficiales)</p>
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <tr><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Ámbito</th><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Norma / recurso</th></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Planeamiento urbanístico</td><td style="padding:6px 8px;"><a href="http://visorrpgur.asturias.es:8092/Visor_Urbanismo_RPGUR/Visor/VisorRPGUR.php" target="_blank" rel="noopener" style="color:#e6c07a;">Visor RPGUR del Principado ↗</a> (clasificación y calificación del suelo, núcleos rurales)</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Instrumento de planeamiento general vigente</td><td style="padding:6px 8px;"><b>Normas Subsidiarias de Planeamiento (NNSS)</b> de Ribera de Arriba, texto refundido, BOPA suplemento nº 215 (16-IX-1997). Ribera de Arriba no dispone de PGOU propio — las NNSS son el instrumento general vigente, con la misma función normativa a efectos de clasificación y calificación del suelo.</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Documentos y planos del planeamiento</td><td style="padding:6px 8px;"><a href="https://sitpa.cartografia.asturias.es" target="_blank" rel="noopener" style="color:#e6c07a;">Gestor documental SITPA ↗</a> — memoria, normativa y planos de las NNSS de 1997 en vigor</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Catálogo urbanístico / bienes protegidos</td><td style="padding:6px 8px;">Recogido dentro de las propias NNSS de 1997 (protección integral de Casa de los Pando y Capilla de San Juan de Mata, entre otros elementos) — verificar si existe una revisión del catálogo posterior a esa fecha en el Ayuntamiento.</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">RPGUR (Registro/visor autonómico)</td><td style="padding:6px 8px;">No sustituye al planeamiento municipal vigente: el <a href="http://visorrpgur.asturias.es:8092/Visor_Urbanismo_RPGUR/Visor/VisorRPGUR.php" target="_blank" rel="noopener" style="color:#e6c07a;">Visor RPGUR ↗</a> es una herramienta de consulta cartográfica del Principado que representa la clasificación vigente, pero el documento legal de referencia son las propias NNSS de 1997 y sus modificaciones.</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Modificaciones puntuales del planeamiento</td><td style="padding:6px 8px;">Pueden existir modificaciones puntuales de las NNSS aprobadas después de 1997 — verificar en el propio Ayuntamiento o en el BOPA histórico si alguna afecta a la parcela o zona de interés antes de dar por definitiva la clasificación consultada aquí.</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Ley del suelo (estatal)</td><td style="padding:6px 8px;">Real Decreto Legislativo 7/2015, de 30 de octubre, Texto Refundido de la Ley del Suelo y Rehabilitación Urbana</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Ley del suelo (autonómica)</td><td style="padding:6px 8px;">Decreto Legislativo 1/2004, de 22 de abril (Texto Refundido de ordenación del territorio y urbanismo del Principado) + Directrices Regionales de Ordenación del Territorio (DROT, 1991)</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Patrimonio natural y biodiversidad</td><td style="padding:6px 8px;">Ley 42/2007, de 13 de diciembre, del Patrimonio Natural y de la Biodiversidad — aplica a la Red Natura 2000 (ES1200029 Río Nalón) y a los espacios naturales protegidos del entorno (Cueva de las Caldas, Desfiladero de las Xanas)</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Montes de Utilidad Pública</td><td style="padding:6px 8px;">Ley 43/2003, de Montes (modificada por Ley 21/2015) — aplica a los 2 MUP del concejo (nº 296 y nº 357)</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Patrimonio cultural</td><td style="padding:6px 8px;">Ley 1/2001, de 6 de marzo, de Patrimonio Cultural de Asturias — aplica a las 9 cuevas/abrigos catalogados y a los elementos catalogados del planeamiento (Casa de los Pando, Capilla de San Juan de Mata)</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Aguas y dominio público hidráulico</td><td style="padding:6px 8px;">Real Decreto Legislativo 1/2001, Texto Refundido de la Ley de Aguas — gestionado por la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027)</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Infraestructura de datos espaciales (INSPIRE)</td><td style="padding:6px 8px;">Directiva 2007/2/CE — marco de las capas geoespaciales oficiales que usa este visor</td></tr>
+      </table>
+      <p class="dash-note" style="margin-top:12px;">⚠️ Este listado orienta sobre la normativa aplicable, no sustituye asesoría jurídica de un abogado o técnico urbanista colegiado. Antes de cualquier actuación concreta, verifica el texto vigente y actualizado de cada norma.</p>
+    </div>
+
+    <h3 class="dash-section">Normativa y alertas — BOE / BOPA</h3>
+    <div class="chart-box">
+      <p class="chart-titulo">Búsqueda de normativa aplicable a la gestión territorial del municipio, con enlace directo a los buscadores oficiales</p>
+      <input type="text" id="buscador-normativa" placeholder="Ej: montes, urbanismo, patrimonio, aguas, hórreos…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
+      <div id="resultados-normativa"></div>
+      <div class="dash-grid" style="margin-top:14px;">
+        <div class="dash-card" data-key="mi-boe"><span class="dash-val">📕 Mi BOE</span><span class="dash-lbl">alertas del Boletín Oficial del Estado</span><span class="dash-src">boe.es/mi_boe</span></div>
+        <div class="dash-card" data-key="mi-bopa"><span class="dash-val">📗 miBOPA</span><span class="dash-lbl">alertas del Boletín del Principado de Asturias</span><span class="dash-src">miprincipado.asturias.es</span></div>
+        <div class="dash-card" data-key="bdns"><span class="dash-val">📘 BDNS</span><span class="dash-lbl">Base de Datos Nacional de Subvenciones</span><span class="dash-src">infosubvenciones.es</span></div>
+        <div class="dash-card" data-key="irif"><span class="dash-val">🔥 IRIF hoy</span><span class="dash-lbl">índice de riesgo de incendio (1-5) por concejo</span><span class="dash-src">asturias.es, actualización diaria</span></div>
+        <div class="dash-card" data-key="prtr"><span class="dash-val">🇪🇺 PRTR / Next Generation</span><span class="dash-lbl">Plan de Recuperación — fondos europeos por componente</span><span class="dash-src">planderecuperacion.gob.es</span></div>
+        <div class="dash-card" data-key="oficina-europea"><span class="dash-val">☎️ Oficina de Proyectos Europeos</span><span class="dash-lbl">Principado de Asturias — asesoramiento directo</span><span class="dash-src">Teléfono 012</span></div>
+        <div class="dash-card" data-key="iberpix"><span class="dash-val">🛰️ Iberpix</span><span class="dash-lbl">ortofotos históricas del IGN, desde los años 50</span><span class="dash-src">ign.es/iberpix/visor</span></div>
+      </div>
+    </div>
+
+    <h3 class="dash-section">Patrimonio cultural — inventario oficial de Ribera de Arriba</h3>
+    <div class="chart-box">
+      <p class="chart-titulo">Inventario del Patrimonio Cultural de Asturias (IPCA) — Comarca de la Montaña Central</p>
+      <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
+        <tr><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Tipo</th><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Elemento</th><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Núcleo</th></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010464/cueva-de-entrecueves" target="_blank" rel="noopener" style="color:#e6c07a; font-weight:bold;">Cueva de Entrecueves ⭐</a></td><td style="padding:6px 8px;">Las Segadas de Abajo</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010506/abrigu-de-la-penuca" target="_blank" rel="noopener" style="color:#e6c07a;">Abrigu de la Peñuca</a></td><td style="padding:6px 8px;">Quintaniella</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010460/cueva-de-guenu-bueno" target="_blank" rel="noopener" style="color:#e6c07a;">Cueva de Gúeñu/Bueño</a></td><td style="padding:6px 8px;">Bueño</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010459/cueva-de-la-cantera" target="_blank" rel="noopener" style="color:#e6c07a;">Cueva de la Cantera</a></td><td style="padding:6px 8px;">Ferreros</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010457/cueva-de-los-murcielagos" target="_blank" rel="noopener" style="color:#e6c07a;">Cueva de Los Murciélagos</a></td><td style="padding:6px 8px;">Fresneo</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010456/cueva-de-pena-cecea" target="_blank" rel="noopener" style="color:#e6c07a;">Cueva de Peña Cecea</a></td><td style="padding:6px 8px;">Palombar</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010455/cueva-el-fistru" target="_blank" rel="noopener" style="color:#e6c07a;">Cueva El Fistru</a></td><td style="padding:6px 8px;">Palombar</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(80,138,201,0.12);"><td style="padding:6px 8px;">🏰 Castro</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010492/castro-de-el-cueto-del-castro" target="_blank" rel="noopener" style="color:#e6c07a;">Castro de El Cueto del Castro</a></td><td style="padding:6px 8px;">Sardín</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(80,138,201,0.12);"><td style="padding:6px 8px;">🏰 Castro</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010489/castro-de-la-corona-o-picu-llanza" target="_blank" rel="noopener" style="color:#e6c07a;">Castro de la Corona o Picu Llanza</a></td><td style="padding:6px 8px;">Picullanza</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(80,138,201,0.12);"><td style="padding:6px 8px;">🏰 Castro</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010488/castro-de-picu-castiellu-de-la-mortera" target="_blank" rel="noopener" style="color:#e6c07a;">Castro de Picu Castiellu de la Mortera</a></td><td style="padding:6px 8px;">La Mortera</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(80,138,201,0.12);"><td style="padding:6px 8px;">🏰 Castro</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010486/castro-de-picu-les-pedreres" target="_blank" rel="noopener" style="color:#e6c07a;">Castro de Picu Les Pedreres</a></td><td style="padding:6px 8px;">Llavareyos</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(80,138,201,0.12);"><td style="padding:6px 8px;">🏰 Castro</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010483/castro-del-picu-castiellu-de-la-carrera" target="_blank" rel="noopener" style="color:#e6c07a;">Castro del Picu Castiellu de la Carrera</a></td><td style="padding:6px 8px;">La Carrera</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(79,138,91,0.12);"><td style="padding:6px 8px;">⛪ Religioso</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010404/capilla-de-san-fernando-vinculada-la-casala-caleya" target="_blank" rel="noopener" style="color:#e6c07a;">Capilla de San Fernando (Casa La Caleya)</a></td><td style="padding:6px 8px;">El Polleo</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(79,138,91,0.12);"><td style="padding:6px 8px;">⛪ Religioso</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010408/capilla-vinculada-lala-quinta" target="_blank" rel="noopener" style="color:#e6c07a;">Capilla (vinculada a La Quinta)</a></td><td style="padding:6px 8px;">Soto Ribera</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(79,138,91,0.12);"><td style="padding:6px 8px;">⛪ Religioso</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010406/capilla-de-s-antonio-vinculada-lacasa-de-los-hevia-ponte" target="_blank" rel="noopener" style="color:#e6c07a;">Capilla de San Antonio (Casa Hevia-Ponte)</a></td><td style="padding:6px 8px;">Sardín</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(79,138,91,0.12);"><td style="padding:6px 8px;">⛪ Religioso</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010385/capilla-de-san-juan-de-la-mata" target="_blank" rel="noopener" style="color:#e6c07a;">Capilla de San Juan de la Mata (1929)</a></td><td style="padding:6px 8px;">Bueño</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(79,138,91,0.12);"><td style="padding:6px 8px;">⛪ Religioso</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010384/capilla-de-san-pedro" target="_blank" rel="noopener" style="color:#e6c07a;">Capilla de San Pedro</a></td><td style="padding:6px 8px;">Teyego</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(79,138,91,0.12);"><td style="padding:6px 8px;">⛪ Religioso</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010379/capilla-del-santo-angel" target="_blank" rel="noopener" style="color:#e6c07a;">Capilla del Santo Ángel</a></td><td style="padding:6px 8px;">La Mortera</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(201,166,90,0.12);"><td style="padding:6px 8px;">🏠 Civil</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010503/camin-real-de-la-mesa" target="_blank" rel="noopener" style="color:#e6c07a;">Camín Real de la Mesa</a></td><td style="padding:6px 8px;">Fuexos/Llavareyos/Palombar</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(201,166,90,0.12);"><td style="padding:6px 8px;">🏠 Civil</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010497/casa-de-los-hevia" target="_blank" rel="noopener" style="color:#e6c07a;">Casa de Los Hevia</a></td><td style="padding:6px 8px;">Teyego</td></tr>
+        <tr style="border-bottom:1px solid #2a3d5c; background:rgba(201,166,90,0.12);"><td style="padding:6px 8px;">🏠 Civil</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010376/casa-de-los-hevia-ponte-capilla-de-s-antonio-vinculada" target="_blank" rel="noopener" style="color:#e6c07a;">Casa de Los Hevia-Ponte</a></td><td style="padding:6px 8px;">Sardín</td></tr>
+      </table>
+      <p class="dash-note" style="margin-top:12px;">🗺️ El GAL Montaña Central de Asturias mantiene un portal específico con ficha, foto y cómo llegar a cada elemento: <a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5" target="_blank" rel="noopener" style="color:#e6c07a;">Inventario del Patrimonio Cultural — Ribera de Arriba ↗</a>. ⚠️ Esta tabla recoge los elementos verificados hoy en ese portal; puede no ser exhaustiva (revisa el enlace por si se ha añadido alguno nuevo). Detectadas 2 fichas con una posible incoherencia en la propia web oficial ("Castillo de Soto" y "Capilla del Carmen" aparecen en la categoría de Ribera de Arriba pero su descripción los sitúa en Aller y en Cangas del Narcea respectivamente) — se han excluido de esta tabla hasta confirmar cuál es el dato correcto. Complementa este inventario oficial con las 9 cuevas y abrigos paleolíticos del catálogo de 1997 (Estrada García, 2007), muchas de las cuales ya aparecen aquí con ficha propia.</p>
+    </div>
+
+
+    <p class="zoom-hint">Fuente del conjunto: TERRA — Informe de Diagnóstico Territorial, Ribera de Arriba (Díaz Colodrero, N.P., 2026)</p>
+    <div style="text-align:center; margin:24px 0;">
+      <a href="https://bit.ly/ghistora" target="_blank" rel="noopener" class="boton-ghistora">🌐 Descubre todos los servicios de GHistora</a>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALLE -->
+  <div id="modal-overlay">
+    <div id="modal-caja">
+      <button id="modal-cerrar">×</button>
+      <h3 id="modal-titulo"></h3>
+      <div id="modal-valor"></div>
+      <div id="modal-fuente"></div>
+      <div id="modal-grafico"></div>
+      <div id="modal-explicacion"></div>
+      <div id="modal-recomendacion" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- PANEL FAQ -->
+  <div id="panel-faq" class="panel">
+    <div class="cielo-estrellado" id="cielo-panel-faq"></div>
+    <h2>Preguntas frecuentes sobre este visor</h2>
+    <div id="faq-list"></div>
+    <div style="text-align:center; margin:28px 0 10px;">
+      <a href="https://bit.ly/ghistora" target="_blank" rel="noopener" class="boton-ghistora">🌐 Más información sobre GHistora</a>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="visor.js"></script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+
+    @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&display=swap');
+
+    #terra-header-bar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 68px;
+        background: #1a3a5c;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 22px;
+        z-index: 10000;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+        pointer-events: none;
+    }
+    #terra-header-bar .terra-titulos {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+    #terra-header-bar .terra-titulo-principal {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    #terra-header-bar .terra-subtitulo {
+        color: #a8cde8;
+        font-size: 12.5px;
+        font-weight: 400;
+    }
+    #terra-header-bar .terra-sello {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        flex-shrink: 0;
+    }
+    #terra-footer-autoria {
+        position: fixed;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+        font-size: 10px;
+        color: rgba(26, 58, 92, 0.55);
+        z-index: 9999;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+    #terra-header-bar .terra-marca-centro {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.25;
+        text-align: center;
+        pointer-events: none;
+    }
+    #terra-header-bar .terra-marca-centro .terra-marca-linea1 {
+        color: #ffffff;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+    }
+    #terra-header-bar .terra-marca-centro .terra-marca-linea2 {
+        color: #a8cde8;
+        font-size: 11px;
+        font-weight: 400;
+    }
+    #terra-header-bar .terra-sello svg {
+        width: 34px;
+        height: 34px;
+    }
+
+    /* -- Restyle controles Leaflet (zoom, escala, capas) -- */
+    .leaflet-control-zoom a {
+        background-color: #ffffff !important;
+        color: #1a3a5c !important;
+        border-color: #1f78b4 !important;
+        font-weight: 700;
+    }
+    .leaflet-control-zoom a:hover {
+        background-color: #a8cde8 !important;
+    }
+    .leaflet-bar {
+        border: 1.5px solid #1f78b4 !important;
+        box-shadow: 0 2px 6px rgba(26,58,92,0.25) !important;
+    }
+    .leaflet-control-scale-line {
+        background: rgba(255,255,255,0.9) !important;
+        border: 1.5px solid #1f78b4 !important;
+        color: #1a3a5c !important;
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+        font-weight: 600;
+    }
+
+    /* -- Restyle panel de capas (LayerControl) -- */
+    .leaflet-control-layers {
+        background: #ffffff !important;
+        border: 1.5px solid #1f78b4 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 2px 8px rgba(26,58,92,0.3) !important;
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+    }
+    .leaflet-control-layers-expanded {
+        color: #1a3a5c !important;
+        padding: 10px 12px !important;
+    }
+    .leaflet-control-layers-separator {
+        border-top: 1px solid #a8cde8 !important;
+    }
+    .leaflet-control-layers label {
+        font-size: 12.5px !important;
+    }
+
+    /* -- Restyle popups -- */
+    .leaflet-popup-content-wrapper {
+        background: #ffffff !important;
+        border: 1.5px solid #1f78b4 !important;
+        border-radius: 4px !important;
+        color: #1a3a5c !important;
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+    }
+    .leaflet-popup-tip {
+        background: #1f78b4 !important;
+    }
+
+    /* -- Empujar controles Leaflet (zoom, capas, medir, captura) bajo la
+       barra de cabecera -- solo desplaza los contenedores de controles
+       (posicionamiento absoluto propio de Leaflet), NUNCA el tamano del
+       canvas del mapa (esa fue la causa del bug de v1: reducir el
+       tamano del mapa via CSS sin llamar a map.invalidateSize()). -- */
+    .leaflet-top {
+        margin-top: 68px !important;
+    }
+
+    /* -- Control de notas de campo (chincheta) -- */
+    .terra-notas-control a {
+        background-color: #ffffff !important;
+        color: #1a3a5c !important;
+        border-color: #1f78b4 !important;
+        font-size: 16px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .terra-notas-control.terra-notas-activo a {
+        background-color: #1f78b4 !important;
+        filter: brightness(1.15);
+    }
+    .terra-nota-popup {
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+        max-width: 220px;
+    }
+    .terra-nota-popup .terra-nota-texto {
+        color: #1a3a5c;
+        font-size: 13px;
+        margin-bottom: 6px;
+        white-space: pre-wrap;
+    }
+    .terra-nota-popup .terra-nota-acciones {
+        font-size: 11.5px;
+    }
+    .terra-nota-popup .terra-nota-acciones a {
+        color: #1f78b4;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+
+
+    .terra-diag-control a {
+        background-color: #ffffff !important;
+        color: #1a3a5c !important;
+        border-color: #1f78b4 !important;
+        font-size: 16px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .terra-diag-control.terra-diag-activo a {
+        background-color: #1f78b4 !important;
+        filter: brightness(1.15);
+    }
+    .terra-diag-popup {
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+        max-width: 260px;
+    }
+    .terra-diag-popup h4 {
+        margin: 0 0 6px 0;
+        color: #1a3a5c;
+        font-size: 13.5px;
+        border-bottom: 1px solid #a8cde8;
+        padding-bottom: 3px;
+    }
+    .terra-diag-popup .terra-diag-item {
+        font-size: 12.5px;
+        color: #1a3a5c;
+        margin-bottom: 4px;
+    }
+    .terra-diag-popup .terra-diag-item b {
+        color: #1f78b4;
+    }
+    .terra-diag-popup .terra-diag-vacio {
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+    }
+
+
+
+    .terra-comp-control a {
+        background-color: #ffffff !important;
+        color: #1a3a5c !important;
+        border-color: #1f78b4 !important;
+        font-size: 15px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .terra-comp-control.terra-comp-activo a {
+        background-color: #1f78b4 !important;
+        filter: brightness(1.15);
+    }
+    .terra-comp-panel {
+        position: absolute;
+        left: 50%;
+        bottom: 24px;
+        transform: translateX(-50%);
+        background: rgba(255,255,255,0.95);
+        border: 1.5px solid #1f78b4;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-family: 'Junicode', 'Source Serif 4', Georgia, serif;
+        font-size: 12.5px;
+        color: #1a3a5c;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        z-index: 1200;
+        box-shadow: 0 2px 8px rgba(26,58,92,0.3);
+    }
+    .terra-comp-panel.terra-comp-visible {
+        display: flex;
+    }
+    .terra-comp-panel input[type=range] {
+        width: 180px;
+    }
+    .terra-comp-linea {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #ffffff;
+        box-shadow: 0 0 4px rgba(0,0,0,0.6);
+        pointer-events: none;
+        z-index: 1150;
+        display: none;
+    }
+    .terra-comp-linea.terra-comp-visible {
+        display: block;
+    }
+
+
+
+                #map_23cbfc2d132fee0ff3f89ff4a4a35d0e {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            
+
+html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            
+
+#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            
+
+
+                    .leaflet-image-layer {
+                        /* old android/safari*/
+                        image-rendering: -webkit-optimize-contrast;
+                        image-rendering: crisp-edges; /* safari */
+                        image-rendering: pixelated; /* chrome */
+                        image-rendering: -moz-crisp-edges; /* firefox */
+                        image-rendering: -o-crisp-edges; /* opera */
+                        -ms-interpolation-mode: nearest-neighbor; /* ie */
+                    }
+                
+
+
+                        .foliumtooltip {
+                            
+                        }
+                       .foliumtooltip table{
+                            margin: auto;
+                        }
+                        .foliumtooltip tr{
+                            text-align: left;
+                        }
+                        .foliumtooltip th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    
