@@ -320,7 +320,7 @@ function initCalleMap() {
       const bbox = [lon - radioGrados, lat - radioGrados, lon + radioGrados, lat + radioGrados].join(',');
       const diasAtras = 3;
       try {
-        const url = 'https://firms.modaps.eosdis.nasa.gov/api/área/csv/' + FIRMS_MAP_KEY +
+        const url = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv/' + FIRMS_MAP_KEY +
           '/VIIRS_NOAA20_NRT/' + bbox + '/' + diasAtras;
         const res = await fetch(url);
         const texto = await res.text();
