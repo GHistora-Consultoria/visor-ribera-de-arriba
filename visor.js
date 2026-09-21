@@ -167,7 +167,7 @@ function initCalleMap() {
 
     // Cache-buster (?v=...) para evitar que el navegador sirva un 404 viejo
     // cacheado de antes de que existiera data/siose_simplificado.geojson.
-    fetch('data/siose_simplificado.geojson?v=' + Date.now()).then(r => {
+    fetch('siose_simplificado.geojson?v=' + Date.now()).then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(gj => {
@@ -270,7 +270,7 @@ function initCalleMap() {
     }
 
     // --- NBR real (dNBR 2018→2026) por punto, desde el GeoTIFF real de TERRA ---
-    const promesaNBR = fetch('data/cambio_nbr_grid.json')
+    const promesaNBR = fetch('cambio_nbr_grid.json')
       .then(r => r.json())
       .catch(e => { console.warn('Cambio NBR no disponible:', e); return null; });
 
