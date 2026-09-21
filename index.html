@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="terra_layers.css"/>
 <style>
   :root {
-    --navy-dark: #0d1b2e; --navy: #1a3a5c; --navy-light: #1b2f4d;
+    --navy-dark: #0d1b2e; --navy: #1a3a5c; --navy-light: #2f5480;
     --gold: #c9a65a; --gold-bright: #e6c07a; --purple: #6f5590;
     --text-light: #e8e6df; --text-muted: #9aa4b8; --border: #2a3d5c;
   }
@@ -73,7 +73,8 @@
   .chart-titulo { font-size: 15px; color: var(--gold); margin: 0 0 10px; }
   .charts-lado-a-lado { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
   .charts-lado-a-lado > div { flex: 1 1 320px; min-width: 280px; }
-  #chart-poblacion svg, #chart-edades svg { width: 100%; height: auto; display: block; }
+  #chart-poblacion, #chart-edades { height: 380px; display: flex; align-items: center; justify-content: center; }
+  #chart-poblacion svg, #chart-edades svg { width: 100%; height: 100%; max-height: 380px; display: block; }
   #modal-grafico svg { width: 100%; height: auto; display: block; margin-bottom: 12px; }
   .chart-explica { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-top: 10px; }
 
@@ -201,7 +202,7 @@
 <body>
 
 <nav class="tabs">
-  <img class="logo" src="logo-ghistora.jpg" alt="Logo GHistora">
+  <img class="logo" src="logo-ghistora-circular.png" alt="Logo GHistora">
   <span class="brand">GHistora</span>
   <button class="tab-btn active" data-panel="panel-calle">🗺️ Mapa y Ficha técnica</button>
   <button class="tab-btn" data-panel="panel-demo">📊 Panel de datos</button>
@@ -289,7 +290,7 @@
       </div>
       </div>
       <div id="calle-sidebar-logo">
-        <img src="logo-ghistora.jpg" alt="GHistora" style="width:130px; height:130px; border-radius:50%; border:2px solid var(--gold); object-fit:cover;">
+        <img src="logo-ghistora-circular.png" alt="GHistora" style="width:130px; height:130px; border-radius:50%; border:2px solid var(--gold); object-fit:cover;">
         <br><a href="https://bit.ly/ghistora" target="_blank" rel="noopener" class="boton-ghistora">🌐 Conoce GHistora</a>
       </div>
     </div>
@@ -356,7 +357,7 @@
       <p class="dash-note">⚠️ Las 37,55 ha de regeneración espontánea (matorral sin gestionar) elevan el riesgo de incendio si no se desbrozan. Las 420,85 ha de pérdida aumentan la vulnerabilidad a erosión hídrica en pendiente. 💡 Se recomienda priorizar el desbroce preventivo en las zonas de regeneración y valorar restauración de cubierta vegetal donde hubo pérdida en pendiente. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
     </div>
 
-    <h3 class="dash-section">Riesgo de quema — NBR (Normalized Burn Ratio), 2018→2026</h3>
+    <h3 class="dash-section">Riesgo de incendios — histórico (NBR), tiempo real (FIRMS) e índice oficial (IRIF)</h3>
     <div class="chart-box">
       <div class="dash-cajas-grid">
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">🔴 Bajo (quemado/suelo desnudo)</span><div class="dash-caja-val">NBR &lt; 0</div><div class="dash-caja-sub">~8% del municipio</div></div>
@@ -364,8 +365,11 @@
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">🟢 Alto (vegetación sana)</span><div class="dash-caja-val">NBR &gt; 0,3</div><div class="dash-caja-sub">~72% del municipio</div></div>
       </div>
       <p class="dash-note">El NBR (Key &amp; Benson, 2006) usa la misma escala de color en todo TERRA — magenta/rosa para suelo quemado o desnudo, tonos claros para vegetación dispersa o bajo estrés hídrico, y verde para vegetación sana y densa. A diferencia del NDVI (que mide "cuánta" vegetación hay), el NBR está pensado específicamente para detectar quema: es más sensible al agua en la hoja y al carbón residual tras un incendio. El NBR medio municipal ha bajado de 0,237 (2018) a 0,196 (2026): sigue en zona de vegetación sana, pero con una tendencia a la baja que conviene vigilar, sobre todo cruzada con las zonas de pérdida de NDVI ya señaladas arriba. 💡 Ninguna zona del municipio muestra hoy quema activa generalizada (NBR bajo), pero el descenso del NBR medio es una señal temprana a seguir en los próximos informes anuales. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
+      <div class="dash-grid" style="margin-top:14px;">
+        <div class="dash-card" data-key="firms-municipio"><span class="dash-val">🔥 FIRMS</span><span class="dash-lbl">focos de incendio activos (NASA, satélite)</span><span class="dash-src">tiempo casi real</span></div>
+        <div class="dash-card" data-key="irif"><span class="dash-val">🔥 IRIF hoy</span><span class="dash-lbl">índice de riesgo de incendio (1-5) por concejo</span><span class="dash-src">asturias.es, actualización diaria</span></div>
+      </div>
     </div>
-
     <h3 class="dash-section">Medio ambiente — espacios protegidos e hidrografía</h3>
     <div class="chart-box">
       <div class="dash-cajas-grid">
@@ -375,9 +379,6 @@
         <div class="dash-caja" data-key="ma-superficie" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Superficie bajo protección natural</span><div class="dash-caja-val">~4%</div><div class="dash-caja-sub">≈81 ha del término municipal (Natura2000+ENP+MUP)</div></div>
       </div>
       <p class="dash-note">Hidrografía principal: el municipio se articula en torno al <b>río Nalón</b>, con el <b>embalse de los Alfilorios</b> como masa de agua destacada en el sector occidental. La gestión del dominio público hidráulico corresponde a la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027). 💡 Cualquier actuación dentro de Red Natura 2000 o de un Monte de Utilidad Pública catalogado puede necesitar autorización ambiental previa — consulta la Ficha técnica del punto en el mapa para comprobarlo sobre el terreno exacto.</p>
-      <div class="dash-grid" style="margin-top:14px;">
-        <div class="dash-card" data-key="firms-municipio"><span class="dash-val">🔥 FIRMS</span><span class="dash-lbl">focos de incendio activos (NASA, satélite)</span><span class="dash-src">tiempo casi real</span></div>
-      </div>
     </div>
 
     <h3 class="dash-section">Alerta de Planeamiento — sectores clasificados con restriccion sectorial</h3>
@@ -389,14 +390,6 @@
         <div class="dash-caja" data-key="alerta-baja" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#e6c229;"></span><span class="dash-caja-label">Alerta baja (inundacion T500)</span><div class="dash-caja-val">2 sectores</div><div class="dash-caja-sub">Soto del Rey, SAU Ferreros-RMS</div></div>
       </div>
       <p class="dash-note">💡 Esta ficha compara la clasificacion urbanistica ya aprobada por el Principado (RPGUR) con la cartografia mas reciente de inundabilidad (SNCZI) y patrimonio (BIC). Como son dos fuentes que se actualizan en momentos distintos, puede haber sectores ya clasificados como urbanizables que hoy coinciden con una zona de riesgo detectada despues. Esta comprobacion cobra mas peso con el nuevo Real Decreto que el Ministerio para la Transicion Ecologica tramito en 2026, que reforzaria la obligacion (ya vigente desde el RD 665/2023) de incorporar esta cartografia al planeamiento en un plazo de 5 anos. Haz clic en cualquier casilla para ver el detalle y la explicacion completa.</p>
-    </div>
-
-    <h3 class="dash-section">Buscador de vías de financiación</h3>
-    <div class="chart-box">
-      <p class="chart-titulo">Escribe qué necesitas financiar (ej. "hórreos", "turismo", "empleo", "digitalización", "caminos") — cada línea muestra su propia fecha de verificación</p>
-      <input type="text" id="buscador-subvenciones" placeholder="Ej: patrimonio, caminos, turismo, empleo…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
-      <div id="resultados-subvenciones"></div>
-      <p class="dash-note" style="margin-top:8px;">💡 Los importes, plazos y estados de las líneas de este catálogo son los últimos verificados contra fuentes oficiales (BOPA/BOE/miPrincipado); cada línea muestra su propio estado real a fecha de consulta, no una suposición. Para datos que no se actualizan cada año (un reparto plurianual, una cifra de Censo decenal), se muestra siempre el último periodo confirmado disponible.</p>
     </div>
 
     <h3 class="dash-section">Contexto climático — AEMET (estación Oviedo, normales climatológicas 1991-2020)</h3>
@@ -438,22 +431,6 @@
       <p class="dash-note" style="margin-top:12px;">⚠️ Este listado orienta sobre la normativa aplicable, no sustituye asesoría jurídica de un abogado o técnico urbanista colegiado. Antes de cualquier actuación concreta, verifica el texto vigente y actualizado de cada norma.</p>
     </div>
 
-    <h3 class="dash-section">Normativa y alertas — BOE / BOPA</h3>
-    <div class="chart-box">
-      <p class="chart-titulo">Búsqueda de normativa aplicable a la gestión territorial del municipio, con enlace directo a los buscadores oficiales</p>
-      <input type="text" id="buscador-normativa" placeholder="Ej: montes, urbanismo, patrimonio, aguas, hórreos…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
-      <div id="resultados-normativa"></div>
-      <div class="dash-grid" style="margin-top:14px;">
-        <div class="dash-card" data-key="mi-boe"><span class="dash-val">📕 Mi BOE</span><span class="dash-lbl">alertas del Boletín Oficial del Estado</span><span class="dash-src">boe.es/mi_boe</span></div>
-        <div class="dash-card" data-key="mi-bopa"><span class="dash-val">📗 miBOPA</span><span class="dash-lbl">alertas del Boletín del Principado de Asturias</span><span class="dash-src">miprincipado.asturias.es</span></div>
-        <div class="dash-card" data-key="bdns"><span class="dash-val">📘 BDNS</span><span class="dash-lbl">Base de Datos Nacional de Subvenciones</span><span class="dash-src">infosubvenciones.es</span></div>
-        <div class="dash-card" data-key="irif"><span class="dash-val">🔥 IRIF hoy</span><span class="dash-lbl">índice de riesgo de incendio (1-5) por concejo</span><span class="dash-src">asturias.es, actualización diaria</span></div>
-        <div class="dash-card" data-key="prtr"><span class="dash-val">🇪🇺 PRTR / Next Generation</span><span class="dash-lbl">Plan de Recuperación — fondos europeos por componente</span><span class="dash-src">planderecuperacion.gob.es</span></div>
-        <div class="dash-card" data-key="oficina-europea"><span class="dash-val">☎️ Oficina de Proyectos Europeos</span><span class="dash-lbl">Principado de Asturias — asesoramiento directo</span><span class="dash-src">Teléfono 012</span></div>
-        <div class="dash-card" data-key="iberpix"><span class="dash-val">🛰️ Iberpix</span><span class="dash-lbl">ortofotos históricas del IGN, desde los años 50</span><span class="dash-src">ign.es/iberpix/visor</span></div>
-      </div>
-    </div>
-
     <h3 class="dash-section">Patrimonio cultural — inventario oficial de Ribera de Arriba</h3>
     <div class="chart-box">
       <p class="chart-titulo">Inventario del Patrimonio Cultural de Asturias (IPCA) — Comarca de la Montaña Central</p>
@@ -491,6 +468,29 @@
       <p class="dash-note" style="margin-top:12px;">🗺️ El GAL Montaña Central de Asturias mantiene un portal específico con ficha, foto y cómo llegar a cada elemento: <a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5" target="_blank" rel="noopener" style="color:#e6c07a;">Inventario del Patrimonio Cultural — Ribera de Arriba ↗</a>. ⚠️ Esta tabla recoge los elementos verificados hoy en ese portal; puede no ser exhaustiva (revisa el enlace por si se ha añadido alguno nuevo). Detectadas 2 fichas con una posible incoherencia en la propia web oficial ("Castillo de Soto" y "Capilla del Carmen" aparecen en la categoría de Ribera de Arriba pero su descripción los sitúa en Aller y en Cangas del Narcea respectivamente) — se han excluido de esta tabla hasta confirmar cuál es el dato correcto. Complementa este inventario oficial con las 9 cuevas y abrigos paleolíticos del catálogo de 1997 (Estrada García, 2007), muchas de las cuales ya aparecen aquí con ficha propia.</p>
     </div>
 
+
+    <h3 class="dash-section">Normativa y alertas — BOE / BOPA</h3>
+    <div class="chart-box">
+      <p class="chart-titulo">Búsqueda de normativa aplicable a la gestión territorial del municipio, con enlace directo a los buscadores oficiales</p>
+      <input type="text" id="buscador-normativa" placeholder="Ej: montes, urbanismo, patrimonio, aguas, hórreos…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
+      <div id="resultados-normativa"></div>
+      <div class="dash-grid" style="margin-top:14px;">
+        <div class="dash-card" data-key="mi-boe"><span class="dash-val">📕 Mi BOE</span><span class="dash-lbl">alertas del Boletín Oficial del Estado</span><span class="dash-src">boe.es/mi_boe</span></div>
+        <div class="dash-card" data-key="mi-bopa"><span class="dash-val">📗 miBOPA</span><span class="dash-lbl">alertas del Boletín del Principado de Asturias</span><span class="dash-src">miprincipado.asturias.es</span></div>
+        <div class="dash-card" data-key="bdns"><span class="dash-val">📘 BDNS</span><span class="dash-lbl">Base de Datos Nacional de Subvenciones</span><span class="dash-src">infosubvenciones.es</span></div>
+        <div class="dash-card" data-key="prtr"><span class="dash-val">🇪🇺 PRTR / Next Generation</span><span class="dash-lbl">Plan de Recuperación — fondos europeos por componente</span><span class="dash-src">planderecuperacion.gob.es</span></div>
+        <div class="dash-card" data-key="oficina-europea"><span class="dash-val">☎️ Oficina de Proyectos Europeos</span><span class="dash-lbl">Principado de Asturias — asesoramiento directo</span><span class="dash-src">Teléfono 012</span></div>
+        <div class="dash-card" data-key="iberpix"><span class="dash-val">🛰️ Iberpix</span><span class="dash-lbl">ortofotos históricas del IGN, desde los años 50</span><span class="dash-src">ign.es/iberpix/visor</span></div>
+      </div>
+    </div>
+
+    <h3 class="dash-section">Buscador de vías de financiación</h3>
+    <div class="chart-box">
+      <p class="chart-titulo">Escribe qué necesitas financiar (ej. "hórreos", "turismo", "empleo", "digitalización", "caminos") — cada línea muestra su propia fecha de verificación</p>
+      <input type="text" id="buscador-subvenciones" placeholder="Ej: patrimonio, caminos, turismo, empleo…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
+      <div id="resultados-subvenciones"></div>
+      <p class="dash-note" style="margin-top:8px;">💡 Los importes, plazos y estados de las líneas de este catálogo son los últimos verificados contra fuentes oficiales (BOPA/BOE/miPrincipado); cada línea muestra su propio estado real a fecha de consulta, no una suposición. Para datos que no se actualizan cada año (un reparto plurianual, una cifra de Censo decenal), se muestra siempre el último periodo confirmado disponible.</p>
+    </div>
 
     <p class="zoom-hint">Fuente del conjunto: TERRA — Informe de Diagnóstico Territorial, Ribera de Arriba (Díaz Colodrero, N.P., 2026)</p>
     <div style="text-align:center; margin:24px 0;">
