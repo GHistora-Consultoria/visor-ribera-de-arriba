@@ -65,7 +65,7 @@
   #modal-titulo { color: var(--gold-bright); font-size: 20px; margin: 0 0 4px; padding-right: 30px; }
   #modal-valor { font-size: 32px; color: var(--gold-bright); margin: 8px 0; }
   #modal-fuente { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
-  #modal-explicacion { font-size: 16px; line-height: 1.7; color: var(--text-light); margin-bottom: 14px; }
+  #modal-explicación { font-size: 16px; line-height: 1.7; color: var(--text-light); margin-bottom: 14px; }
   #modal-recomendacion { font-size: 15px; line-height: 1.65; background: rgba(230,192,122,0.08); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 4px; }
 
   /* GRÁFICOS */
@@ -75,7 +75,7 @@
   .charts-lado-a-lado > div { flex: 1 1 320px; min-width: 280px; }
   #chart-poblacion, #chart-edades { height: 380px; display: flex; align-items: center; justify-content: center; }
   #chart-poblacion svg, #chart-edades svg { width: 100%; height: 100%; max-height: 380px; display: block; }
-  #modal-grafico svg { width: 100%; height: auto; display: block; margin-bottom: 12px; }
+  #modal-gráfico svg { width: 100%; height: auto; display: block; margin-bottom: 12px; }
   .chart-explica { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-top: 10px; }
 
   /* ENTIDADES compactas */
@@ -193,7 +193,7 @@
   .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 18px; font-size: 16px; color: var(--text-muted); line-height: 1.65; }
   .faq-item.open .faq-a { max-height: 400px; padding: 0 18px 16px; }
   .faq-tag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 3px; margin-bottom: 10px; }
-  .faq-tag.tecnica { background: rgba(201,166,90,0.18); color: var(--gold-bright); }
+  .faq-tag.técnica { background: rgba(201,166,90,0.18); color: var(--gold-bright); }
   .faq-tag.gestion { background: rgba(111,85,144,0.25); color: #c9b8e8; }
   details[open] summary span { transform: rotate(90deg); display: inline-block; transition: transform 0.15s; }
   summary span { display: inline-block; transition: transform 0.15s; }
@@ -350,9 +350,9 @@
     <h3 class="dash-section">Cobertura vegetal — cambio NDVI 2018–2026 (Sentinel-2)</h3>
     <div class="chart-box">
       <div class="dash-cajas-grid">
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Pérdida (ΔNDVI &lt; -0,15)</span><div class="dash-caja-val">19,1%</div><div class="dash-caja-sub">420,85 ha</div></div>
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#6b7a95;"></span><span class="dash-caja-label">Estable</span><div class="dash-caja-val">79,2%</div><div class="dash-caja-sub">1.741,62 ha</div></div>
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Regeneración (ΔNDVI &gt; 0,15)</span><div class="dash-caja-val">1,7%</div><div class="dash-caja-sub">37,55 ha</div></div>
+        <div class="dash-caja" data-key="ndvi-2018" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NDVI 2018 (referencia T1)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado inicial</div></div>
+        <div class="dash-caja" data-key="ndvi-2026" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NDVI 2026 (reciente T2)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado actual</div></div>
+        <div class="dash-caja" data-key="ndvi-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">19,1% pérdida</div><div class="dash-caja-sub">420,85 ha — ver mapa</div></div>
       </div>
       <p class="dash-note">⚠️ Las 37,55 ha de regeneración espontánea (matorral sin gestionar) elevan el riesgo de incendio si no se desbrozan. Las 420,85 ha de pérdida aumentan la vulnerabilidad a erosión hídrica en pendiente. 💡 Se recomienda priorizar el desbroce preventivo en las zonas de regeneración y valorar restauración de cubierta vegetal donde hubo pérdida en pendiente. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
     </div>
@@ -360,9 +360,9 @@
     <h3 class="dash-section">Riesgo de incendios — histórico (NBR), tiempo real (FIRMS) e índice oficial (IRIF)</h3>
     <div class="chart-box">
       <div class="dash-cajas-grid">
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">🔴 Bajo (quemado/suelo desnudo)</span><div class="dash-caja-val">NBR &lt; 0</div><div class="dash-caja-sub">~8% del municipio</div></div>
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#d9c9a3;"></span><span class="dash-caja-label">⚪ Medio (vegetación dispersa/estrés)</span><div class="dash-caja-val">NBR 0–0,3</div><div class="dash-caja-sub">~20% del municipio</div></div>
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">🟢 Alto (vegetación sana)</span><div class="dash-caja-val">NBR &gt; 0,3</div><div class="dash-caja-sub">~72% del municipio</div></div>
+        <div class="dash-caja" data-key="nbr-2018" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NBR 2018 (referencia T1)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado inicial</div></div>
+        <div class="dash-caja" data-key="nbr-2026" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NBR 2026 (reciente T2)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado actual</div></div>
+        <div class="dash-caja" data-key="nbr-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">13,4% pérdida</div><div class="dash-caja-sub">293,1 ha — ver mapa</div></div>
       </div>
       <p class="dash-note">El NBR (Key &amp; Benson, 2006) usa la misma escala de color en todo TERRA — magenta/rosa para suelo quemado o desnudo, tonos claros para vegetación dispersa o bajo estrés hídrico, y verde para vegetación sana y densa. A diferencia del NDVI (que mide "cuánta" vegetación hay), el NBR está pensado específicamente para detectar quema: es más sensible al agua en la hoja y al carbón residual tras un incendio. El NBR medio municipal ha bajado de 0,237 (2018) a 0,196 (2026): sigue en zona de vegetación sana, pero con una tendencia a la baja que conviene vigilar, sobre todo cruzada con las zonas de pérdida de NDVI ya señaladas arriba. 💡 Ninguna zona del municipio muestra hoy quema activa generalizada (NBR bajo), pero el descenso del NBR medio es una señal temprana a seguir en los próximos informes anuales. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
       <div class="dash-grid" style="margin-top:14px;">
@@ -381,22 +381,22 @@
       <p class="dash-note">Hidrografía principal: el municipio se articula en torno al <b>río Nalón</b>, con el <b>embalse de los Alfilorios</b> como masa de agua destacada en el sector occidental. La gestión del dominio público hidráulico corresponde a la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027). 💡 Cualquier actuación dentro de Red Natura 2000 o de un Monte de Utilidad Pública catalogado puede necesitar autorización ambiental previa — consulta la Ficha técnica del punto en el mapa para comprobarlo sobre el terreno exacto.</p>
     </div>
 
-    <h3 class="dash-section">Alerta de Planeamiento — sectores clasificados con restriccion sectorial</h3>
+    <h3 class="dash-section">Alerta de Planeamiento — sectores clasificados con restricción sectorial</h3>
     <div class="chart-box">
       <div class="dash-cajas-grid">
         <div class="dash-caja" data-key="alerta-resumen" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#6b7a95;"></span><span class="dash-caja-label">Sectores con alguna alerta</span><div class="dash-caja-val">5 de 14</div><div class="dash-caja-sub">Suelo Urbano/Urbanizable (RPGUR) con solape sectorial</div></div>
-        <div class="dash-caja" data-key="alerta-alta" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#d62728;"></span><span class="dash-caja-label">Alerta alta (inundacion T10)</span><div class="dash-caja-val">2 sectores</div><div class="dash-caja-sub">Vegalencia, Soto de Ribera</div></div>
-        <div class="dash-caja" data-key="alerta-media" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#ff7f0e;"></span><span class="dash-caja-label">Alerta media (inundacion T100 + BIC)</span><div class="dash-caja-val">1 sector</div><div class="dash-caja-sub">Las Segadas — Cueva de Entrecuevas</div></div>
-        <div class="dash-caja" data-key="alerta-baja" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#e6c229;"></span><span class="dash-caja-label">Alerta baja (inundacion T500)</span><div class="dash-caja-val">2 sectores</div><div class="dash-caja-sub">Soto del Rey, SAU Ferreros-RMS</div></div>
+        <div class="dash-caja" data-key="alerta-alta" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#d62728;"></span><span class="dash-caja-label">Alerta alta (inundación T10)</span><div class="dash-caja-val">2 sectores</div><div class="dash-caja-sub">Vegalencia, Soto de Ribera</div></div>
+        <div class="dash-caja" data-key="alerta-media" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#ff7f0e;"></span><span class="dash-caja-label">Alerta media (inundación T100 + BIC)</span><div class="dash-caja-val">1 sector</div><div class="dash-caja-sub">Las Segadas — Cueva de Entrecuevas</div></div>
+        <div class="dash-caja" data-key="alerta-baja" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#e6c229;"></span><span class="dash-caja-label">Alerta baja (inundación T500)</span><div class="dash-caja-val">2 sectores</div><div class="dash-caja-sub">Soto del Rey, SAU Ferreros-RMS</div></div>
       </div>
-      <p class="dash-note">💡 Esta ficha compara la clasificacion urbanistica ya aprobada por el Principado (RPGUR) con la cartografia mas reciente de inundabilidad (SNCZI) y patrimonio (BIC). Como son dos fuentes que se actualizan en momentos distintos, puede haber sectores ya clasificados como urbanizables que hoy coinciden con una zona de riesgo detectada despues. Esta comprobacion cobra mas peso con el nuevo Real Decreto que el Ministerio para la Transicion Ecologica tramito en 2026, que reforzaria la obligacion (ya vigente desde el RD 665/2023) de incorporar esta cartografia al planeamiento en un plazo de 5 anos. Haz clic en cualquier casilla para ver el detalle y la explicacion completa.</p>
+      <p class="dash-note">💡 Esta ficha compara la clasificación urbanística ya aprobada por el Principado (RPGUR) con la cartografia mas reciente de inundabilidad (SNCZI) y patrimonio (BIC). Como son dos fuentes que se actualizan en momentos distintos, puede haber sectores ya clasificados como urbanizables que hoy coinciden con una zona de riesgo detectada despues. Esta comprobación cobra mas peso con el nuevo Real Decreto que el Ministerio para la Transicion Ecologica tramitó en 2026, que reforzaría la obligación (ya vigente desde el RD 665/2023) de incorporar esta cartografia al planeamiento en un plazo de 5 años. Haz clic en cualquier casilla para ver el detalle y la explicación completa.</p>
     </div>
 
     <h3 class="dash-section">Contexto climático — AEMET (estación Oviedo, normales climatológicas 1991-2020)</h3>
     <div class="dash-grid">
       <div class="dash-card" data-key="aemet-media"><span class="dash-val">13,4 °C</span><span class="dash-lbl">temperatura media anual</span><span class="dash-src">AEMET</span></div>
-      <div class="dash-card" data-key="aemet-maxima"><span class="dash-val">17,5 °C</span><span class="dash-lbl">temperatura máxima media</span><span class="dash-src">AEMET</span></div>
-      <div class="dash-card" data-key="aemet-minima"><span class="dash-val">9,3 °C</span><span class="dash-lbl">temperatura mínima media</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-máxima"><span class="dash-val">17,5 °C</span><span class="dash-lbl">temperatura máxima media</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="aemet-mínima"><span class="dash-val">9,3 °C</span><span class="dash-lbl">temperatura mínima media</span><span class="dash-src">AEMET</span></div>
       <div class="dash-card" data-key="aemet-precipitacion"><span class="dash-val">1.028 mm</span><span class="dash-lbl">precipitación media anual</span><span class="dash-src">AEMET</span></div>
       <div class="dash-card" data-key="aemet-dias-lluvia"><span class="dash-val">190</span><span class="dash-lbl">días de lluvia al año</span><span class="dash-src">AEMET</span></div>
       <div class="dash-card" data-key="aemet-humedad"><span class="dash-val">78 %</span><span class="dash-lbl">humedad relativa media</span><span class="dash-src">AEMET</span></div>
@@ -505,8 +505,8 @@
       <h3 id="modal-titulo"></h3>
       <div id="modal-valor"></div>
       <div id="modal-fuente"></div>
-      <div id="modal-grafico"></div>
-      <div id="modal-explicacion"></div>
+      <div id="modal-gráfico"></div>
+      <div id="modal-explicación"></div>
       <div id="modal-recomendacion" style="display:none;"></div>
     </div>
   </div>
