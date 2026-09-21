@@ -48,7 +48,7 @@
   #panel-demo > *:not(.cielo-estrellado) { position: relative; z-index: 1; }
   #panel-demo h2 { color: var(--gold-bright); font-weight: normal; }
   #panel-demo .demo-cap { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
-  .dash-section { color: var(--gold-bright); font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin: 30px 0 14px; }
+  .dash-section { color: var(--gold-bright); font-size: 19px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid var(--gold); padding-bottom: 8px; margin: 40px 0 18px; }
   .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
   .dash-card { background: var(--navy-light); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; cursor: pointer; transition: transform 0.12s, border-color 0.12s; position: relative; }
   .dash-card:hover { transform: translateY(-2px); border-color: var(--gold); }
@@ -64,18 +64,18 @@
   #modal-cerrar:hover { color: var(--text-light); }
   #modal-titulo { color: var(--gold-bright); font-size: 20px; margin: 0 0 4px; padding-right: 30px; }
   #modal-valor { font-size: 32px; color: var(--gold-bright); margin: 8px 0; }
-  #modal-fuente { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
-  #modal-explicacion { font-size: 14px; line-height: 1.65; color: var(--text-light); margin-bottom: 14px; }
-  #modal-recomendacion { font-size: 13px; line-height: 1.6; background: rgba(230,192,122,0.08); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 4px; }
+  #modal-fuente { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+  #modal-explicacion { font-size: 16px; line-height: 1.7; color: var(--text-light); margin-bottom: 14px; }
+  #modal-recomendacion { font-size: 15px; line-height: 1.65; background: rgba(230,192,122,0.08); border-left: 3px solid var(--gold); padding: 10px 14px; border-radius: 4px; }
 
   /* GRÁFICOS */
   .chart-box { background: var(--navy-light); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 10px; }
-  .chart-titulo { font-size: 13px; color: var(--gold); margin: 0 0 10px; }
+  .chart-titulo { font-size: 15px; color: var(--gold); margin: 0 0 10px; }
   .charts-lado-a-lado { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
   .charts-lado-a-lado > div { flex: 1 1 320px; min-width: 280px; }
   #chart-poblacion svg, #chart-edades svg { width: 100%; height: auto; display: block; }
   #modal-grafico svg { width: 100%; height: auto; display: block; margin-bottom: 12px; }
-  .chart-explica { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-top: 10px; }
+  .chart-explica { font-size: 16px; color: var(--text-muted); line-height: 1.6; margin-top: 10px; }
 
   /* ENTIDADES compactas */
   #entidades-tabla .entidad-row { cursor: default; }
@@ -83,23 +83,23 @@
   #btn-ver-todas:hover { background: rgba(230,192,122,0.1); }
   .entidad-row.entidad-oculta { display: none; }
   .dash-val { font-size: 22px; color: var(--gold-bright); }
-  .dash-lbl { font-size: 12px; color: var(--text-light); }
-  .dash-src { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
-  .dash-rec { font-size: 11px; color: var(--gold-bright); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); line-height: 1.4; }
+  .dash-lbl { font-size: 14px; color: var(--text-light); }
+  .dash-src { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .dash-rec { font-size: 14px; color: var(--gold-bright); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); line-height: 1.5; }
   .dash-cajas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .dash-caja { background: var(--navy-light); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: transform 0.15s, border-color 0.15s; }
   .dash-caja[data-key]:hover { transform: translateY(-2px); border-color: var(--gold); }
   .dash-caja[data-key]::after { content: '🔍 más info'; display: block; font-size: 10px; color: var(--gold); margin-top: 8px; opacity: 0.7; }
   .dash-caja .dash-caja-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
-  .dash-caja .dash-caja-label { font-size: 13px; color: var(--text-light); }
+  .dash-caja .dash-caja-label { font-size: 15px; color: var(--text-light); }
   .dash-caja .dash-caja-val { font-size: 22px; color: var(--gold-bright); margin: 8px 0 4px; }
-  .dash-caja .dash-caja-sub { font-size: 11px; color: var(--text-muted); }
-  .dash-bar-row { display: grid; grid-template-columns: 180px 1fr 140px; align-items: center; gap: 10px; font-size: 12px; }
+  .dash-caja .dash-caja-sub { font-size: 13px; color: var(--text-muted); }
+  .dash-bar-row { display: grid; grid-template-columns: 180px 1fr 140px; align-items: center; gap: 10px; font-size: 14px; }
   .dash-bar-bg { height: 14px; background: var(--navy-light); border-radius: 4px; overflow: hidden; }
   .dash-bar { height: 100%; }
   .dash-bar-val { color: var(--text-muted); text-align: right; }
-  .dash-note { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 10px; line-height: 1.5; }
-  .entidad-row { display: grid; grid-template-columns: 1fr 140px 90px; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .dash-note { font-size: 15px; color: var(--text-light); font-style: italic; margin-top: 10px; line-height: 1.6; }
+  .entidad-row { display: grid; grid-template-columns: 1fr 140px 90px; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
   .entidad-row .entidad-bar-bg { height: 8px; background: var(--navy-light); border-radius: 3px; overflow: hidden; }
   .entidad-row .entidad-bar { height: 100%; background: var(--gold); }
   .entidad-row.sin-poblacion { opacity: 0.55; }
@@ -117,11 +117,11 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.15s;
   }
   .boton-ghistora:hover { transform: translateY(-2px); }
-  #calle-sidebar h3 { color: var(--gold); font-size: 13px; text-transform: uppercase; margin: 0 0 8px; }
-  #calle-sidebar h4 { color: var(--gold-bright); font-size: 13px; margin: 14px 0 8px; }
-  .calle-hint { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
-  .calle-ficha-item { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-  .ficha-explica { font-size: 10px; color: var(--text-muted); line-height: 1.45; margin-top: 2px; font-style: italic; }
+  #calle-sidebar h3 { color: var(--gold); font-size: 15px; text-transform: uppercase; margin: 0 0 8px; }
+  #calle-sidebar h4 { color: var(--gold-bright); font-size: 15px; margin: 14px 0 8px; }
+  .calle-hint { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+  .calle-ficha-item { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .ficha-explica { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-top: 2px; font-style: italic; }
   .ficha-label { color: var(--gold); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; }
   /* Acordeón de la Ficha técnica (15/09/2026): antes todo el texto explicativo
      salía siempre desplegado, recargando visualmente el panel. Ahora cada
@@ -134,7 +134,7 @@
   }
   .ficha-cabecera:hover { background: rgba(230,192,122,0.06); }
   .ficha-cabecera .ficha-label { grid-column: 1 / 2; }
-  .ficha-cabecera .ficha-valor { grid-column: 1 / 2; font-size: 12px; color: var(--text-light); }
+  .ficha-cabecera .ficha-valor { grid-column: 1 / 2; font-size: 14px; color: var(--text-light); }
   .ficha-cabecera .ficha-chevron { grid-row: 1 / 3; align-self: center; color: var(--gold); font-size: 11px; transition: transform 0.15s; }
   .ficha-acordeon[data-abierto="true"] .ficha-chevron { transform: rotate(180deg); }
   .ficha-detalle {
@@ -185,15 +185,17 @@
   }
   #panel-faq h2 { color: var(--gold-bright); font-weight: normal; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
   .faq-item { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; background: var(--navy-light); }
-  .faq-q { padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--text-light); }
+  .faq-q { padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 17px; color: var(--text-light); }
   .faq-q:hover { color: var(--gold-bright); }
   .faq-q .icon { color: var(--gold); transition: transform 0.2s; }
   .faq-item.open .faq-q .icon { transform: rotate(45deg); }
-  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 18px; font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 18px; font-size: 16px; color: var(--text-muted); line-height: 1.65; }
   .faq-item.open .faq-a { max-height: 400px; padding: 0 18px 16px; }
   .faq-tag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 3px; margin-bottom: 10px; }
   .faq-tag.tecnica { background: rgba(201,166,90,0.18); color: var(--gold-bright); }
   .faq-tag.gestion { background: rgba(111,85,144,0.25); color: #c9b8e8; }
+  details[open] summary span { transform: rotate(90deg); display: inline-block; transition: transform 0.15s; }
+  summary span { display: inline-block; transition: transform 0.15s; }
 </style>
 </head>
 <body>
@@ -221,8 +223,8 @@
     <div id="calle-sidebar">
       <div id="calle-sidebar-contenido">
       <h3>Capas</h3>
-      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:4px;"><input type="checkbox" id="chk-red-natura"> 🌳 Red Natura 2000</div>
-      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:12px;"><input type="checkbox" id="chk-montes"> 🌲 Montes de Utilidad Pública</div>
+      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:4px;"><input type="checkbox" id="chk-red-natura"> 🌳 Red Natura 2000</div>
+      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:12px;"><input type="checkbox" id="chk-montes"> 🌲 Montes de Utilidad Pública</div>
       <h3>Ficha técnica del punto</h3>
       <p id="calle-hint" class="calle-hint">Arrastra el círculo dorado de la esquina inferior derecha del mapa y suéltalo en el lugar que quieras consultar.</p>
       <div id="calle-resultado" style="display:none;">
@@ -410,7 +412,12 @@
     <h3 class="dash-section">Normativa aplicable al municipio</h3>
     <div class="chart-box">
       <p class="chart-titulo">Marco normativo verificado para Ribera de Arriba (fuente: informe TERRA + fuentes oficiales)</p>
-      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <details style="margin-top:6px;">
+        <summary style="cursor:pointer; color:var(--gold-bright); font-size:15px; padding:10px 0; list-style:none; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px;">▶</span> Ver tabla completa (13 normas y recursos)
+        </summary>
+        <div style="margin-top:12px;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
         <tr><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Ámbito</th><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Norma / recurso</th></tr>
         <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Planeamiento urbanístico</td><td style="padding:6px 8px;"><a href="https://sigvisor.asturias.es/visorurbanismo/" target="_blank" rel="noopener" style="color:#e6c07a;">Visor RPGUR del Principado ↗</a> (clasificación y calificación del suelo, núcleos rurales)</td></tr>
         <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Instrumento de planeamiento general vigente</td><td style="padding:6px 8px;"><b>Normas Subsidiarias de Planeamiento (NNSS)</b> de Ribera de Arriba, texto refundido, BOPA suplemento nº 215 (16-IX-1997). Ribera de Arriba no dispone de PGOU propio — las NNSS son el instrumento general vigente, con la misma función normativa a efectos de clasificación y calificación del suelo.</td></tr>
@@ -426,6 +433,8 @@
         <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Aguas y dominio público hidráulico</td><td style="padding:6px 8px;">Real Decreto Legislativo 1/2001, Texto Refundido de la Ley de Aguas — gestionado por la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027). RD 665/2023 (modifica el Reglamento del Dominio Público Hidráulico): obliga a incorporar la cartografía de zonas inundables al planeamiento en un plazo de 5 años. Un nuevo Real Decreto en tramitación en 2026 reforzaría esta obligación con programas municipales de adaptación en zonas de riesgo.</td></tr>
         <tr style="border-bottom:1px solid #2a3d5c;"><td style="padding:6px 8px;">Infraestructura de datos espaciales (INSPIRE)</td><td style="padding:6px 8px;">Directiva 2007/2/CE — marco de las capas geoespaciales oficiales que usa este visor</td></tr>
       </table>
+        </div>
+      </details>
       <p class="dash-note" style="margin-top:12px;">⚠️ Este listado orienta sobre la normativa aplicable, no sustituye asesoría jurídica de un abogado o técnico urbanista colegiado. Antes de cualquier actuación concreta, verifica el texto vigente y actualizado de cada norma.</p>
     </div>
 
@@ -448,7 +457,12 @@
     <h3 class="dash-section">Patrimonio cultural — inventario oficial de Ribera de Arriba</h3>
     <div class="chart-box">
       <p class="chart-titulo">Inventario del Patrimonio Cultural de Asturias (IPCA) — Comarca de la Montaña Central</p>
-      <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
+      <details style="margin-top:6px;">
+        <summary style="cursor:pointer; color:var(--gold-bright); font-size:15px; padding:10px 0; list-style:none; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px;">▶</span> Ver los 19 elementos catalogados (arqueológico, castros, religioso, civil)
+        </summary>
+        <div style="margin-top:12px;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px; margin-top:10px;">
         <tr><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Tipo</th><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Elemento</th><th style="text-align:left; padding:6px 8px; color:#c9a65a; border-bottom:1px solid #2a3d5c; font-weight:normal; text-transform:uppercase; font-size:10px;">Núcleo</th></tr>
         <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010464/cueva-de-entrecueves" target="_blank" rel="noopener" style="color:#e6c07a; font-weight:bold;">Cueva de Entrecueves ⭐</a></td><td style="padding:6px 8px;">Las Segadas de Abajo</td></tr>
         <tr style="border-bottom:1px solid #2a3d5c; background:rgba(192,80,77,0.12);"><td style="padding:6px 8px;">🏺 Arqueológico</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010506/abrigu-de-la-penuca" target="_blank" rel="noopener" style="color:#e6c07a;">Abrigu de la Peñuca</a></td><td style="padding:6px 8px;">Quintaniella</td></tr>
@@ -472,6 +486,8 @@
         <tr style="border-bottom:1px solid #2a3d5c; background:rgba(201,166,90,0.12);"><td style="padding:6px 8px;">🏠 Civil</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010497/casa-de-los-hevia" target="_blank" rel="noopener" style="color:#e6c07a;">Casa de Los Hevia</a></td><td style="padding:6px 8px;">Teyego</td></tr>
         <tr style="border-bottom:1px solid #2a3d5c; background:rgba(201,166,90,0.12);"><td style="padding:6px 8px;">🏠 Civil</td><td style="padding:6px 8px;"><a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5/i/86010376/casa-de-los-hevia-ponte-capilla-de-s-antonio-vinculada" target="_blank" rel="noopener" style="color:#e6c07a;">Casa de Los Hevia-Ponte</a></td><td style="padding:6px 8px;">Sardín</td></tr>
       </table>
+        </div>
+      </details>
       <p class="dash-note" style="margin-top:12px;">🗺️ El GAL Montaña Central de Asturias mantiene un portal específico con ficha, foto y cómo llegar a cada elemento: <a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5" target="_blank" rel="noopener" style="color:#e6c07a;">Inventario del Patrimonio Cultural — Ribera de Arriba ↗</a>. ⚠️ Esta tabla recoge los elementos verificados hoy en ese portal; puede no ser exhaustiva (revisa el enlace por si se ha añadido alguno nuevo). Detectadas 2 fichas con una posible incoherencia en la propia web oficial ("Castillo de Soto" y "Capilla del Carmen" aparecen en la categoría de Ribera de Arriba pero su descripción los sitúa en Aller y en Cangas del Narcea respectivamente) — se han excluido de esta tabla hasta confirmar cuál es el dato correcto. Complementa este inventario oficial con las 9 cuevas y abrigos paleolíticos del catálogo de 1997 (Estrada García, 2007), muchas de las cuales ya aparecen aquí con ficha propia.</p>
     </div>
 
