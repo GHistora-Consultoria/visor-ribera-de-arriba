@@ -132,7 +132,7 @@ function cargarExportTerra() {
 
 function initCalleMap() {
   try {
-    const RIBERA_COORDS = [43.315, -5.88]; // ajustar al centroide real del municipio
+    const RIBERA_COORDS = [43.315, -5.88]; // ajustar al centroide real del concejo
     const map = L.map('calle-map').setView(RIBERA_COORDS, 13);
     window.calleMap = map;
     window.mapaTerraPropio = map; // el export de TERRA se engancha a este mismo mapa
@@ -167,7 +167,7 @@ function initCalleMap() {
 
     // Cache-buster (?v=...) para evitar que el navegador sirva un 404 viejo
     // cacheado de antes de que existiera data/siose_simplificado.geojson.
-    fetch('data/siose_simplificado.geojson?v=' + Date.now()).then(r => {
+    fetch('siose_simplificado.geojson?v=' + Date.now()).then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(gj => {
@@ -270,7 +270,7 @@ function initCalleMap() {
     }
 
     // --- NBR real (dNBR 2018→2026) por punto, desde el GeoTIFF real de TERRA ---
-    const promesaNBR = fetch('data/cambio_nbr_grid.json')
+    const promesaNBR = fetch('cambio_nbr_grid.json')
       .then(r => r.json())
       .catch(e => { console.warn('Cambio NBR no disponible:', e); return null; });
 
@@ -320,7 +320,7 @@ function initCalleMap() {
       const bbox = [lon - radioGrados, lat - radioGrados, lon + radioGrados, lat + radioGrados].join(',');
       const diasAtras = 3;
       try {
-        const url = 'https://firms.modaps.eosdis.nasa.gov/api/área/csv/' + FIRMS_MAP_KEY +
+        const url = 'https://firms.modaps.eosdis.nasa.gov/api/area/csv/' + FIRMS_MAP_KEY +
           '/VIIRS_NOAA20_NRT/' + bbox + '/' + diasAtras;
         const res = await fetch(url);
         const texto = await res.text();
@@ -657,7 +657,7 @@ function initCalleMap() {
     },
     paro: {
       titulo: 'Tasa de paro', valor: '30,0%', fuente: 'INE, Censo de Población y Viviendas 2021',
-      explicación: 'Muy por encima de la media nacional — indicador claro de fragilidad del tejido productivo local. Es un dato del Censo 2021 (periodicidad decenal, por lo que puede haber variado desde entonces); conviene contrastarlo con datos más recientes del SEPE si se dispone de ellos. Comparado con la tasa de actividad (50%) y de empleo (40%), sugiere que buena parte de la población activa formal no encuentra trabajo en el propio concejo.',
+      explicación: 'Muy por encima de la media nacional — indicador claro de fragilidad del tejido productivo local. Es un dato del Censo 2021; desde entonces el INE ha cambiado de metodología (los censos de población se publican ya cada año, y los de vivienda cada 3-4 años sin fecha fija), así que conviene comprobar si ya hay una edición más reciente antes de darlo por definitivo. Comparado con la tasa de actividad (50%) y de empleo (40%), sugiere que buena parte de la población activa formal no encuentra trabajo en el propio concejo.',
       recomendacion: '💡 Se recomienda cruzar este dato con el suelo industrial disponible y la actividad económica del concejo para valorar el margen real de generar empleo local.',
       gráfico: histogramaSVG(MERCADO_LABORAL, { max: 60 })
     },
@@ -686,7 +686,7 @@ function initCalleMap() {
     },
     viviendas: {
       titulo: 'Viviendas totales', valor: '1.167', fuente: 'INE, Censo de Población y Viviendas 2021',
-      explicación: 'Parque total de viviendas del municipio según el último Censo (periodicidad decenal). Sirve de base para calcular el resto de indicadores de vivienda: el 65,6% son vivienda principal, el 34,4% secundaria; en cuanto al régimen de tenencia, el 79,0% está en propiedad, el 12,7% en otro régimen y solo el 8,4% en alquiler — un mercado de alquiler muy pequeño, habitual en el medio rural.',
+      explicación: 'Parque total de viviendas del concejo según el último Censo (2021). El INE cambió de metodología tras 2021: ya no es un censo decenal — el de población se publica cada año, y el de vivienda cada 3-4 años sin fecha fija, así que puede existir ya una edición más reciente. Sirve de base para calcular el resto de indicadores de vivienda: el 65,6% son vivienda principal, el 34,4% secundaria; en cuanto al régimen de tenencia, el 79,0% está en propiedad, el 12,7% en otro régimen y solo el 8,4% en alquiler — un mercado de alquiler muy pequeño, habitual en el medio rural.',
       gráfico: donutSVG(USO_VIVIENDA) + tablaColorSVG(TENENCIA_VIVIENDA.map(t => ({ celdas: t.etiquetas, color: t.color })), ['Régimen de tenencia', '% viviendas'])
     },
     secundaria: {
@@ -725,7 +725,7 @@ function initCalleMap() {
     'mi-boe': {
       titulo: 'Mi BOE — alertas del Boletín Oficial del Estado', valor: 'boe.es/mi_boe', fuente: 'Boletín Oficial del Estado (Agencia Estatal BOE)',
       explicación: 'Servicio oficial, gratuito y sin coste, del propio BOE: te das de alta con tu email, guardas una o varias búsquedas por palabra clave (por ejemplo "montes", "aguas", "patrimonio histórico", "subvenciones entidades locales") y recibes un aviso automático cada vez que se pública algo nuevo que coincide. Cubre SOLO normativa y anuncios de ámbito estatal — no recoge el BOPA (autonómico) ni la mayoría de convocatorias de subvenciones, que se publican en la BDNS. Combínalo con miBOPA para cubrir lo esencial sin coste.',
-      recomendacion: '💡 Date de alta una sola vez en boe.es/mi_boe y guarda ahí las palabras clave que más te interesen para la gestión del municipio — el aviso te llega directamente al correo, sin que tengas que volver a entrar en este visor.'
+      recomendacion: '💡 Date de alta una sola vez en boe.es/mi_boe y guarda ahí las palabras clave que más te interesen para la gestión del concejo — el aviso te llega directamente al correo, sin que tengas que volver a entrar en este visor.'
     },
     'mi-bopa': {
       titulo: 'miBOPA — alertas del Boletín Oficial del Principado de Asturias', valor: 'miprincipado.asturias.es', fuente: 'Boletín Oficial del Principado de Asturias (BOPA)',
@@ -744,17 +744,17 @@ function initCalleMap() {
     },
     'firms-municipio': {
       titulo: 'Alerta de incendio activo (NASA FIRMS)', valor: 'Consultar en tiempo real', fuente: 'NASA FIRMS (Fire Information for Resource Management System)',
-      explicación: 'FIRMS detecta focos de calor por satélite (sensores VIIRS/MODIS) compatibles con incendios activos, actualizado varias veces al día — es información casi en tiempo real, no un histórico. La Ficha técnica de este visor ya consulta este mismo servicio para el punto exacto que marques con el muñeco (radio ~15 km), pero para una vista de todo el municipio de un vistazo, el mapa oficial de FIRMS permite ver los focos activos de las últimas 24-48h sobre toda Asturias.',
+      explicación: 'FIRMS detecta focos de calor por satélite (sensores VIIRS/MODIS) compatibles con incendios activos, actualizado varias veces al día — es información casi en tiempo real, no un histórico. La Ficha técnica de este visor ya consulta este mismo servicio para el punto exacto que marques con el muñeco (radio ~15 km), pero para una vista de todo el concejo de un vistazo, el mapa oficial de FIRMS permite ver los focos activos de las últimas 24-48h sobre toda Asturias.',
       recomendacion: '💡 Consulta el mapa oficial en tiempo real: <a href="https://firms.modaps.eosdis.nasa.gov/map/#z:9;c:-5.9,43.3" target="_blank" rel="noopener" style="color:#e6c07a;">FIRMS — mapa de incendios activos ↗</a>.'
     },
     'ndvi-2018': {
-      titulo: 'NDVI 2018 — referencia inicial (T1)', valor: 'Mapa completo del municipio', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
-      explicación: 'Mapa de Indice de Vegetacion de Diferencia Normalizada (NDVI) de todo el municipio a fecha 2018, usado como punto de partida para medir el cambio de cobertura vegetal hasta 2026. Escala de color: rojo indica suelo desnudo o vegetacion muy escasa, amarillo vegetacion moderada, y verde vegetacion densa y sana.',
+      titulo: 'NDVI 2018 — referencia inicial (T1)', valor: 'Mapa completo del concejo', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
+      explicación: 'Mapa de Indice de Vegetacion de Diferencia Normalizada (NDVI) de todo el concejo a fecha 2018, usado como punto de partida para medir el cambio de cobertura vegetal hasta 2026. Escala de color: rojo indica suelo desnudo o vegetacion muy escasa, amarillo vegetacion moderada, y verde vegetacion densa y sana.',
       gráfico: '<img src="mapa_ndvi_2018.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa NDVI de Ribera de Arriba en 2018"><div style="text-align:right; margin-top:6px;"><a href="mapa_ndvi_2018.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'ndvi-2026': {
-      titulo: 'NDVI 2026 — estado más reciente (T2)', valor: 'Mapa completo del municipio', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
-      explicación: 'Mapa de NDVI de todo el municipio a fecha 2026, comparable directamente con el de 2018 para ver la evolucion real de la cobertura vegetal. Misma escala de color: rojo suelo desnudo/vegetacion escasa, amarillo vegetacion moderada, verde vegetacion densa y sana.',
+      titulo: 'NDVI 2026 — estado más reciente (T2)', valor: 'Mapa completo del concejo', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
+      explicación: 'Mapa de NDVI de todo el concejo a fecha 2026, comparable directamente con el de 2018 para ver la evolucion real de la cobertura vegetal. Misma escala de color: rojo suelo desnudo/vegetacion escasa, amarillo vegetacion moderada, verde vegetacion densa y sana.',
       gráfico: '<img src="mapa_ndvi_2026.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa NDVI de Ribera de Arriba en 2026"><div style="text-align:right; margin-top:6px;"><a href="mapa_ndvi_2026.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'ndvi-cambio': {
@@ -763,13 +763,13 @@ function initCalleMap() {
       gráfico: '<img src="mapa_cambio_ndvi.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de cambio NDVI 2018-2026 en Ribera de Arriba"><div style="text-align:right; margin-top:6px;"><a href="mapa_cambio_ndvi.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'nbr-2018': {
-      titulo: 'NBR 2018 — referencia inicial (T1)', valor: 'Mapa completo del municipio', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
-      explicación: 'Mapa de Normalized Burn Ratio (NBR) de todo el municipio a fecha 2018, el indicador especifico para detectar suelo quemado o vegetacion bajo estres hidrico, mas sensible que el NDVI a este tipo de senal. Escala de color: magenta/rosa suelo quemado o desnudo, tonos claros vegetacion dispersa o estresada, verde vegetacion sana.',
+      titulo: 'NBR 2018 — referencia inicial (T1)', valor: 'Mapa completo del concejo', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
+      explicación: 'Mapa de Normalized Burn Ratio (NBR) de todo el concejo a fecha 2018, el indicador especifico para detectar suelo quemado o vegetacion bajo estres hidrico, mas sensible que el NDVI a este tipo de senal. Escala de color: magenta/rosa suelo quemado o desnudo, tonos claros vegetacion dispersa o estresada, verde vegetacion sana.',
       gráfico: '<img src="mapa_nbr_2018.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa NBR de Ribera de Arriba en 2018"><div style="text-align:right; margin-top:6px;"><a href="mapa_nbr_2018.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'nbr-2026': {
-      titulo: 'NBR 2026 — estado más reciente (T2)', valor: 'Mapa completo del municipio', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
-      explicación: 'Mapa de NBR de todo el municipio a fecha 2026, comparable directamente con el de 2018. Misma escala de color: magenta/rosa suelo quemado o desnudo, tonos claros vegetacion dispersa o estresada, verde vegetacion sana.',
+      titulo: 'NBR 2026 — estado más reciente (T2)', valor: 'Mapa completo del concejo', fuente: 'TERRA, Sentinel-2 L2A (ESA/Copernicus)',
+      explicación: 'Mapa de NBR de todo el concejo a fecha 2026, comparable directamente con el de 2018. Misma escala de color: magenta/rosa suelo quemado o desnudo, tonos claros vegetacion dispersa o estresada, verde vegetacion sana.',
       gráfico: '<img src="mapa_nbr_2026.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa NBR de Ribera de Arriba en 2026"><div style="text-align:right; margin-top:6px;"><a href="mapa_nbr_2026.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'nbr-cambio': {
@@ -779,7 +779,7 @@ function initCalleMap() {
     },
     'ma-red-natura': {
       titulo: 'Red Natura 2000 — ES1200029 Río Nalón', valor: 'Espacio protegido europeo', fuente: 'Ley 42/2007, del Patrimonio Natural y la Biodiversidad; Directiva Hábitats 92/43/CEE',
-      explicación: 'Red Natura 2000 es la red europea de espacios protegidos por sus hábitats y especies de interés comunitario. El espacio ES1200029 "Río Nalón" discurre por el municipio siguiendo el curso del propio río, protegiendo el corredor fluvial y su vegetación de ribera. Cualquier actuación que pueda afectar a este espacio (obras, canalizaciones, extracciones) puede necesitar autorización ambiental previa de la Consejería competente en medio ambiente, con independencia de si la parcela tiene además otra clasificación urbanística.'
+      explicación: 'Red Natura 2000 es la red europea de espacios protegidos por sus hábitats y especies de interés comunitario. El espacio ES1200029 "Río Nalón" discurre por el concejo siguiendo el curso del propio río, protegiendo el corredor fluvial y su vegetación de ribera. Cualquier actuación que pueda afectar a este espacio (obras, canalizaciones, extracciones) puede necesitar autorización ambiental previa de la Consejería competente en medio ambiente, con independencia de si la parcela tiene además otra clasificación urbanística.'
     ,
       gráfico: '<img src="mapa_red_natura.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de Red Natura 2000 en Ribera de Arriba"><div style="text-align:right; margin-top:6px;"><a href="mapa_red_natura.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
@@ -791,20 +791,20 @@ function initCalleMap() {
     },
     'ma-enp': {
       titulo: 'Espacios Naturales Protegidos del entorno', valor: 'Cueva de las Caldas, Desfiladero de las Xanas', fuente: 'Ley 42/2007 y normativa autonómica de espacios naturales protegidos',
-      explicación: 'Estos dos espacios no están dentro del término municipal de Ribera de Arriba, sino en su entorno inmediato (municipios colindantes) — se citan aquí porque cualquier actuación cerca del límite municipal puede tener que valorar su proximidad. La Cueva de las Caldas es un yacimiento con arte rupestre paleolítico protegido; el Desfiladero de las Xanas es un espacio de gran valor paisajístico y geomorfológico (cañón fluvial) en el concejo vecino de Santo Adriano/Proaza.'
+      explicación: 'Estos dos espacios no están dentro del término municipal de Ribera de Arriba, sino en su entorno inmediato (concejos colindantes) — se citan aquí porque cualquier actuación cerca del límite municipal puede tener que valorar su proximidad. La Cueva de las Caldas es un yacimiento con arte rupestre paleolítico protegido; el Desfiladero de las Xanas es un espacio de gran valor paisajístico y geomorfológico (cañón fluvial) en el concejo vecino de Santo Adriano/Proaza.'
     ,
       gráfico: '<img src="mapa_enp.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de Espacios Naturales Protegidos del entorno de Ribera de Arriba"><div style="text-align:right; margin-top:6px;"><a href="mapa_enp.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'ma-superficie': {
-      titulo: 'Superficie bajo protección natural', valor: '~4% del municipio (≈81 ha)', fuente: 'Cruce SIOSE + Natura2000/ENP/MUP — informe TERRA',
-      explicación: 'La superficie realmente protegida en Ribera de Arriba (suma de Red Natura 2000, Espacios Naturales Protegidos y Montes de Utilidad Pública) es una porción pequeña del municipio, pero presenta una fragmentación del paisaje mayor que el conjunto del territorio: 292 parches de uso del suelo con una densidad de borde de 1.189 m/ha, frente a los 918 m/ha del municipio completo. Dentro de esa superficie protegida se han detectado 25 recintos (4,33 ha, un 5,35% de la superficie protegida total) con un uso del suelo de carácter no natural (industria, transporte, residencial) — puntos concretos donde ambas capas colisionan y que conviene inspeccionar sobre el terreno.'
+      titulo: 'Superficie bajo protección natural', valor: '~4% del concejo (≈81 ha)', fuente: 'Cruce SIOSE + Natura2000/ENP/MUP — informe TERRA',
+      explicación: 'La superficie realmente protegida en Ribera de Arriba (suma de Red Natura 2000, Espacios Naturales Protegidos y Montes de Utilidad Pública) es una porción pequeña del concejo, pero presenta una fragmentación del paisaje mayor que el conjunto del territorio: 292 parches de uso del suelo con una densidad de borde de 1.189 m/ha, frente a los 918 m/ha del concejo completo. Dentro de esa superficie protegida se han detectado 25 recintos (4,33 ha, un 5,35% de la superficie protegida total) con un uso del suelo de carácter no natural (industria, transporte, residencial) — puntos concretos donde ambas capas colisionan y que conviene inspeccionar sobre el terreno. Estos datos proceden de SIOSE AR 2016 (revisión 2017), la versión usada en el diagnóstico original — el IGN ha publicado actualizaciones posteriores del producto para Asturias, así que esta fragmentación podría haber cambiado desde entonces y conviene recalcularla con la versión más reciente antes de tomar decisiones basadas solo en esta cifra.'
     ,
       gráfico: '<img src="mapa_medio_ambiente.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de conflictos de uso en zonas protegidas de Ribera de Arriba"><div style="text-align:right; margin-top:6px;"><a href="mapa_medio_ambiente.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'alerta-resumen': {
       titulo: 'Alerta de Planeamiento — resumen', valor: '5 de 14 sectores con alguna alerta', fuente: 'RPGUR (Principado de Asturias) + SNCZI (MITECO) + BIC (RPGUR)',
-      explicación: 'La clasificación urbanística de un sector (Suelo Urbano o Urbanizable) la aprueba el Principado dentro del planeamiento del municipio, y una vez aprobada no cambia sola. Pero la cartografia de riesgos (por ejemplo, las zonas inundables del Ministerio) SI se actualiza de forma periódica, con su propio calendario, independiente del urbanístico. Cuando el planeamiento de un municipio pequeno lleva tiempo sin revisarse, puede quedar desactualizado frente a una cartografia de riesgo mas reciente — esta ficha compara ambas fuentes oficiales y senala donde coinciden hoy, sin que eso signifique que el sector este mal clasificado, solo que merece revisarse.',
-      recomendacion: '💡 De los 14 sectores de Suelo Urbano/Urbanizable del municipio, 5 solapan hoy con alguna zona de riesgo detectada por una fuente oficial distinta al propio planeamiento. Revisa las 3 fichas siguientes para el detalle de cada nivel.',
+      explicación: 'La clasificación urbanística de un sector (Suelo Urbano o Urbanizable) la aprueba el Principado dentro del planeamiento del concejo, y una vez aprobada no cambia sola. Pero la cartografia de riesgos (por ejemplo, las zonas inundables del Ministerio) SI se actualiza de forma periódica, con su propio calendario, independiente del urbanístico. Cuando el planeamiento de un concejo pequeno lleva tiempo sin revisarse, puede quedar desactualizado frente a una cartografia de riesgo mas reciente — esta ficha compara ambas fuentes oficiales y senala donde coinciden hoy, sin que eso signifique que el sector este mal clasificado, solo que merece revisarse.',
+      recomendacion: '💡 De los 14 sectores de Suelo Urbano/Urbanizable del concejo, 5 solapan hoy con alguna zona de riesgo detectada por una fuente oficial distinta al propio planeamiento. Revisa las 3 fichas siguientes para el detalle de cada nivel.',
       gráfico: '<img src="mapa_alerta_resumen.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa resumen de sectores con Alerta de Planeamiento"><div style="text-align:right; margin-top:6px;"><a href="mapa_alerta_resumen.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
     },
     'alerta-alta': {
@@ -902,7 +902,7 @@ function initCalleMap() {
 /* ======================= GRÁFICO: PIRÁMIDE DE POBLACIÓN REAL (INE, 2022) ======================= */
 (function () {
   // Datos reales: INE, Padrón Continuo, Población por sexo y edad (grupos quinquenales),
-  // municipio 33057 Ribera de Arriba, 1 de enero de 2022.
+  // concejo 33057 Ribera de Arriba, 1 de enero de 2022.
   const tramos = [
     { et: '0-4',   h: 33, m: 22 }, { et: '5-9',   h: 47, m: 26 }, { et: '10-14', h: 45, m: 46 },
     { et: '15-19', h: 42, m: 47 }, { et: '20-24', h: 32, m: 35 }, { et: '25-29', h: 35, m: 39 },
@@ -936,11 +936,12 @@ function initCalleMap() {
   document.getElementById('chart-edades').innerHTML = svg;
 })();
 
-/* ======================= BUSCADOR DE SUBVENCIONES (datos reales, verificados 15/06/2026) ======================= */
+/* ======================= BUSCADOR DE SUBVENCIONES (datos reales, verificados 15/09/2026) ======================= */
 (function () {
   const LÍNEAS = [
     {
       nombre: 'Fondo de Cooperación Municipal',
+      verificado: '2026-09-15',
       ventana: [1, 3],
       tema: 'incondicional libre disposición gasto corriente infraestructuras digitalización servicios sociales',
       cuantia: 'Reparto anual creciente: en torno a 11 M€ recientemente, con compromiso de alcanzar 13,31 M€ en 2027 (+10% anual). Reparto entre los 74 concejos de menos de 40.000 hab.: 40% a partes iguales, resto por población, envejecimiento, superficie, orografía y dispersión.',
@@ -949,6 +950,7 @@ function initCalleMap() {
     },
     {
       nombre: 'LEADER Entidades Locales',
+      verificado: '2026-09-15',
       ventana: [7, 10],
       tema: 'servicios básicos población servicios asistenciales turismo cultura ocio movilidad sostenible protección entorno natural patrimonio arquitectónico transición energética banda ancha infraestructuras pequeña escala',
       cuantia: 'Hasta 100% del gasto, tope 200.000 €/proyecto (mínimo 15.000 €). Dotación total 9.950.000 € para 2026-2028 entre los 11 GAL de Asturias.',
@@ -965,6 +967,7 @@ function initCalleMap() {
     },
     {
       nombre: 'AYUD0136T03 — Caminos rurales y defensa contra incendios',
+      verificado: '2026-09-15',
       tema: 'caminos rurales pistas agrarias mantenimiento infraestructuras rurales defensa incendios forestales',
       cuantia: 'Subvención mediante convenio (cuantía variable según convocatoria)',
       estado: 'Consejería de Medio Rural y Política Agraria. A diferencia de LEADER (que excluye expresamente caminos y carreteras), esta línea SÍ cubre mantenimiento de caminos y pistas agrarias. Verificar convocatoria vigente directamente en miprincipado.asturias.es.',
@@ -972,6 +975,7 @@ function initCalleMap() {
     },
     {
       nombre: 'ITJ — Infraestructuras en zonas de Transición Justa',
+      verificado: '2026-09-15',
       tema: 'rehabilitación edificios poblados servicios públicos vivienda digitalización emprendimiento patrimonio minero industrial cultura turismo infraestructuras ambientales movilidad sostenible',
       cuantia: 'Hasta el 100% de los costes. Objetivo mínimo comprometido: 91 M€ en al menos 100 proyectos (más una ampliación de 11 M€ adicionales para 30 proyectos más).',
       estado: 'Programa activo y en gestión continuada: la Orden TED/613/2026 (17-VI-2026) amplía el plazo de ejecución de proyectos ya concedidos hasta el 30-VI-2028. No hay indicios de una convocatoria nueva abierta a fecha de hoy, pero el programa sigue vivo — Ribera de Arriba pertenece a la ZTJ Valle del Caudal-Aboño (14 municipios). Verificar convocatorias directamente en transicionjusta.gob.es.',
@@ -979,6 +983,7 @@ function initCalleMap() {
     },
     {
       nombre: 'Ayudas a proyectos innovadores — Reto Demográfico (MITECO)',
+      verificado: '2026-09-15',
       ventana: [11, 12],
       tema: 'servicios emprendimiento cultura servicios sociales transporte vivienda asociacionismo zonas afectadas incendios',
       cuantia: '25.000-300.000 €, hasta 90% del gasto. Convocatoria 2025 (ejecutada en 2026): 52 M€ totales en 3 modalidades (A: entidades locales, B: entidades sin ánimo de lucro, C: empresas/autónomos).',
@@ -987,14 +992,16 @@ function initCalleMap() {
     },
     {
       nombre: 'Subvenciones de turismo para entidades locales',
+      verificado: '2026-09-15',
       ventana: [5, 6],
       tema: 'señalización turística oficinas información turística destinos turísticos inteligentes digitalización áreas autocaravanas',
       cuantia: 'Señalización hasta 3.000 € (50%); destinos inteligentes hasta 20.000-30.000 €',
-      estado: 'Ventana habitual de solicitud mayo-junio, ya transcurrida en 2026 sin convocatoria observada a fecha de hoy. Próxima ventana esperada mayo-junio de 2027 — confirmar en la convocatoria oficial.',
+      estado: 'En años anteriores se ha abierto en mayo-junio; en 2026 no se observó convocatoria en esas fechas. Confirmar directamente en la convocatoria oficial si se repite el patrón en 2027.',
       exclusiones: null
     },
     {
       nombre: 'Subvenciones de Patrimonio Cultural (Consejería de Cultura)',
+      verificado: '2026-09-15',
       ventana: [1, 2],
       tema: 'restauración BIC IPCA hórreos paneras cabazos patrimonio brañas arqueología difusión estudio',
       cuantia: 'Hórreos/paneras/cabazos: 450.000 € totales. BIC/IPCA: 350.000 €. Difusión y estudio del patrimonio: 125.000-140.000 €. Conjunto de líneas patrimoniales 2026: 1.110.000 € (frente a 275.000 € en 2019).',
@@ -1003,6 +1010,7 @@ function initCalleMap() {
     },
     {
       nombre: 'Planes de Empleo / itinerarios de activación (SEPEPA)',
+      verificado: '2026-09-15',
       ventana: [5, 6],
       tema: 'contratación empleo público local itinerarios activación',
       cuantia: '≈26.500 €/contrato de media. Convocatoria 2026-2027 (código AYUD0226T03): 7.216.500 €/anualidad (2026 y 2027), 14.433.000 € en total.',
@@ -1047,11 +1055,22 @@ function initCalleMap() {
       return ini <= fin ? (mesHoy >= ini && mesHoy <= fin) : (mesHoy >= ini || mesHoy <= fin); // por si cruza fin de año
     }
 
+    function insigniaVerificacion(l) {
+      if (!l.verificado) return '';
+      const dias = Math.floor((new Date() - new Date(l.verificado + 'T00:00:00')) / 86400000);
+      let color, texto;
+      if (dias < 30) { color = '#4f8a5b'; texto = '✅ Verificado hace ' + dias + ' días'; }
+      else if (dias < 90) { color = '#c9a65a'; texto = '🟡 Verificado hace ' + dias + ' días — conviene reconfirmar'; }
+      else { color = '#c0504d'; texto = '🔴 Verificado hace ' + dias + ' días — han pasado meses, revisar de nuevo antes de usar'; }
+      return '<span class="dash-src" style="color:' + color + '; font-size:11px;">' + texto + '</span>';
+    }
+
     coincidenTema.forEach((l) => {
       const enVentana = ventanaAbiertaHoy(l);
       html += '<div class="dash-card" style="cursor:default; margin-bottom:8px;' + (enVentana ? ' border-color:#c0504d;' : '') + '">' +
-        (enVentana ? '<span class="dash-src" style="color:#c0504d; font-weight:bold;">🔴 Estamos dentro de su ventana habitual de solicitud — verifica si la convocatoria de este año ya está publicada</span>' : '') +
+        (enVentana ? '<span class="dash-src" style="color:#c0504d; font-weight:bold;">🔴 En años anteriores esta línea se ha abierto por estas fechas — merece la pena comprobar si ya hay convocatoria publicada este año</span>' : '') +
         '<span class="dash-lbl" style="font-size:14px; color:var(--gold-bright);">' + l.nombre + '</span>' +
+        insigniaVerificacion(l) +
         '<span class="dash-src" style="margin-top:4px;"><b>Cuantía:</b> ' + l.cuantia + '</span>' +
         '<span class="dash-src"><b>Estado:</b> ' + l.estado + '</span>' +
         (textoExclusiones(l) ? '<span class="dash-src" style="color:#c0504d;"><b>⚠️ No cubre:</b> ' + textoExclusiones(l) + '</span>' : '') +
@@ -1119,9 +1138,9 @@ const FAQ = [
     respuesta: 'Arrastra el muñeco dorado sobre la parcela que te interesa en el mapa. En la Ficha técnica, despliega "Uso del suelo (SIOSE)" para ver el uso real detectado sobre el terreno, y "Parcela (Catastro)" para su referencia oficial. La clasificación urbanística vinculante (Suelo Urbano, No Urbanizable, etc.) depende del planeamiento municipal (RPGUR) vigente en cada momento — para una valoración vinculante sobre un expediente concreto, GHistora puede emitir un informe técnico específico cruzando estos datos con el planeamiento actualizado.' },
   { tag: 'gestion', pregunta: '¿Cómo sé si hay riesgo de inundación en un punto concreto antes de autorizar una obra?',
     respuesta: 'Hay dos formas de verlo en este visor, y sirven para preguntas distintas. Para un PUNTO exacto: arrastra el muñeco dorado sobre el mapa y despliega "Riesgo de inundación (SNCZI)" en la Ficha técnica — te dará la profundidad estimada de la lámina de agua para tres periodos de retorno (T10, T100, T500) justo en ese lugar. Para un SECTOR urbanístico completo (una zona con nombre propio en el catálogo, como "Vegalencia" o "Soto de Ribera"): consulta la sección "Alerta de Planeamiento" del Panel de datos, que ya te dice directamente qué sectores clasificados como urbanizables/urbanos coinciden con zona inundable, sin que tengas que ir comprobando punto por punto. Si el muñeco no muestra ningún valor de inundación en un punto, significa que el servicio oficial (MITECO) no tiene esa zona cartografiada como inundable en ese periodo — no que sea físicamente imposible que se inunde.' },
-  { tag: 'gestion', pregunta: '¿Cómo localizo las zonas del municipio que más vegetación han perdido, para priorizar desbroces o restauración?',
+  { tag: 'gestion', pregunta: '¿Cómo localizo las zonas del concejo que más vegetación han perdido, para priorizar desbroces o restauración?',
     respuesta: 'Ve al "Panel de datos" y busca la sección "Cobertura vegetal — cambio NDVI 2018-2026": ahí ves el porcentaje total de pérdida, superficie estable y regeneración. Para ver exactamente DÓNDE están esas zonas sobre el mapa, vuelve a "Mapa y Ficha técnica" y activa en el control de capas (arriba a la derecha) la capa de cambio NDVI o NBR — las zonas rojas son pérdida de vegetación o quema, las verdes son regeneración. Cruza esto con la sección "Riesgo de quema — NBR" del Panel de datos para distinguir pérdida por posible quema de pérdida por otras causas (tala, sequía, cambio de uso).' },
-  { tag: 'gestion', pregunta: '¿Puedo consultar si hoy están permitidas las quemas agrícolas en el municipio?',
+  { tag: 'gestion', pregunta: '¿Puedo consultar si hoy están permitidas las quemas agrícolas en el concejo?',
     respuesta: 'Sí, aunque no en vivo dentro del visor: en la sección "Normativa y alertas" del Panel de datos hay una ficha "🔥 IRIF hoy" con el enlace directo a la página oficial del Principado (112asturias.es/indice-incendio), que se actualiza cada día con el nivel de riesgo (1 a 5) por concejo. Con nivel 4 (muy alto) o 5 (extremo), quedan suspendidas todas las autorizaciones de quema en toda Asturias, sea cual sea el concejo.' },
   { tag: 'gestion', pregunta: '¿Cómo obtengo un mapa de lo que estoy viendo, para adjuntar a un informe o expediente?',
     respuesta: 'El propio visor lo genera al instante: configura el mapa como quieras verlo (capas activadas, zoom, posición), y en el panel de herramientas de la izquierda de "Mapa y Ficha técnica" pulsa el icono de cámara 📷 — exporta la vista actual como mapa listo para imprimir, en PNG o PDF, con título, leyenda de capas activas, escala y orientación, igual que las láminas técnicas que acompañan cada informe de GHistora. No hace falta pedirlo aparte ni volver a montar el mapa desde cero.' },
@@ -1129,10 +1148,10 @@ const FAQ = [
     respuesta: 'En el mapa, arriba a la izquierda, busca el icono ↔️ ("Comparador temporal NDVI") y actívalo: aparece una línea deslizante que puedes arrastrar de un lado a otro para revelar el NDVI de 2018 o el de 2026 en la misma zona — muy útil para enseñar a alguien, de un vistazo, cómo ha cambiado la cobertura vegetal de un terreno concreto entre esas dos fechas, sin tener que alternar entre dos mapas separados.' },
   { tag: 'gestion', pregunta: '¿Cómo encuentro financiación disponible para un proyecto concreto (hórreos, caminos, empleo, digitalización...)?',
     respuesta: 'Ve al Panel de datos, sección "Buscador de vías de financiación", y escribe qué necesitas financiar (por ejemplo "hórreos", "caminos", "turismo", "empleo"). El buscador te muestra qué líneas del catálogo lo cubren, con cuantía y estado real de la convocatoria; si tu palabra coincide con algo que una línea excluye expresamente, te dirá también en qué otra línea sí encaja. Para una búsqueda exhaustiva más allá de este catálogo verificado a mano, usa el enlace a la BDNS (Base de Datos Nacional de Subvenciones) en la sección "Normativa y alertas".' },
-  { tag: 'gestion', pregunta: '¿Cómo me entero de cuándo se pública una norma o subvención nueva que afecte al municipio, sin tener que estar mirando el visor a diario?',
+  { tag: 'gestion', pregunta: '¿Cómo me entero de cuándo se pública una norma o subvención nueva que afecte al concejo, sin tener que estar mirando el visor a diario?',
     respuesta: 'El visor no manda avisos por sí mismo (es una página web, no puede mandarte un email), pero te conecta con los dos servicios oficiales gratuitos que sí lo hacen: en "Normativa y alertas" tienes fichas de Mi BOE (para normativa estatal) y miBOPA (para normativa y convocatorias autonómicas). Date de alta una vez en cada uno con tu email y las palabras clave que te interesen (por ejemplo "montes", "urbanismo", "Ribera de Arriba"), y recibirás el aviso directamente en tu correo cada vez que se publique algo nuevo que coincida.' },
-  { tag: 'gestion', pregunta: '¿Cómo consulto la evolución de la población o el envejecimiento del municipio para justificar una solicitud de ayuda?',
-    respuesta: 'En el Panel de datos, la sección "Población — evolución y estructura por edad" tiene la serie histórica completa (2015-2026) y la pirámide de población por sexo y tramo de edad, con las fuentes oficiales (INE) citadas debajo de cada gráfico, listas para citar en un informe. Más abajo, "Entidades de población (núcleos)" desglosa la población por cada pueblo/aldea del concejo — útil para justificar actuaciones dirigidas a núcleos concretos en riesgo de despoblación, no solo al municipio en su conjunto.' },
+  { tag: 'gestion', pregunta: '¿Cómo consulto la evolución de la población o el envejecimiento del concejo para justificar una solicitud de ayuda?',
+    respuesta: 'En el Panel de datos, la sección "Población — evolución y estructura por edad" tiene la serie histórica completa (2015-2026) y la pirámide de población por sexo y tramo de edad, con las fuentes oficiales (INE) citadas debajo de cada gráfico, listas para citar en un informe. Más abajo, "Entidades de población (núcleos)" desglosa la población por cada pueblo/aldea del concejo — útil para justificar actuaciones dirigidas a núcleos concretos en riesgo de despoblación, no solo al concejo en su conjunto.' },
   { tag: 'técnica', pregunta: '¿Qué significa "Suelo No Urbanizable" en el visor?',
     respuesta: 'Es la clasificación de suelo, según el planeamiento vigente (RPGUR), que protege el terreno de nuevas construcciones por su valor agrícola, forestal, paisajístico o por riesgo. No implica abandono ni ausencia de uso: solo que ese uso no puede ser urbanístico sin una modificación del planeamiento.' },
   { tag: 'técnica', pregunta: '¿Qué diferencia hay entre las capas de Inundación T10, T100 y T500?',
@@ -1146,7 +1165,7 @@ const FAQ = [
   { tag: 'técnica', pregunta: '¿Con qué frecuencia se actualiza este visor?',
     respuesta: 'Depende del alcance contratado. Con el servicio de seguimiento continuo, el visor se actualiza anualmente con nuevas detecciones de cambio. En un diagnóstico puntual, las capas reflejan la fecha de las fuentes en el momento del análisis, indicada en cada exportación. Los datos de organismos que no publican todos los años (Censo INE, algunos repartos de fondos) muestran siempre el último ejercicio confirmado disponible.' },
   { tag: 'gestion', pregunta: '¿Dónde veo el análisis territorial completo de Ribera de Arriba (geología, litología, abandono agrícola, escenarios...)?',
-    respuesta: 'Este visor se centra en la exploración interactiva del mapa y los datos clave del municipio. El informe completo, con todos los apartados adicionales (geología y litología, riesgos de movimiento del terreno, análisis de abandono agrícola, escenarios de prospección territorial, DAFO/CAME, y un mapa 3D interactivo del concejo, etc.), está publicado en el <a href="https://ghistora-consultoria.github.io/PORTFOLIO-CARTOGRAFICO/" target="_blank" rel="noopener" style="color:#e6c07a;">portfolio cartográfico de GHistora ↗</a>.' },
+    respuesta: 'Este visor se centra en la exploración interactiva del mapa y los datos clave del concejo. El informe completo, con todos los apartados adicionales (geología y litología, riesgos de movimiento del terreno, análisis de abandono agrícola, escenarios de prospección territorial, DAFO/CAME, y un mapa 3D interactivo del concejo, etc.), está publicado en el <a href="https://ghistora-consultoria.github.io/PORTFOLIO-CARTOGRAFICO/" target="_blank" rel="noopener" style="color:#e6c07a;">portfolio cartográfico de GHistora ↗</a>.' },
   { tag: 'técnica', pregunta: '¿Qué hago si un mapa no me deja ampliar más o se ve borroso al hacer zoom?',
     respuesta: 'Cambia el mapa base: en el control de capas (arriba a la derecha del mapa) elige "IGN Callejero" o la ortofoto/vista aérea (PNOA), similar a una vista satélite, en vez del mapa topográfico por defecto. Cada capa base tiene su propio nivel máximo de detalle — con IGN Callejero o PNOA puedes llegar a ver el territorio con un detalle de hasta unos 30 metros, mucho más cercano que con el mapa topográfico general.' },
   { tag: 'gestion', pregunta: '¿No encontraste respuesta a tu pregunta?',

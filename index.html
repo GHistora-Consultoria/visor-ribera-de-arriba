@@ -269,7 +269,7 @@
             <span class="ficha-valor" id="ficha-nbr">—</span>
             <span class="ficha-chevron">▾</span>
           </button>
-          <div class="ficha-detalle">Cambio real en el índice de severidad de quema (Normalized Burn Ratio) entre 2018 y 2026, calculado a partir de imágenes de satélite Sentinel-2. Valores positivos altos indican pérdida de vegetación o quema; valores negativos, regeneración de la cubierta vegetal.</div>
+          <div class="ficha-detalle">Cambio real en el índice de severidad de quema (Normalized Burn Ratio) entre 2018 y 2026, calculado a partir de imágenes de satélite Sentinel-2. Valores positivos altos indican pérdida de vegetación o quema; valores negativos, regeneración de la cubierta vegetal. Importante: el NBR detecta un patrón espectral compatible con suelo quemado, no identifica la causa — no distingue por sí solo una quema agrícola controlada de un incendio forestal o de un desbroce; confirmar siempre sobre el terreno antes de sacar conclusiones.</div>
         </div>
         <div class="ficha-acordeon" data-abierto="false">
           <button class="ficha-cabecera" type="button">
@@ -330,7 +330,7 @@
       <div class="chart-box">
         <p class="chart-titulo">Pirámide (2022) — sexo y tramo de edad, INE Padrón Continuo (33057)</p>
         <div id="chart-edades"></div>
-        <p class="chart-explica">La pirámide es regresiva, no expansiva: se estrecha en la base (0-24 años) y se ensancha en los tramos centrales y en la cola de mayores, el patrón típico de un municipio con envejecimiento estructural consolidado. El grupo 40-54 años es el más numeroso; los tramos 90+ ya casi no tienen relevo por debajo. A diferencia del gráfico de evolución (que mira el total año a año), esta pirámide muestra la composición interna en un único momento y permite anticipar cómo va a cambiar la demanda de servicios conforme cada tramo envejece un escalón. Fuente: INE, Padrón Continuo. Elaboración: Díaz Colodrero, N.P. (2026).</p>
+        <p class="chart-explica">La pirámide es regresiva, no expansiva: se estrecha en la base (0-24 años) y se ensancha en los tramos centrales y en la cola de mayores, el patrón típico de un concejo con envejecimiento estructural consolidado. El grupo 40-54 años es el más numeroso; los tramos 90+ ya casi no tienen relevo por debajo. A diferencia del gráfico de evolución (que mira el total año a año), esta pirámide muestra la composición interna en un único momento y permite anticipar cómo va a cambiar la demanda de servicios conforme cada tramo envejece un escalón. Fuente: INE, Padrón Continuo. Elaboración: Díaz Colodrero, N.P. (2026).</p>
       </div>
     </div>
 
@@ -340,7 +340,7 @@
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#5b8ac9;"></span><span class="dash-caja-label">Entidades registradas</span><div class="dash-caja-val">29</div><div class="dash-caja-sub">Nomenclátor IGN/CNIG 2026</div></div>
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Sin población residente</span><div class="dash-caja-val">5</div><div class="dash-caja-sub">17,2% del total — lugares abandonados con estatus vigente</div></div>
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c9a65a;"></span><span class="dash-caja-label">Núcleo con más habitantes</span><div class="dash-caja-val">Ferreros</div><div class="dash-caja-sub">767 hab. (entidad colectiva, agrupa varios lugares)</div></div>
-        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Capital del municipio</span><div class="dash-caja-val">Soto Ribera</div><div class="dash-caja-sub">372 hab. — 26,8% de la población del Nomenclátor</div></div>
+        <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Capital del concejo</span><div class="dash-caja-val">Soto Ribera</div><div class="dash-caja-sub">372 hab. — 26,8% de la población del Nomenclátor</div></div>
       </div>
       <div id="entidades-tabla"></div>
       <button id="btn-ver-todas">Ver las 29 entidades ▾</button>
@@ -364,7 +364,7 @@
         <div class="dash-caja" data-key="nbr-2026" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NBR 2026 (reciente T2)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado actual</div></div>
         <div class="dash-caja" data-key="nbr-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">13,4% pérdida</div><div class="dash-caja-sub">293,1 ha — ver mapa</div></div>
       </div>
-      <p class="dash-note">El NBR (Key &amp; Benson, 2006) usa la misma escala de color en todo TERRA — magenta/rosa para suelo quemado o desnudo, tonos claros para vegetación dispersa o bajo estrés hídrico, y verde para vegetación sana y densa. A diferencia del NDVI (que mide "cuánta" vegetación hay), el NBR está pensado específicamente para detectar quema: es más sensible al agua en la hoja y al carbón residual tras un incendio. El NBR medio municipal ha bajado de 0,237 (2018) a 0,196 (2026): sigue en zona de vegetación sana, pero con una tendencia a la baja que conviene vigilar, sobre todo cruzada con las zonas de pérdida de NDVI ya señaladas arriba. 💡 Ninguna zona del municipio muestra hoy quema activa generalizada (NBR bajo), pero el descenso del NBR medio es una señal temprana a seguir en los próximos informes anuales. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
+      <p class="dash-note">El NBR (Key &amp; Benson, 2006) usa la misma escala de color en todo TERRA — magenta/rosa para suelo quemado o desnudo, tonos claros para vegetación dispersa o bajo estrés hídrico, y verde para vegetación sana y densa. A diferencia del NDVI (que mide "cuánta" vegetación hay), el NBR está pensado específicamente para detectar quema: es más sensible al agua en la hoja y al carbón residual tras un incendio — aunque no distingue por sí solo la causa: una quema agrícola controlada y un incendio forestal producen un patrón espectral similar, y la diferencia hay que confirmarla en campo. El NBR medio del concejo ha bajado de 0,237 (2018) a 0,196 (2026): sigue en zona de vegetación sana, pero con una tendencia a la baja que conviene vigilar, sobre todo cruzada con las zonas de pérdida de NDVI ya señaladas arriba. 💡 Ninguna zona del concejo muestra hoy quema activa generalizada (NBR bajo), pero el descenso del NBR medio es una señal temprana a seguir en los próximos informes anuales. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
       <div class="dash-grid" style="margin-top:14px;">
         <div class="dash-card" data-key="firms-municipio"><span class="dash-val">🔥 FIRMS</span><span class="dash-lbl">focos de incendio activos (NASA, satélite)</span><span class="dash-src">tiempo casi real</span></div>
         <div class="dash-card" data-key="irif"><span class="dash-val">🔥 IRIF hoy</span><span class="dash-lbl">índice de riesgo de incendio (1-5) por concejo</span><span class="dash-src">asturias.es, actualización diaria</span></div>
@@ -378,7 +378,7 @@
         <div class="dash-caja" data-key="ma-enp" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#C49A2A;"></span><span class="dash-caja-label">Espacios Naturales Protegidos del entorno</span><div class="dash-caja-val">2</div><div class="dash-caja-sub">Cueva de las Caldas, Desfiladero de las Xanas</div></div>
         <div class="dash-caja" data-key="ma-superficie" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Superficie bajo protección natural</span><div class="dash-caja-val">~4%</div><div class="dash-caja-sub">≈81 ha del término municipal (Natura2000+ENP+MUP)</div></div>
       </div>
-      <p class="dash-note">Hidrografía principal: el municipio se articula en torno al <b>río Nalón</b>, con el <b>embalse de los Alfilorios</b> como masa de agua destacada en el sector occidental. La gestión del dominio público hidráulico corresponde a la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027). 💡 Cualquier actuación dentro de Red Natura 2000 o de un Monte de Utilidad Pública catalogado puede necesitar autorización ambiental previa — consulta la Ficha técnica del punto en el mapa para comprobarlo sobre el terreno exacto.</p>
+      <p class="dash-note">Hidrografía principal: el concejo se articula en torno al <b>río Nalón</b>, con el <b>embalse de los Alfilorios</b> como masa de agua destacada en el sector occidental. La gestión del dominio público hidráulico corresponde a la Confederación Hidrográfica del Cantábrico (Plan Hidrológico del Cantábrico Occidental 2022-2027). 💡 Cualquier actuación dentro de Red Natura 2000 o de un Monte de Utilidad Pública catalogado puede necesitar autorización ambiental previa — consulta la Ficha técnica del punto en el mapa para comprobarlo sobre el terreno exacto.</p>
     </div>
 
     <h3 class="dash-section">Alerta de Planeamiento — sectores clasificados con restricción sectorial</h3>
@@ -402,7 +402,7 @@
       <div class="dash-card" data-key="aemet-humedad"><span class="dash-val">78 %</span><span class="dash-lbl">humedad relativa media</span><span class="dash-src">AEMET</span></div>
     </div>
 
-    <h3 class="dash-section">Normativa aplicable al municipio</h3>
+    <h3 class="dash-section">Normativa aplicable al concejo</h3>
     <div class="chart-box">
       <p class="chart-titulo">Marco normativo verificado para Ribera de Arriba (fuente: informe TERRA + fuentes oficiales)</p>
       <details style="margin-top:6px;">
@@ -465,13 +465,19 @@
       </table>
         </div>
       </details>
-      <p class="dash-note" style="margin-top:12px;">🗺️ El GAL Montaña Central de Asturias mantiene un portal específico con ficha, foto y cómo llegar a cada elemento: <a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5" target="_blank" rel="noopener" style="color:#e6c07a;">Inventario del Patrimonio Cultural — Ribera de Arriba ↗</a>. ⚠️ Esta tabla recoge los elementos verificados hoy en ese portal; puede no ser exhaustiva (revisa el enlace por si se ha añadido alguno nuevo). Detectadas 2 fichas con una posible incoherencia en la propia web oficial ("Castillo de Soto" y "Capilla del Carmen" aparecen en la categoría de Ribera de Arriba pero su descripción los sitúa en Aller y en Cangas del Narcea respectivamente) — se han excluido de esta tabla hasta confirmar cuál es el dato correcto. Complementa este inventario oficial con las 9 cuevas y abrigos paleolíticos del catálogo de 1997 (Estrada García, 2007), muchas de las cuales ya aparecen aquí con ficha propia.</p>
+      <p class="dash-note" style="margin-top:12px;">🗺️ El GAL Montaña Central de Asturias mantiene un portal específico con ficha, foto y cómo llegar a cada elemento: <a href="https://inventario-patrimonio-cultural.asturias.me/comarca-de-la-montana-central/c/5" target="_blank" rel="noopener" style="color:#e6c07a;">Inventario del Patrimonio Cultural — Ribera de Arriba ↗</a>. ⚠️ Esta tabla recoge los elementos ya formalmente incorporados a ese registro oficial; puede no ser exhaustiva (revisa el enlace por si se ha añadido alguno nuevo). Detectadas 2 fichas con una posible incoherencia en la propia web oficial ("Castillo de Soto" y "Capilla del Carmen" aparecen en la categoría de Ribera de Arriba pero su descripción los sitúa en Aller y en Cangas del Narcea respectivamente) — se han excluido de esta tabla hasta confirmar cuál es el dato correcto.</p>
+      <div class="chart-box" style="margin-top:14px; border-color:#c9a65a;">
+        <p class="chart-titulo">📖 Fuente académica primaria: Inventario Arqueológico del Concejo de Ribera de Arriba</p>
+        <p style="font-size:13px; color:var(--text-light); line-height:1.6;">Rogelio Estrada García publicó el estudio académico de referencia de todo el patrimonio arqueológico del concejo, con un alcance más amplio que el registro oficial de arriba: documenta <b>17 cuevas y abrigos</b> (no solo las que ya tienen ficha individual en el IPCA) — entre ellas el complejo de <b>La Friera</b> en Vegalencia (3 cavidades), hoy prácticamente arrasado por la construcción de la autovía A-66 — y <b>10 hallazgos líticos en superficie</b> del Paleolítico (Quintaniella, Palomar-Valdefondero, Soto de Ribera, Sardín, Labarejos, La Mortera, San Miguel, Monte Reyero, El Campón y Picu Llanza) que no constan todavía en el registro oficial de arriba. Es la fuente primaria real detrás de gran parte del inventario del concejo, y conviene citarla directamente en cualquier informe o expediente serio.</p>
+        <a href="https://ria.asturias.es/RIA/handle/123456789/4345" target="_blank" rel="noopener" style="color:#e6c07a; font-weight:bold;">Estrada García, R. — Inventario arqueológico del concejo de Ribera de Arriba (RIA, Repositorio Institucional de Asturias) ↗</a>
+        <p class="dash-note" style="margin-top:10px;">⚠️ El documento es una imagen escaneada sin texto seleccionable (no permite copiar/buscar texto directamente) — el listado de arriba se ha reconstruido a mano leyendo el propio documento.</p>
+      </div>
     </div>
 
 
     <h3 class="dash-section">Normativa y alertas — BOE / BOPA</h3>
     <div class="chart-box">
-      <p class="chart-titulo">Búsqueda de normativa aplicable a la gestión territorial del municipio, con enlace directo a los buscadores oficiales</p>
+      <p class="chart-titulo">Búsqueda de normativa aplicable a la gestión territorial del concejo, con enlace directo a los buscadores oficiales</p>
       <input type="text" id="buscador-normativa" placeholder="Ej: montes, urbanismo, patrimonio, aguas, hórreos…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
       <div id="resultados-normativa"></div>
       <div class="dash-grid" style="margin-top:14px;">
@@ -528,10 +534,27 @@
       <p class="chart-titulo">Escribe qué necesitas financiar (ej. "hórreos", "turismo", "empleo", "digitalización", "caminos") — cada línea muestra su propia fecha de verificación</p>
       <input type="text" id="buscador-subvenciones" placeholder="Ej: patrimonio, caminos, turismo, empleo…" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid var(--border); background:var(--navy-dark); color:var(--text-light); font-family:inherit; font-size:14px; margin-bottom:14px;">
       <div id="resultados-subvenciones"></div>
-      <p class="dash-note" style="margin-top:8px;">💡 Los importes, plazos y estados de las líneas de este catálogo son los últimos verificados contra fuentes oficiales (BOPA/BOE/miPrincipado); cada línea muestra su propio estado real a fecha de consulta, no una suposición. Para datos que no se actualizan cada año (un reparto plurianual, una cifra de Censo decenal), se muestra siempre el último periodo confirmado disponible.</p>
+      <p class="dash-note" style="margin-top:8px;">💡 Los importes, plazos y estados de las líneas de este catálogo son los últimos verificados contra fuentes oficiales (BOPA/BOE/miPrincipado); cada línea muestra su propio estado real a fecha de consulta, no una suposición. Para datos que no se actualizan cada año (un reparto plurianual, una cifra de Censo sin periodicidad fija), se muestra siempre el último periodo confirmado disponible.</p>
     </div>
 
-    <p class="zoom-hint">Fuente del conjunto: TERRA — Informe de Diagnóstico Territorial, Ribera de Arriba (Díaz Colodrero, N.P., 2026)</p>
+    <h3 class="dash-section">Limitaciones del análisis</h3>
+    <div class="chart-box">
+      <p style="font-size:13px; color:var(--text-light); line-height:1.7;">
+        Este visor combina fuentes oficiales con distinta resolución, periodicidad y grado de actualización. Antes de tomar cualquier decisión basada en un dato concreto, ten en cuenta:
+      </p>
+      <ul style="font-size:13px; color:var(--text-light); line-height:1.8; padding-left:20px; margin:10px 0;">
+        <li><b>Resolución de teledetección (NDVI/NBR/NDWI/NDBI):</b> 10×10 m por píxel (Sentinel-2), con una precisión de geolocalización oficial de la ESA de hasta 11 m — un desajuste de 1-2 píxeles contra la ortofoto es normal, no un error de proceso.</li>
+        <li><b>Censo INE (vivienda, mercado laboral):</b> dato de 2021. El INE cambió de metodología tras el Censo 2021 — la población se publica ya cada año, y la vivienda cada 3-4 años sin fecha fija — así que puede existir una edición más reciente que la usada aquí.</li>
+        <li><b>SIOSE (uso del suelo):</b> la versión usada en este análisis es de 2016-2017; el IGN ha publicado actualizaciones posteriores para Asturias que este visor todavía no incorpora.</li>
+        <li><b>RPGUR:</b> es una herramienta de consulta cartográfica del Principado, no sustituye al documento legal vigente (las Normas Subsidiarias del concejo y sus modificaciones posteriores, que pueden no estar todas digitalizadas).</li>
+        <li><b>NBR (riesgo de quema):</b> detecta un patrón espectral compatible con suelo quemado, no distingue la causa — una quema agrícola controlada y un incendio forestal pueden dar una señal parecida; hay que confirmar en campo.</li>
+        <li><b>Calendario de convocatorias de financiación:</b> las "ventanas habituales" se basan en el histórico de 1-2 convocatorias investigadas a mano, no en un análisis estadístico de muchos años — son una orientación, no una garantía de que se repita el mismo patrón.</li>
+        <li><b>Inventario de patrimonio cultural:</b> combina el registro oficial (IPCA) con una fuente académica (Estrada García, 2007) más amplia pero con documento fuente ilegible por OCR — la extracción del listado se hizo leyendo el documento a mano.</li>
+      </ul>
+      <p class="dash-note">Ninguna de estas limitaciones invalida los datos — son el tipo de matices que cualquier análisis territorial serio debe declarar abiertamente, y que aquí se recogen todos juntos para no tener que ir buscándolos sueltos por el visor.</p>
+    </div>
+
+    <p class="zoom-hint">Última actualización de contenidos: 22 de septiembre de 2026 · Fuente del conjunto: TERRA — Informe de Diagnóstico Territorial, Ribera de Arriba (Díaz Colodrero, N.P., 2026)</p>
     <div style="text-align:center; margin:24px 0;">
       <a href="https://bit.ly/ghistora" target="_blank" rel="noopener" class="boton-ghistora">🌐 Descubre todos los servicios de GHistora</a>
     </div>
