@@ -95,6 +95,9 @@
   .dash-caja .dash-caja-label { font-size: 15px; color: var(--text-light); }
   .dash-caja .dash-caja-val { font-size: 22px; color: var(--gold-bright); margin: 8px 0 4px; }
   .dash-caja .dash-caja-sub { font-size: 13px; color: var(--text-muted); }
+  .dash-caja-mapa { cursor: pointer; padding: 10px; }
+  .dash-caja-mapa .dash-caja-thumb { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); display: block; }
+  .dash-caja-mapa .dash-caja-label { display: block; text-align: center; font-size: 13px; color: var(--text-light); margin-top: 8px; }
   .dash-bar-row { display: grid; grid-template-columns: 180px 1fr 140px; align-items: center; gap: 10px; font-size: 14px; }
   .dash-bar-bg { height: 14px; background: var(--navy-light); border-radius: 4px; overflow: hidden; }
   .dash-bar { height: 100%; }
@@ -499,8 +502,12 @@
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Posible abandono</span><div class="dash-caja-val">127 (6,7%)</div><div class="dash-caja-sub">indicio, no confirmado — a verificar en campo</div></div>
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#6b7a95;"></span><span class="dash-caja-label">Serie insuficiente</span><div class="dash-caja-val">25</div><div class="dash-caja-sub">sin datos suficientes</div></div>
       </div>
-      <img src="mapa_abandono_agricola.png" style="width:100%; border-radius:6px; border:1px solid var(--border); margin-top:14px;" alt="Mapa de detección de abandono agrícola por tendencia NDVI en Ribera de Arriba">
-      <div style="text-align:right; margin-top:6px;"><a href="mapa_abandono_agricola.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>
+      <div class="dash-cajas-grid" style="margin-top:14px;">
+        <div class="dash-caja dash-caja-mapa" data-key="mapa-abandono">
+          <img src="mapa_abandono_agricola.png" class="dash-caja-thumb" alt="Mapa de detección de abandono agrícola por tendencia NDVI en Ribera de Arriba">
+          <span class="dash-caja-label">Ver mapa completo</span>
+        </div>
+      </div>
       <p class="dash-note" style="margin-top:12px;">💡 Las 127 parcelas con indicio de posible abandono (colonización por matorral) son un punto de partida para verificación de campo, no una confirmación. Fuente: Dirección General del Catastro (WFS INSPIRE), SIOSE AR 2020 (uso agrícola), Sentinel-2 L2A (ESA/Copernicus, serie 2021-2025).</p>
     </div>
 
@@ -514,17 +521,20 @@
       </div>
       <p class="chart-explica" style="margin-top:14px;">El mismo cruce de riesgo se muestra aquí en tres versiones, para elegir la que mejor ayude a ubicar cada parcela sobre el terreno:</p>
 
-      <p style="color:var(--gold); font-size:14px; margin:14px 0 6px;">Sobre parcelario catastral completo</p>
-      <img src="mapa_erosion_parcelario.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de riesgo de erosión sobre parcelario catastral en Ribera de Arriba">
-      <div style="text-align:right; margin-top:6px;"><a href="mapa_erosion_parcelario.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>
-
-      <p style="color:var(--gold); font-size:14px; margin:18px 0 6px;">Sobre ortofoto real (PNOA)</p>
-      <img src="mapa_erosion_pnoa.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de riesgo de erosión sobre ortofoto PNOA en Ribera de Arriba">
-      <div style="text-align:right; margin-top:6px;"><a href="mapa_erosion_pnoa.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>
-
-      <p style="color:var(--gold); font-size:14px; margin:18px 0 6px;">Sobre relieve sombreado</p>
-      <img src="mapa_erosion_relieve.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de riesgo de erosión sobre relieve sombreado en Ribera de Arriba">
-      <div style="text-align:right; margin-top:6px;"><a href="mapa_erosion_relieve.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>
+      <div class="dash-cajas-grid">
+        <div class="dash-caja dash-caja-mapa" data-key="mapa-erosion-parcelario">
+          <img src="mapa_erosion_parcelario.png" class="dash-caja-thumb" alt="Mapa de riesgo de erosión sobre parcelario catastral en Ribera de Arriba">
+          <span class="dash-caja-label">Sobre parcelario catastral</span>
+        </div>
+        <div class="dash-caja dash-caja-mapa" data-key="mapa-erosion-pnoa">
+          <img src="mapa_erosion_pnoa.png" class="dash-caja-thumb" alt="Mapa de riesgo de erosión sobre ortofoto PNOA en Ribera de Arriba">
+          <span class="dash-caja-label">Sobre ortofoto real (PNOA)</span>
+        </div>
+        <div class="dash-caja dash-caja-mapa" data-key="mapa-erosion-relieve">
+          <img src="mapa_erosion_relieve.png" class="dash-caja-thumb" alt="Mapa de riesgo de erosión sobre relieve sombreado en Ribera de Arriba">
+          <span class="dash-caja-label">Sobre relieve sombreado</span>
+        </div>
+      </div>
 
       <p class="dash-note" style="margin-top:14px;">⚠️ Es un cruce exploratorio de proxies (pendiente derivada de MDT + litología dominante IGME MAGNA 50), no sustituye un estudio geotécnico de campo. Fuente: parcelas en posible abandono (Catastro + SIOSE + NDVI Sentinel-2), pendiente (WhiteboxTools), litología (IGME), ortofoto PNOA (IGN).</p>
     </div>
@@ -538,8 +548,12 @@
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">Fincas medianas</span><div class="dash-caja-val">11%</div><div class="dash-caja-sub">0,5 - 2 ha</div></div>
         <div class="dash-caja"><span class="dash-caja-swatch" style="background:#1b4d2e;"></span><span class="dash-caja-label">Fincas grandes/comunales</span><div class="dash-caja-val">2%</div><div class="dash-caja-sub">más de 2 ha</div></div>
       </div>
-      <img src="mapa_fragmentacion_parcelaria.png" style="width:100%; border-radius:6px; border:1px solid var(--border); margin-top:14px;" alt="Mapa de fragmentación parcelaria (Catastro) de Ribera de Arriba">
-      <div style="text-align:right; margin-top:6px;"><a href="mapa_fragmentacion_parcelaria.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>
+      <div class="dash-cajas-grid" style="margin-top:14px;">
+        <div class="dash-caja dash-caja-mapa" data-key="mapa-fragmentacion">
+          <img src="mapa_fragmentacion_parcelaria.png" class="dash-caja-thumb" alt="Mapa de fragmentación parcelaria (Catastro) de Ribera de Arriba">
+          <span class="dash-caja-label">Ver mapa completo</span>
+        </div>
+      </div>
       <p class="dash-note" style="margin-top:12px;">💡 Casi la mitad de las parcelas de Ribera de Arriba (46%) son menores de 0,1 ha — un mosaico muy fragmentado, herencia de siglos de reparto de herencias por división de fincas. Fuente: Dirección General del Catastro (WFS INSPIRE, cp:CadastralParcel).</p>
     </div>
 
