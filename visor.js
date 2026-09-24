@@ -1256,3 +1256,24 @@ document.addEventListener('DOMContentLoaded', () => {
   generarCieloEstrellado('cielo-panel-demo', 140);
   generarCieloEstrellado('cielo-panel-faq', 100);
 });
+
+
+/* ======================= TOGGLE SIDEBAR MAPA (capas + ficha tecnica) ======================= */
+(function () {
+  const sidebar = document.getElementById('calle-sidebar');
+  const boton = document.getElementById('calle-sidebar-toggle');
+  if (!sidebar || !boton) return;
+
+  boton.addEventListener('click', () => {
+    const abierto = !sidebar.classList.contains('colapsado');
+    if (abierto) {
+      sidebar.classList.add('colapsado');
+      boton.classList.remove('sidebar-abierto');
+      boton.textContent = '☰';
+    } else {
+      sidebar.classList.remove('colapsado');
+      boton.classList.add('sidebar-abierto');
+      boton.textContent = '✕';
+    }
+  });
+})();

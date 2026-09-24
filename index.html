@@ -111,7 +111,11 @@
   /* PANEL VISTA DE CALLE */
   #panel-calle.active { display: flex; }
   #calle-map { flex: 1; }
-  #calle-sidebar { width: 300px; background: var(--navy); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; }
+  #calle-sidebar { width: 300px; background: var(--navy); border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; transition: width 0.2s, padding 0.2s, border-color 0.2s; }
+  #calle-sidebar.colapsado { width: 0; padding: 0; border-left-color: transparent; overflow: hidden; }
+  #calle-sidebar-toggle { position: absolute; top: 16px; right: 16px; z-index: 500; background: var(--navy); border: 1px solid var(--gold); color: var(--gold); width: 40px; height: 40px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: right 0.2s; }
+  #calle-sidebar-toggle:hover { background: var(--navy-light); }
+  #calle-sidebar-toggle.sidebar-abierto { right: 316px; }
   #calle-sidebar-contenido { flex: 1; }
   #calle-sidebar-logo { text-align: center; margin-top: auto; padding-top: 16px; }
   .boton-ghistora {
@@ -224,7 +228,8 @@
         <span id="pegman-label">Arrastrar aquí</span>
       </div>
     </div>
-    <div id="calle-sidebar">
+    <button id="calle-sidebar-toggle" type="button" title="Mostrar/ocultar capas y ficha tecnica">☰</button>
+    <div id="calle-sidebar" class="colapsado">
       <div id="calle-sidebar-contenido">
       <h3>Capas</h3>
       <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:4px;"><input type="checkbox" id="chk-red-natura"> 🌳 Red Natura 2000</div>
