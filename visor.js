@@ -927,18 +927,32 @@ function initCalleMap() {
   document.getElementById('chart-poblacion').innerHTML = svg;
 })();
 
-/* ======================= GRÁFICO: PIRÁMIDE DE POBLACIÓN REAL (INE, 2022) ======================= */
+/* ======================= GRÁFICO: PIRÁMIDE DE POBLACIÓN REAL (INE, 2025) ======================= */
 (function () {
-  // Datos reales: INE, Padrón Continuo, Población por sexo y edad (grupos quinquenales),
-  // concejo 33057 Ribera de Arriba, 1 de enero de 2022.
+  // Datos reales: INE, Censo anual de población, tabla 69113 (Población por sexo y edad, grupos quinquenales),
+  // concejo 33057 Ribera de Arriba, periodo 2025.
   const tramos = [
-    { et: '0-4',   h: 33, m: 22 }, { et: '5-9',   h: 47, m: 26 }, { et: '10-14', h: 45, m: 46 },
-    { et: '15-19', h: 42, m: 47 }, { et: '20-24', h: 32, m: 35 }, { et: '25-29', h: 35, m: 39 },
-    { et: '30-34', h: 59, m: 37 }, { et: '35-39', h: 50, m: 59 }, { et: '40-44', h: 74, m: 82 },
-    { et: '45-49', h: 69, m: 82 }, { et: '50-54', h: 91, m: 79 }, { et: '55-59', h: 75, m: 59 },
-    { et: '60-64', h: 74, m: 68 }, { et: '65-69', h: 60, m: 64 }, { et: '70-74', h: 45, m: 56 },
-    { et: '75-79', h: 40, m: 35 }, { et: '80-84', h: 24, m: 32 }, { et: '85-89', h: 34, m: 43 },
-    { et: '90-94', h: 8,  m: 10 }, { et: '95-99', h: 1,  m: 5  }, { et: '100+',  h: 0,  m: 1  }
+    { et: '0-4', h: 23, m: 18 },
+    { et: '5-9', h: 47, m: 24 },
+    { et: '10-14', h: 41, m: 39 },
+    { et: '15-19', h: 45, m: 44 },
+    { et: '20-24', h: 36, m: 46 },
+    { et: '25-29', h: 37, m: 35 },
+    { et: '30-34', h: 49, m: 44 },
+    { et: '35-39', h: 67, m: 45 },
+    { et: '40-44', h: 65, m: 72 },
+    { et: '45-49', h: 83, m: 83 },
+    { et: '50-54', h: 78, m: 79 },
+    { et: '55-59', h: 80, m: 82 },
+    { et: '60-64', h: 75, m: 61 },
+    { et: '65-69', h: 54, m: 67 },
+    { et: '70-74', h: 56, m: 49 },
+    { et: '75-79', h: 34, m: 52 },
+    { et: '80-84', h: 34, m: 28 },
+    { et: '85-89', h: 13, m: 30 },
+    { et: '90-94', h: 14, m: 17 },
+    { et: '95-99', h: 1, m: 4 },
+    { et: '100+', h: 0, m: 1 }
   ];
   const W = 700, filaH = 16, PAD_TOP = 10, ejeMedio = W / 2, maxLado = 220;
   const maxVal = Math.max(...tramos.map((t) => Math.max(t.h, t.m)));
