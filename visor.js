@@ -743,7 +743,7 @@ function initCalleMap() {
     irif: {
       titulo: 'IRIF — Índice de Riesgo de Incendio Forestal', valor: '1-5 por concejo, actualización diaria', fuente: 'Principado de Asturias (Consejería de Medio Rural y Política Agraria)',
       explicación: 'El IRIF es el indicador oficial diario que decide si están permitidas las quemas agrícolas y forestales en Asturias, publicado por concejo en escala de 1 (bajo) a 5 (extremo). Con índice 4 o 5, quedan suspendidas TODAS las autorizaciones de quema en todo el territorio asturiano; con 3 o menos, se permiten las quemas cuyo índice de peligro autorizado sea igual o superior al del día. Se pública cada día en un documento único (mismo enlace siempre, contenido actualizado) en la web del Principado — no es una API consultable automáticamente, así que hay que entrar a mirarlo, no se puede mostrar aquí en vivo con garantías.',
-      recomendacion: '💡 Consulta el índice de hoy en la página oficial que se actualiza a diario: <a href="https://www.112asturias.es/indice-incendio" target="_blank" rel="noopener" style="color:#e6c07a;">112asturias.es — Índice de riesgo de incendio ↗</a> y busca "Ribera de Arriba" en el listado por concejos.'
+      recomendacion: '💡 Consulta el índice de hoy en la página oficial que se actualiza a diario: <a href="https://www.112asturias.es/indice-incendios-asturias" target="_blank" rel="noopener" style="color:#e6c07a;">112asturias.es — Índice de riesgo de incendio ↗</a> y busca "Ribera de Arriba" en el listado por concejos.'
     },
     'firms-municipio': {
       titulo: 'Alerta de incendio activo (NASA FIRMS)', valor: 'Consultar en tiempo real', fuente: 'NASA FIRMS (Fire Information for Resource Management System)',
@@ -841,7 +841,7 @@ function initCalleMap() {
     iberpix: {
       titulo: 'Iberpix — ortofotos históricas del IGN', valor: 'Vuelos fotográficos desde los años 50 hasta hoy', fuente: 'Instituto Geográfico Nacional (IGN) / CNIG',
       explicación: 'A diferencia de PNOA (desde 2004) y Sentinel-2 (desde 2015), que son las fuentes que usa este visor, Iberpix permite consultar los vuelos fotográficos históricos de España — el Vuelo Americano de los años 1945-46 y 1956-57, y series posteriores hasta la actualidad. Es la herramienta de referencia para ver cómo era un terreno concreto hace 50-70 años: útil para investigar el origen de un camino, una edificación antigua, un cambio de uso del suelo de toda una vida, o para respaldar un expediente que necesite acreditar una situación histórica.',
-      recomendacion: '💡 Accede directamente en <a href="https://www.ign.es/iberpix/visor" target="_blank" rel="noopener" style="color:#e6c07a;">ign.es/iberpix/visor ↗</a> y busca "Ribera de Arriba" o navega hasta las coordenadas del punto que te interese.'
+      recomendacion: '💡 Accede directamente en <a href="https://www.ign.es/iberpix" target="_blank" rel="noopener" style="color:#e6c07a;">ign.es/iberpix ↗</a> y busca "Ribera de Arriba" o navega hasta las coordenadas del punto que te interese.'
     },
     'mapa-abandono': {
       titulo: 'Mapa de abandono agrícola', valor: '127 parcelas en posible abandono (6,7%)', fuente: 'Catastro (WFS INSPIRE) + SIOSE AR 2020 + Sentinel-2 L2A (ESA/Copernicus)',
@@ -1130,7 +1130,7 @@ function initCalleMap() {
       return;
     }
     const urlBOE = 'https://www.boe.es/buscar/boe.php?campo%5B0%5D=TIT&dato%5B0%5D=' + encodeURIComponent(q) + '&operador%5B0%5D=and&accion=Buscar';
-    const urlBOPA = 'https://sede.asturias.es/bopa?p_p_id=BOPA&p_p_lifecycle=0&criterioBusqueda=' + encodeURIComponent(q);
+    const urlBOPA = 'https://miprincipado.asturias.es/bopa?p_p_id=BOPA&p_p_lifecycle=0&criterioBusqueda=' + encodeURIComponent(q);
     resultados.innerHTML =
       '<div class="dash-card" style="cursor:default; margin-bottom:8px;">' +
         '<span class="dash-lbl" style="font-size:14px; color:var(--gold-bright);">Resultados para "' + q + '"</span>' +
@@ -1160,7 +1160,7 @@ const FAQ = [
   { tag: 'gestion', pregunta: '¿Cómo localizo las zonas del concejo que más vegetación han perdido, para priorizar desbroces o restauración?',
     respuesta: 'Ve al "Panel de datos" y busca la sección "Cobertura vegetal — cambio NDVI 2018-2026": ahí ves el porcentaje total de pérdida, superficie estable y regeneración. Para ver exactamente DÓNDE están esas zonas sobre el mapa, vuelve a "Mapa y Ficha técnica" y activa en el control de capas (arriba a la derecha) la capa de cambio NDVI o NBR — las zonas rojas son pérdida de vegetación o quema, las verdes son regeneración. Cruza esto con la sección "Riesgo de quema — NBR" del Panel de datos para distinguir pérdida por posible quema de pérdida por otras causas (tala, sequía, cambio de uso).' },
   { tag: 'gestion', pregunta: '¿Puedo consultar si hoy están permitidas las quemas agrícolas en el concejo?',
-    respuesta: 'Sí, aunque no en vivo dentro del visor: en la sección "Normativa y alertas" del Panel de datos hay una ficha "🔥 IRIF hoy" con el enlace directo a la página oficial del Principado (112asturias.es/indice-incendio), que se actualiza cada día con el nivel de riesgo (1 a 5) por concejo. Con nivel 4 (muy alto) o 5 (extremo), quedan suspendidas todas las autorizaciones de quema en toda Asturias, sea cual sea el concejo.' },
+    respuesta: 'Sí, aunque no en vivo dentro del visor: en la sección "Normativa y alertas" del Panel de datos hay una ficha "🔥 IRIF hoy" con el enlace directo a la página oficial del Principado (112asturias.es/indice-incendios-asturias), que se actualiza cada día con el nivel de riesgo (1 a 5) por concejo. Con nivel 4 (muy alto) o 5 (extremo), quedan suspendidas todas las autorizaciones de quema en toda Asturias, sea cual sea el concejo.' },
   { tag: 'gestion', pregunta: '¿Cómo obtengo un mapa de lo que estoy viendo, para adjuntar a un informe o expediente?',
     respuesta: 'El propio visor lo genera al instante: configura el mapa como quieras verlo (capas activadas, zoom, posición), y en el panel de herramientas de la izquierda de "Mapa y Ficha técnica" pulsa el icono de cámara 📷 — exporta la vista actual como mapa listo para imprimir, en PNG o PDF, con título, leyenda de capas activas, escala y orientación, igual que las láminas técnicas que acompañan cada informe de GHistora. No hace falta pedirlo aparte ni volver a montar el mapa desde cero.' },
   { tag: 'gestion', pregunta: '¿Cómo comparo visualmente cómo ha cambiado la vegetación de una zona entre 2018 y 2026?',
