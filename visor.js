@@ -1188,7 +1188,7 @@ const FAQ = [
   { tag: 'técnica', pregunta: '¿Qué hago si un mapa no me deja ampliar más o se ve borroso al hacer zoom?',
     respuesta: 'Cambia el mapa base: en el control de capas (arriba a la derecha del mapa) elige "IGN Callejero" o la ortofoto/vista aérea (PNOA), similar a una vista satélite, en vez del mapa topográfico por defecto. Cada capa base tiene su propio nivel máximo de detalle — con IGN Callejero o PNOA puedes llegar a ver el territorio con un detalle de hasta unos 30 metros, mucho más cercano que con el mapa topográfico general.' },
   { tag: 'gestion', pregunta: '¿No encontraste respuesta a tu pregunta?',
-    respuesta: 'Escribe a ghistora@gmail.com contándonos qué necesitas consultar y te responderemos.' }
+    respuesta: 'Escribe a ghistora@gmail.com contándonos qué necesitas consultar y te responderemos lo más pronto posible.' }
 ];
 
 const faqList = document.getElementById('faq-list');
