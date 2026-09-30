@@ -1028,15 +1028,6 @@ function initCalleMap() {
       exclusiones: null
     },
     {
-      nombre: 'Subvenciones de Patrimonio Cultural (Consejería de Cultura)',
-      verificado: '2026-09-15',
-      ventana: [1, 2],
-      tema: 'restauración BIC IPCA hórreos paneras cabazos patrimonio brañas arqueología difusión estudio',
-      cuantia: 'Hórreos/paneras/cabazos: 450.000 € totales. BIC/IPCA: 350.000 €. Difusión y estudio del patrimonio: 125.000-140.000 €. Conjunto de líneas patrimoniales 2026: 1.110.000 € (frente a 275.000 € en 2019).',
-      estado: 'Convocatoria 2026 de hórreos/paneras/cabazos publicada en BOPA el 13-I-2026, con plazo de solicitud del 14-I al 2-II-2026 — ya cerrada a fecha de hoy. ATENCIÓN: la línea BIC/IPCA excluye expresamente a ayuntamientos como beneficiarios; solo aplicable vía las otras líneas (hórreos, brañas, arqueología, difusión) o la línea separada para corporaciones locales. Próxima ventana esperada enero-febrero de 2027.',
-      exclusiones: null
-    },
-    {
       nombre: 'Planes de Empleo / itinerarios de activación (SEPEPA)',
       verificado: '2026-09-15',
       ventana: [5, 6],
@@ -1174,8 +1165,8 @@ const FAQ = [
     respuesta: 'El propio visor lo genera al instante: configura el mapa como quieras verlo (capas activadas, zoom, posición), y en el panel de herramientas de la izquierda de "Mapa y Ficha técnica" pulsa el icono de cámara 📷 — exporta la vista actual como mapa listo para imprimir, en PNG o PDF, con título, leyenda de capas activas, escala y orientación, igual que las láminas técnicas que acompañan cada informe de GHistora. No hace falta pedirlo aparte ni volver a montar el mapa desde cero.' },
   { tag: 'gestion', pregunta: '¿Cómo comparo visualmente cómo ha cambiado la vegetación de una zona entre 2018 y 2026?',
     respuesta: 'En el mapa, arriba a la izquierda, busca el icono ↔️ ("Comparador temporal NDVI") y actívalo: aparece una línea deslizante que puedes arrastrar de un lado a otro para revelar el NDVI de 2018 o el de 2026 en la misma zona — muy útil para enseñar a alguien, de un vistazo, cómo ha cambiado la cobertura vegetal de un terreno concreto entre esas dos fechas, sin tener que alternar entre dos mapas separados.' },
-  { tag: 'gestion', pregunta: '¿Cómo encuentro financiación disponible para un proyecto concreto (hórreos, caminos, empleo, digitalización...)?',
-    respuesta: 'Ve al Panel de datos, sección "Buscador de vías de financiación", y escribe qué necesitas financiar (por ejemplo "hórreos", "caminos", "turismo", "empleo"). El buscador te muestra qué líneas del catálogo lo cubren, con cuantía y estado real de la convocatoria; si tu palabra coincide con algo que una línea excluye expresamente, te dirá también en qué otra línea sí encaja. Para una búsqueda exhaustiva más allá de este catálogo verificado a mano, usa el enlace a la BDNS (Base de Datos Nacional de Subvenciones) en la sección "Normativa y alertas".' },
+  { tag: 'gestion', pregunta: '¿Cómo encuentro financiación disponible para un proyecto concreto (caminos, empleo, turismo, digitalización...)?',
+    respuesta: 'Ve al Panel de datos, sección "Buscador de vías de financiación", y escribe qué necesitas financiar (por ejemplo "caminos", "turismo", "empleo"). El buscador te muestra qué líneas del catálogo lo cubren, con cuantía y estado real de la convocatoria; si tu palabra coincide con algo que una línea excluye expresamente, te dirá también en qué otra línea sí encaja. Para una búsqueda exhaustiva más allá de este catálogo verificado a mano, usa el enlace a la BDNS (Base de Datos Nacional de Subvenciones) en la sección "Normativa y alertas".' },
   { tag: 'gestion', pregunta: '¿Cómo me entero de cuándo se pública una norma o subvención nueva que afecte al concejo, sin tener que estar mirando el visor a diario?',
     respuesta: 'El visor no manda avisos por sí mismo (es una página web, no puede mandarte un email), pero te conecta con los dos servicios oficiales gratuitos que sí lo hacen: en "Normativa y alertas" tienes fichas de Mi BOE (para normativa estatal) y miBOPA (para normativa y convocatorias autonómicas). Date de alta una vez en cada uno con tu email y las palabras clave que te interesen (por ejemplo "montes", "urbanismo", "Ribera de Arriba"), y recibirás el aviso directamente en tu correo cada vez que se publique algo nuevo que coincida.' },
   { tag: 'gestion', pregunta: '¿Cómo consulto la evolución de la población o el envejecimiento del concejo para justificar una solicitud de ayuda?',
