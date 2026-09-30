@@ -598,10 +598,13 @@ function initCalleMap() {
     { label: 'Otras rentas', valor: 16.6, texto: '16,6%', color: '#8073ac' },
   ];
   const MERCADO_LABORAL = [
-    { label: 'Actividad', valor: 50.0, texto: '50,0%', color: '#5b8ac9' },
-    { label: 'Empleo', valor: 40.0, texto: '40,0%', color: '#4f8a5b' },
-    { label: 'Paro', valor: 30.0, texto: '30,0%', color: '#c0504d' },
-    { label: 'Pensión jub.', valor: 20.0, texto: '20,0%', color: '#c9a65a' },
+    { label: 'Actividad', valor: 51.5, texto: '51,5%', color: '#5b8ac9' },
+    { label: 'Empleo', valor: 40.5, texto: '40,5%', color: '#4f8a5b' },
+    { label: 'Paro', valor: 21.3, texto: '21,3%', color: '#c0504d' },
+  ];
+  const PENSIONES_CENSO = [
+    { label: 'Jubilación', valor: 19.0, texto: '19,0%', color: '#c9a65a' },
+    { label: 'Discapacidad', valor: 4.0, texto: '4,0%', color: '#8073ac' },
   ];
   const USO_VIVIENDA = [
     { label: 'Principal', valor: 65.6, texto: '65,6%', color: '#5b8ac9' },
@@ -656,20 +659,20 @@ function initCalleMap() {
       gráfico: donutSVG(COMPOSICION_RENTA)
     },
     paro: {
-      titulo: 'Tasa de paro', valor: '30,0%', fuente: 'INE, Censo de Población y Viviendas 2021',
-      explicación: 'Muy por encima de la media nacional — indicador claro de fragilidad del tejido productivo local. Es un dato del Censo 2021; desde entonces el INE ha cambiado de metodología (los censos de población se publican ya cada año, y los de vivienda cada 3-4 años sin fecha fija), así que conviene comprobar si ya hay una edición más reciente antes de darlo por definitivo. Comparado con la tasa de actividad (50%) y de empleo (40%), sugiere que buena parte de la población activa formal no encuentra trabajo en el propio concejo.',
+      titulo: 'Tasa de paro', valor: '21,3%', fuente: 'INE, Censo anual de población 2024',
+      explicación: 'Más de uno de cada cinco activos está en paro, una tasa alta que indica fragilidad del tejido productivo local. Mejora respecto al Censo de 2021 (26,7%). Es un dato del Censo anual de población 2024; conviene comprobar si el INE ha publicado ya una edición posterior antes de darlo por definitivo. Comparado con la tasa de actividad (51,5%) y de empleo (40,5%), sugiere que una parte importante de la población activa no tiene empleo.',
       recomendacion: '💡 Se recomienda cruzar este dato con el suelo industrial disponible y la actividad económica del concejo para valorar el margen real de generar empleo local.',
       gráfico: histogramaSVG(MERCADO_LABORAL, { max: 60 })
     },
     empleo: {
-      titulo: 'Tasa de empleo', valor: '40,0%', fuente: 'INE, Censo de Población y Viviendas 2021',
-      explicación: 'Proporción de población ocupada sobre el total. Junto al 30% de paro y el 20% que percibe pensión de jubilación, dibuja una estructura de actividad marcada por el envejecimiento: buena parte de la población en edad no activa ya no busca empleo, sino que vive de pensión. La tasa de actividad (50%) marca el techo teórico de este indicador.',
+      titulo: 'Tasa de empleo', valor: '40,5%', fuente: 'INE, Censo anual de población 2024',
+      explicación: 'Proporción de población ocupada sobre el total. Con un 21,3% de paro entre los activos y un 19,0% de los vecinos con pensión de jubilación (Censo 2021), dibuja una estructura de actividad marcada por el envejecimiento. La tasa de actividad (51,5%) marca el techo teórico de este indicador. Datos del Censo anual de población 2024, salvo la pensión de jubilación.',
       gráfico: histogramaSVG(MERCADO_LABORAL, { max: 60 })
     },
     pension: {
-      titulo: 'Población con pensión de jubilación', valor: '20,0%', fuente: 'INE, Censo de Población y Viviendas 2021',
-      explicación: 'Uno de cada cinco vecinos vive de una pensión de jubilación. Es otro indicador, junto a la edad media (47,3 años) y el % de mayores de 65 (24,2%), del progresivo envejecimiento de la estructura demográfica municipal. La pensión de discapacidad, en cambio, está en el 0,0% registrado por el Censo 2021.',
-      gráfico: histogramaSVG(MERCADO_LABORAL, { max: 60 })
+      titulo: 'Población con pensión de jubilación', valor: '19,0%', fuente: 'INE, Censo de Población y Viviendas 2021',
+      explicación: 'Casi uno de cada cinco vecinos vive de una pensión de jubilación. Es otro indicador, junto a la edad media (47,3 años) y el % de mayores de 65 (24,2%), del progresivo envejecimiento de la estructura demográfica municipal. La pensión de discapacidad alcanza el 4,0% de los vecinos (Censo 2021).',
+      gráfico: histogramaSVG(PENSIONES_CENSO, { max: 60 })
     },
     hogar: {
       titulo: 'Personas por hogar (media)', valor: '2,3', fuente: 'INE, Atlas de demografía municipal 2023',
