@@ -638,23 +638,23 @@ function initCalleMap() {
       gráfico: histogramaSVG(POBLACION_EXTREMOS, { max: 2000 })
     },
     edadmedia: {
-      titulo: 'Edad media de la población', valor: '47,3 años', fuente: 'INE, Atlas de demografía municipal 2023',
+      titulo: 'Edad media de la población', valor: '47,3 años', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'Edad media del conjunto de la población empadronada. Es varios años superior a la media asturiana, coherente con el perfil de envejecimiento que muestran también el % de mayores de 65 y la tasa de hogares unipersonales (29,6%). La estructura por grandes grupos de edad (menores, activa, mayores) es la base para estimar la demanda futura de servicios: colegios, atención domiciliaria, transporte adaptado.',
       gráfico: donutSVG(ESTRUCTURA_EDAD)
     },
     mayores65: {
-      titulo: 'Población mayor de 65 años', valor: '24,2%', fuente: 'INE, Atlas de demografía municipal 2023',
+      titulo: 'Población mayor de 65 años', valor: '24,2%', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'Casi 1 de cada 4 vecinos tiene más de 65 años. El informe usa como referencia el umbral del 20% que Naciones Unidas fija para considerar un territorio con "envejecimiento demográfico avanzado" — Ribera de Arriba está claramente por encima de ese umbral. Combinado con el 20% que ya percibe pensión de jubilación y el 29,6% de hogares unipersonales, dibuja una población mayor que en muchos casos vive sola.',
       recomendacion: '💡 Se recomienda reforzar la teleasistencia y revisar la accesibilidad peatonal en los núcleos con más población mayor.',
       gráfico: donutSVG(ESTRUCTURA_EDAD)
     },
     menores18: {
-      titulo: 'Población menor de 18 años', valor: '13,5%', fuente: 'INE, Atlas de demografía municipal 2023',
+      titulo: 'Población menor de 18 años', valor: '13,5%', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'Casi el doble de mayores de 65 años (24,2%) que de menores de 18 (13,5%): es el "cruce estructural" que marca el envejecimiento demográfico consolidado — cuando la línea de mayores supera a la de menores y no vuelve a cruzarse. Es un indicador clave para planificar plazas escolares y servicios a la infancia a medio plazo: la base de la pirámide no crece.',
       gráfico: donutSVG(ESTRUCTURA_EDAD)
     },
     renta: {
-      titulo: 'Renta neta media por hogar', valor: '33.139 €/año', fuente: 'INE, Atlas de Renta Municipal 2023',
+      titulo: 'Renta neta media por hogar', valor: '33.139 €/año', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'Dato del ejercicio fiscal 2023 (el más reciente disponible; el Atlas de Renta se pública con unos dos años de rezago respecto al ejercicio real, al basarse en declaraciones de IRPF). La estructura de fuentes de renta muestra predominio de rentas salariales (55,2%) sobre pensiones (28,2%) y otras prestaciones (16,6%): una base económica todavía apoyada en trabajo activo, no solo en transferencias. Esta capacidad económica condiciona la inversión privada posible en conservación y mantenimiento del territorio.',
       gráfico: donutSVG(COMPOSICION_RENTA)
     },
@@ -675,15 +675,15 @@ function initCalleMap() {
       gráfico: histogramaSVG(PENSIONES_CENSO, { max: 60 })
     },
     hogar: {
-      titulo: 'Personas por hogar (media)', valor: '2,3', fuente: 'INE, Atlas de demografía municipal 2023',
+      titulo: 'Personas por hogar (media)', valor: '2,3', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'Tamaño medio del hogar. Combinado con el 29,6% de hogares unipersonales, sugiere una estructura familiar fragmentada: muchos hogares de una sola persona (a menudo mayores que viven solos) compensados por otros hogares algo más grandes. Es una referencia útil para dimensionar servicios sociales de proximidad y ayuda a domicilio.'
     },
     unipersonal: {
-      titulo: 'Hogares unipersonales', valor: '29,6%', fuente: 'INE, Atlas de demografía municipal 2023',
+      titulo: 'Hogares unipersonales', valor: '29,6%', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'Casi 3 de cada 10 hogares tienen un solo residente. Un porcentaje elevado de hogares unipersonales puede indicar envejecimiento y aislamiento social, con implicaciones directas sobre la demanda de servicios básicos (ayuda a domicilio, teleasistencia, transporte adaptado). El 95,5% de la población es de nacionalidad española (INE, Atlas 2023), lo que descarta que el fenómeno esté ligado a población extranjera joven viviendo sola.'
     },
     gini: {
-      titulo: 'Índice de Gini (desigualdad de renta)', valor: '32,4', fuente: 'INE, Atlas de Desigualdad Municipal 2023',
+      titulo: 'Índice de Gini (desigualdad de renta)', valor: '32,4', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
       explicación: 'El índice de Gini mide la desigualdad en la distribución de la renta: 0 sería igualdad perfecta, 100 sería un solo hogar acaparando toda la renta. Un 32,4 es una desigualdad interna moderada, próxima a la media nacional. El ratio P80/P20 (renta del 20% más rico frente al 20% más pobre) es de 3,20 — la renta del quintil superior triplica a la del inferior, aproximadamente. Ambos indicadores han bajado desde 2015 (Gini en torno a 36) hasta 2023, una tendencia hacia menor desigualdad interna.',
       gráfico: barrasHorizontalesSVG(DESIGUALDAD, { max: 40 })
     },
