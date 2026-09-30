@@ -680,7 +680,7 @@ function initCalleMap() {
     },
     unipersonal: {
       titulo: 'Hogares unipersonales', valor: '29,6%', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
-      explicación: 'Casi 3 de cada 10 hogares tienen un solo residente. Un porcentaje elevado de hogares unipersonales puede indicar envejecimiento y aislamiento social, con implicaciones directas sobre la demanda de servicios básicos (ayuda a domicilio, teleasistencia, transporte adaptado). El 95,5% de la población es de nacionalidad española (INE, Atlas 2023), lo que descarta que el fenómeno esté ligado a población extranjera joven viviendo sola.'
+      explicación: 'Casi 3 de cada 10 hogares tienen un solo residente. Un porcentaje elevado de hogares unipersonales puede indicar envejecimiento y aislamiento social, con implicaciones directas sobre la demanda de servicios básicos (ayuda a domicilio, teleasistencia, transporte adaptado). El 95,5% de la población es de nacionalidad española (INE, Atlas de Renta de los Hogares 2023), lo que descarta que el fenómeno esté ligado a población extranjera joven viviendo sola.'
     },
     gini: {
       titulo: 'Índice de Gini (desigualdad de renta)', valor: '32,4', fuente: 'INE, Atlas de Distribución de Renta de los Hogares 2023',
