@@ -604,7 +604,7 @@ function initCalleMap() {
   ];
   const PENSIONES_CENSO = [
     { label: 'Jubilación', valor: 19.0, texto: '19,0%', color: '#c9a65a' },
-    { label: 'Discapacidad', valor: 4.0, texto: '4,0%', color: '#8073ac' },
+    { label: 'Invalidez', valor: 4.0, texto: '4,0%', color: '#8073ac' },
   ];
   const USO_VIVIENDA = [
     { label: 'Principal', valor: 65.6, texto: '65,6%', color: '#5b8ac9' },
@@ -666,12 +666,12 @@ function initCalleMap() {
     },
     empleo: {
       titulo: 'Tasa de empleo', valor: '40,5%', fuente: 'INE, Censo anual de población 2024',
-      explicación: 'Proporción de población ocupada sobre el total. Con un 21,3% de paro entre los activos y un 19,0% de los vecinos con pensión de jubilación (Censo 2021), dibuja una estructura de actividad marcada por el envejecimiento. La tasa de actividad (51,5%) marca el techo teórico de este indicador. Datos del Censo anual de población 2024, salvo la pensión de jubilación.',
+      explicación: 'Proporción de la población de 16 y más años que está ocupada. Con un 21,3% de paro entre los activos y un 19,0% de los vecinos con pensión de jubilación (Censo 2021), dibuja una estructura de actividad marcada por el envejecimiento. La tasa de actividad (51,5%) marca el techo teórico de este indicador. Datos del Censo anual de población 2024, salvo la pensión de jubilación.',
       gráfico: histogramaSVG(MERCADO_LABORAL, { max: 60 })
     },
     pension: {
       titulo: 'Población con pensión de jubilación', valor: '19,0%', fuente: 'INE, Censo de Población y Viviendas 2021',
-      explicación: 'Casi uno de cada cinco vecinos vive de una pensión de jubilación. Es otro indicador, junto a la edad media (47,3 años) y el % de mayores de 65 (24,2%), del progresivo envejecimiento de la estructura demográfica municipal. La pensión de discapacidad alcanza el 4,0% de los vecinos (Censo 2021).',
+      explicación: 'Según el Censo 2021, el 19,0% de la población percibe una pensión de jubilación. Es otro indicador, junto a la edad media (47,3 años) y el % de mayores de 65 (24,2%), del progresivo envejecimiento de la estructura demográfica municipal. La pensión por invalidez alcanza el 4,0% (Censo 2021).',
       gráfico: histogramaSVG(PENSIONES_CENSO, { max: 60 })
     },
     hogar: {
