@@ -181,6 +181,14 @@ function initCalleMap() {
     document.getElementById('chk-puntos-snczi').addEventListener('change', (e) => {
       if (e.target.checked) layerPuntosSnczi.addTo(map); else map.removeLayer(layerPuntosSnczi);
     });
+    window.verPuntosSnczi = function () {
+      document.getElementById('modal-overlay').classList.remove('activo');
+      const pestana = document.querySelector('.tab-btn[data-panel="panel-calle"]');
+      if (pestana) pestana.click();
+      const casilla = document.getElementById('chk-puntos-snczi');
+      if (casilla && !casilla.checked) { casilla.checked = true; layerPuntosSnczi.addTo(map); }
+      setTimeout(() => { map.invalidateSize(); map.fitBounds(layerPuntosSnczi.getBounds().pad(0.5)); }, 150);
+    };
 
     // Cache-buster (?v=...) para evitar que el navegador sirva un 404 viejo
     // cacheado de antes de que existiera data/siose_simplificado.geojson.
@@ -848,7 +856,8 @@ function initCalleMap() {
     'alerta-elementos': {
       titulo: 'Elementos de especial importancia expuestos (SNCZI, escenario T500)', valor: '3 elementos en el ARPSI ES018-AST-28-1', fuente: 'SNCZI (MITECO), mapa de riesgo por puntos de especial importancia, T500, fichero Riesgo_MA_T500_PB_20241118',
       explicación: 'El SNCZI asocia a la zona inundable de T500 un inventario de elementos de especial importancia dentro de cada área de riesgo potencial significativo de inundación (ARPSI). En Ribera de Arriba, dentro del ARPSI ES018-AST-28-1 (río Nalón, tramo medio), figuran tres: el Polideportivo Municipal de Ribera de Arriba (categoría Concurrencia pública destacada, instalación deportiva) y dos instalaciones industriales de Soto de Ribera registradas como Emisiones industriales: la Central térmica de Soto de Ribera y el CTCC Soto de Ribera. En el campo clasificación de afección, el SNCZI marca los tres como MUY GRAVE; el significado exacto de esa clasificación está en la documentación del SNCZI, que no se ha revisado aquí. T500 es el escenario menos probable (0,2% anual): indica exposición en una avenida excepcional, no inundación frecuente. Es información oficial del Ministerio, no un cálculo propio. El fichero es de noviembre de 2024 y no se ha comprobado el estado actual de cada instalación. El proyecto de Real Decreto en consulta pública hasta el 16/09/2026 (aún sin aprobar) pide que el programa municipal de adaptación identifique, con los mapas de riesgo disponibles, los edificios públicos, equipamientos y zonas industriales en zona inundable.',
-      recomendacion: 'Para el ayuntamiento es un punto de partida concreto del programa de adaptación: el Polideportivo Municipal es un equipamiento público incluido en el inventario del SNCZI. Conviene consultar a la Confederación Hidrográfica del Cantábrico y a Protección Civil del Principado cómo se define la clasificación MUY GRAVE y si existe un plan de actuación para estos elementos.'
+      recomendacion: 'Para el ayuntamiento es un punto de partida concreto del programa de adaptación: el Polideportivo Municipal es un equipamiento público incluido en el inventario del SNCZI. Conviene consultar a la Confederación Hidrográfica del Cantábrico y a Protección Civil del Principado cómo se define la clasificación MUY GRAVE y si existe un plan de actuación para estos elementos.',
+      gráfico: '<button type="button" onclick="verPuntosSnczi()" style="background:#ab47bc; color:#fff; border:none; border-radius:6px; padding:10px 16px; font-size:15px; cursor:pointer;">Ver estos 3 elementos en el mapa</button>'
     },
         prtr: {
       titulo: 'PRTR — Plan de Recuperación, Transformación y Resiliencia', valor: 'Fondos Next Generation EU por componente', fuente: 'Gobierno de España — planderecuperacion.gob.es',
