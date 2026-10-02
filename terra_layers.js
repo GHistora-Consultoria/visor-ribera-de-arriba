@@ -572,7 +572,7 @@ if (document.readyState === 'complete') {
             );
         
     
-            tile_layer_3dc7488d6e9586faa1322d74ca79ebb0.addTo(map_23cbfc2d132fee0ff3f89ff4a4a35d0e);
+            // 02/10/2026: OpenTopoMap ya no es el mapa base por defecto (sigue disponible en el control de capas)
         
     
             var tile_layer_d56c997e63bac0c0d77e9be14567b617 = L.tileLayer(
@@ -626,6 +626,7 @@ if (document.readyState === 'complete') {
             );
         
     
+            tile_layer_947d43d9450b3e1ed3801d721a756a06.addTo(map_23cbfc2d132fee0ff3f89ff4a4a35d0e);
             var tile_layer_5a25daa7533c83dc41e0c48613578e5f = L.tileLayer(
                 "https://www.ign.es/wmts/ign-base?service=WMTS\u0026request=GetTile\u0026version=1.0.0\u0026layer=IGNBaseTodo-gris\u0026style=default\u0026tilematrixset=GoogleMapsCompatible\u0026TileMatrix={z}\u0026TileCol={x}\u0026TileRow={y}\u0026format=image/jpeg",
                 {
@@ -702,7 +703,7 @@ if (document.readyState === 'complete') {
             );
         
     
-            image_overlay_34e27051876ef03cf049856750c8595a.addTo(map_23cbfc2d132fee0ff3f89ff4a4a35d0e);
+            // 02/10/2026: Cambio NDVI ya no se muestra al abrir el visor (se activa desde el control de capas)
         
     
             var image_overlay_3069be2679403195a6a724598fb6ce14 = L.imageOverlay(
