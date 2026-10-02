@@ -165,6 +165,23 @@ function initCalleMap() {
       if (e.target.checked) layerMontes.addTo(map); else map.removeLayer(layerMontes);
     });
 
+    // Elementos de especial importancia expuestos a la avenida T500 (SNCZI, mapa de riesgo por puntos).
+    // Fuente: MITECO, fichero Riesgo_MA_T500_PB_20241118 (descargado el 02/10/2026); 3 puntos dentro del concejo.
+    const PUNTOS_SNCZI_GEOJSON = {"type":"FeatureCollection","name":"snczi_puntos_t500","features":[{"type":"Feature","properties":{"nombre":"CTCC Soto de Ribera","tipo":"Emisiones industriales","subtipo":"Emisiones industriales","arpsi":"ES018-AST-28-1","clasif":"MUY GRAVE","prtr":"7193","cnae":"3516"},"geometry":{"type":"Point","coordinates":[-5.875211,43.315479]}},{"type":"Feature","properties":{"nombre":"Central térmica de Soto de Ribera","tipo":"Emisiones industriales","subtipo":"Emisiones industriales","arpsi":"ES018-AST-28-1","clasif":"MUY GRAVE","prtr":"2927","cnae":"3516"},"geometry":{"type":"Point","coordinates":[-5.872996,43.311212]}},{"type":"Feature","properties":{"nombre":"Polideportivo Municipal de Ribera de Arriba","tipo":"Concurrencia pública destacada","subtipo":"Instalación deportiva","arpsi":"ES018-AST-28-1","clasif":"MUY GRAVE","prtr":"","cnae":""},"geometry":{"type":"Point","coordinates":[-5.888492,43.315368]}}]};
+    const layerPuntosSnczi = L.geoJSON(PUNTOS_SNCZI_GEOJSON, {
+      pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 9, color: '#4a148c', weight: 2, fillColor: '#ab47bc', fillOpacity: 0.85 }),
+      onEachFeature: (f, layer) => {
+        const p = f.properties;
+        let html = '<b>' + p.nombre + '</b><br>' + p.tipo + (p.subtipo && p.subtipo !== p.tipo ? ' — ' + p.subtipo : '') + '<br>ARPSI ' + p.arpsi + '<br>Clasificación de afección (SNCZI): ' + p.clasif;
+        if (p.prtr) html += '<br>Registro PRTR ' + p.prtr + (p.cnae ? ' · CNAE ' + p.cnae : '');
+        html += '<br><span style="font-size:0.85em;">Escenario T500 (probabilidad anual 0,2%). Fuente: SNCZI, MITECO.</span>';
+        layer.bindPopup(html);
+      }
+    });
+    document.getElementById('chk-puntos-snczi').addEventListener('change', (e) => {
+      if (e.target.checked) layerPuntosSnczi.addTo(map); else map.removeLayer(layerPuntosSnczi);
+    });
+
     // Cache-buster (?v=...) para evitar que el navegador sirva un 404 viejo
     // cacheado de antes de que existiera data/siose_simplificado.geojson.
     fetch('siose_simplificado.geojson?v=' + Date.now()).then(r => {
@@ -827,6 +844,11 @@ function initCalleMap() {
       explicación: 'T500 (probabilidad anual del 0,2%) es el escenario menos probable de los tres que publica el SNCZI: un evento de esa magnitud se espera, de media, cada 500 años. Es el límite de la zona inundable del reglamento, que también tiene limitaciones de uso propias, más laxas que las de la zona de flujo preferente. Por ejemplo, el proyecto de Real Decreto en consulta pública hasta el 16/09/2026 propone que los nuevos usos residenciales en suelo urbanizado se sitúen al menos 1 m por encima de la cota de esa avenida y no tengan sótanos ni garajes subterráneos. Por eso queda registrado como el tercer nivel de la misma cartografía oficial. En el mapa se ven dos manchas y no tres porque dos de los tres sectores (Soto del Rey, SAU Soto del Rey y SAU Ferreros-RMS, de 1 recinto cada uno) están pegados y se dibujan juntos.',
       recomendacion: '💡 No es el nivel más restrictivo, pero tampoco es solo informativo: conviene consultar a la Confederación Hidrográfica antes de tramitar licencias con sótano, garaje subterráneo o usos sensibles en estos sectores.',
       gráfico: '<img src="mapa_alerta_baja.png" style="width:100%; border-radius:6px; border:1px solid var(--border);" alt="Mapa de Soto del Rey y SAU Ferreros-RMS, alerta baja"><div style="text-align:right; margin-top:6px;"><a href="mapa_alerta_baja.png" download style="color:#e6c07a; font-size:0.85em; text-decoration:none;">⬇️ Descargar mapa (PNG)</a></div>'
+    },
+    'alerta-elementos': {
+      titulo: 'Elementos de especial importancia expuestos (SNCZI, escenario T500)', valor: '3 elementos en el ARPSI ES018-AST-28-1', fuente: 'SNCZI (MITECO), mapa de riesgo por puntos de especial importancia, T500, fichero Riesgo_MA_T500_PB_20241118',
+      explicación: 'El SNCZI asocia a la zona inundable de T500 un inventario de elementos de especial importancia dentro de cada área de riesgo potencial significativo de inundación (ARPSI). En Ribera de Arriba, dentro del ARPSI ES018-AST-28-1 (río Nalón, tramo medio), figuran tres: el Polideportivo Municipal de Ribera de Arriba (categoría Concurrencia pública destacada, instalación deportiva) y dos instalaciones industriales de Soto de Ribera registradas como Emisiones industriales: la Central térmica de Soto de Ribera y el CTCC Soto de Ribera. En el campo clasificación de afección, el SNCZI marca los tres como MUY GRAVE; el significado exacto de esa clasificación está en la documentación del SNCZI, que no se ha revisado aquí. T500 es el escenario menos probable (0,2% anual): indica exposición en una avenida excepcional, no inundación frecuente. Es información oficial del Ministerio, no un cálculo propio. El fichero es de noviembre de 2024 y no se ha comprobado el estado actual de cada instalación. El proyecto de Real Decreto en consulta pública hasta el 16/09/2026 (aún sin aprobar) pide que el programa municipal de adaptación identifique, con los mapas de riesgo disponibles, los edificios públicos, equipamientos y zonas industriales en zona inundable.',
+      recomendacion: 'Para el ayuntamiento es un punto de partida concreto del programa de adaptación: el Polideportivo Municipal es un equipamiento público incluido en el inventario del SNCZI. Conviene consultar a la Confederación Hidrográfica del Cantábrico y a Protección Civil del Principado cómo se define la clasificación MUY GRAVE y si existe un plan de actuación para estos elementos.'
     },
         prtr: {
       titulo: 'PRTR — Plan de Recuperación, Transformación y Resiliencia', valor: 'Fondos Next Generation EU por componente', fuente: 'Gobierno de España — planderecuperacion.gob.es',
