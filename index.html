@@ -89,7 +89,9 @@
   .dash-rec { font-size: 14px; color: var(--gold-bright); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); line-height: 1.5; }
   .dash-cajas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .dash-caja { background: var(--navy-light); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: transform 0.15s, border-color 0.15s; }
-  .etiqueta-snczi { font-size: 12px; font-weight: 600; color: #4a148c; background: rgba(255,255,255,0.93); border: 1px solid #ab47bc; }
+  .etiqueta-snczi { font-size: 14px; font-weight: 600; color: #4a148c; background: rgba(255,255,255,0.93); border: 1px solid #ab47bc; }
+  .leaflet-popup-content { font-size: 15px; line-height: 1.45; }
+  .etiqueta-zfp { font-size: 14px; font-weight: 600; color: #212121; background: rgba(255,255,255,0.95); border: 2px solid #ffd600; }
   .dash-caja[data-key]:hover { transform: translateY(-2px); border-color: var(--gold); }
   .dash-caja[data-key]::after { content: '🔍 más info'; display: block; font-size: 10px; color: var(--gold); margin-top: 8px; opacity: 0.7; }
   .dash-caja .dash-caja-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
@@ -235,7 +237,8 @@
       <h3>Capas</h3>
       <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:4px;"><input type="checkbox" id="chk-red-natura"> 🌳 Red Natura 2000</div>
       <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:4px;"><input type="checkbox" id="chk-montes"> 🌲 Montes de Utilidad Pública</div>
-      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:12px;"><input type="checkbox" id="chk-puntos-snczi"> &#9888; Elementos expuestos T500 (SNCZI)</div>
+      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:4px;"><input type="checkbox" id="chk-puntos-snczi"> &#9888; Elementos expuestos T500 (SNCZI)</div>
+      <div class="layer-item" style="display:flex; align-items:center; gap:8px; font-size:15px; margin-bottom:12px;"><input type="checkbox" id="chk-zfp"> Zona de flujo preferente (MITECO)</div>
       <h3>Ficha técnica del punto</h3>
       <p id="calle-hint" class="calle-hint">Arrastra el círculo dorado de la esquina inferior derecha del mapa y suéltalo en el lugar que quieras consultar.</p>
       <div id="calle-resultado" style="display:none;">
@@ -400,7 +403,7 @@
         <div class="dash-caja" data-key="alerta-baja" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#e6c229;"></span><span class="dash-caja-label">Alerta baja (inundación T500)</span><div class="dash-caja-val">3 sectores</div><div class="dash-caja-sub">Soto del Rey, SAU Soto del Rey, SAU Ferreros-RMS (3 recintos; en el mapa dos se ven juntos)</div></div>
         <div class="dash-caja" data-key="alerta-elementos" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#ab47bc;"></span><span class="dash-caja-label">Elementos expuestos (SNCZI T500)</span><div class="dash-caja-val">3 elementos</div><div class="dash-caja-sub">Polideportivo Municipal y dos instalaciones industriales de Soto de Ribera</div></div>
         <div class="dash-caja" data-key="alerta-escenarios" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#3f51b5;"></span><span class="dash-caja-label">¿Qué escenario importa para el decreto?</span><div class="dash-caja-val">T500 y T100</div><div class="dash-caja-sub">T500 define la zona inundable, T100 es la base de la zona de flujo preferente y T10 informa</div></div>
-        <div class="dash-caja" data-key="alerta-zfp" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#00897b;"></span><span class="dash-caja-label">Cruce con la zona de flujo preferente</span><div class="dash-caja-val">3 de 14 sectores</div><div class="dash-caja-sub">SAU Vegalencia 20,3%, Vegalencia 13,5%, Soto de Ribera 0,4% (borde)</div></div>
+        <div class="dash-caja" data-key="alerta-zfp" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#ffd600;"></span><span class="dash-caja-label">Cruce con la zona de flujo preferente</span><div class="dash-caja-val">3 de 14 sectores</div><div class="dash-caja-sub">SAU Vegalencia 20,3%, Vegalencia 13,5%, Soto de Ribera 0,4% (borde)</div></div>
       </div>
       <p class="dash-note">💡 Esta ficha compara la clasificación urbanística ya aprobada por el Principado (RPGUR) con la cartografia mas reciente de inundabilidad (SNCZI) y patrimonio (BIC). Como son dos fuentes que se actualizan en momentos distintos, puede haber sectores ya clasificados como urbanizables que hoy coinciden con una zona de riesgo detectada despues. Esta comprobación cobra más peso con el RD 665/2023, que ya obliga a incorporar esta cartografía al planeamiento en un plazo de 5 años, y con el proyecto de Real Decreto del Ministerio para la Transición Ecológica (consulta pública hasta el 16/09/2026, pendiente de aprobación), que reforzaría esa obligación. Haz clic en cualquier casilla para ver el detalle y la explicación completa.</p>
     </div>

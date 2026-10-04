@@ -175,10 +175,11 @@ function initCalleMap() {
         let html = '<b>' + p.nombre + '</b><br>' + p.tipo + (p.subtipo && p.subtipo !== p.tipo ? ' — ' + p.subtipo : '') + '<br>ARPSI ' + p.arpsi + '<br>Clasificación de afección (SNCZI, escenario T500): <b>' + p.clasif + '</b>';
         if (p.prtr) html += '<br>Registro PRTR ' + p.prtr + (p.cnae ? ' · CNAE ' + p.cnae : '');
         html += '<br><span style="font-size:0.85em;">Escenario T500: avenida con probabilidad anual del 0,2% (periodo de retorno de 500 años). Fuente: SNCZI, MITECO.</span>';
-        layer.bindPopup(html, { maxWidth: 280 });
+        layer.bindPopup(html, { maxWidth: 340 });
         const etiqueta = p.nombre.replace('Polideportivo Municipal de Ribera de Arriba', 'Polideportivo Municipal');
         const abajo = p.nombre.indexOf('Central') === 0;
-        layer.bindTooltip(etiqueta + '<br><span style="font-weight:400;">escenario T500</span>', { permanent: true, direction: abajo ? 'bottom' : 'top', offset: [0, abajo ? 10 : -10], className: 'etiqueta-snczi' });
+        const izq = p.nombre.indexOf('Polideportivo') === 0;
+        layer.bindTooltip(etiqueta + '<br><span style="font-weight:400;">escenario T500</span>', { permanent: true, direction: izq ? 'left' : (abajo ? 'bottom' : 'top'), offset: izq ? [-10, 0] : [0, abajo ? 10 : -10], className: 'etiqueta-snczi' });
       }
     });
     document.getElementById('chk-puntos-snczi').addEventListener('change', (e) => {
@@ -191,6 +192,68 @@ function initCalleMap() {
       const casilla = document.getElementById('chk-puntos-snczi');
       if (casilla && !casilla.checked) { casilla.checked = true; layerPuntosSnczi.addTo(map); }
       setTimeout(() => { map.invalidateSize(); map.fitBounds(layerPuntosSnczi.getBounds().pad(0.5)); }, 150);
+    };
+
+    // Zona de flujo preferente (ZFP) del Ministerio (SNCZI). Fuente: MITECO, fichero
+    // ZFP_PenBal_sinHipotesis_20260114, recortado al concejo (3 poligonos, 171,64 ha).
+    // Archivo aparte: se descarga solo la primera vez que se activa la casilla.
+    let layerZfp = null;
+    let zfpCargando = null;
+    const escHtml = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const fechaEs = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || ''); };
+    function ptsAlFrente() {
+      if (map.hasLayer(layerPuntosSnczi)) layerPuntosSnczi.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });
+    }
+    function cargarZfp() {
+      if (layerZfp) return Promise.resolve(layerZfp);
+      if (zfpCargando) return zfpCargando;
+      zfpCargando = fetch('zfp_ribera_de_arriba.geojson?v=1').then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(gj => {
+        const bordeOscuro = L.geoJSON(gj, { style: { color: '#212121', weight: 6, fill: false, opacity: 0.85 }, interactive: false });
+        const principal = L.geoJSON(gj, {
+          style: { color: '#ffd600', weight: 3, fillColor: '#ffd600', fillOpacity: 0.10 },
+          onEachFeature: (f, layer) => {
+            const p = f.properties || {};
+            let html = '<b>Zona de flujo preferente</b><br>' + escHtml(p.ZONA) + ' · ' + escHtml(p.RIO);
+            html += '<br>Estudio: ' + escHtml(p.ESTUDIO) + ' (' + fechaEs(p.FECHA) + ')';
+            html += '<br>Método según el dato: ' + escHtml(p.PRECISION) + '; modelo hidráulico ' + escHtml(p.HIDRAUL);
+            html += '<br>Organismo que consta en el dato: ' + escHtml(p.ORGANISMO);
+            html += '<br><span style="font-size:0.85em;">Edición vectorial del MITECO de 14/01/2026 (la página del Ministerio indica que cubre el 20,3% de los cauces principales). Cartografía oficial del Ministerio: el visor la cruza con el planeamiento y no la sustituye. Que un tramo no tenga ZFP publicada no significa que no exista: consultar a la Confederación Hidrográfica del Cantábrico.</span>';
+            layer.bindPopup(html, { maxWidth: 340 });
+            layer.bindTooltip('ZFP ' + escHtml(p.ZONA), { permanent: true, direction: 'center', className: 'etiqueta-zfp' });
+          }
+        });
+        layerZfp = L.featureGroup([bordeOscuro, principal]);
+        return layerZfp;
+      }).catch(e => {
+        zfpCargando = null;
+        console.warn('Zona de flujo preferente no disponible:', e);
+        window.alert('No se pudo cargar la capa de la zona de flujo preferente. Recarga la página e inténtalo de nuevo.');
+        throw e;
+      });
+      return zfpCargando;
+    }
+    document.getElementById('chk-zfp').addEventListener('change', (e) => {
+      const casilla = e.target;
+      if (casilla.checked) {
+        cargarZfp().then(capa => { if (casilla.checked) { capa.addTo(map); ptsAlFrente(); } }).catch(() => { casilla.checked = false; });
+      } else if (layerZfp) {
+        map.removeLayer(layerZfp);
+      }
+    });
+    window.verZfp = function () {
+      document.getElementById('modal-overlay').classList.remove('activo');
+      const pestana = document.querySelector('.tab-btn[data-panel="panel-calle"]');
+      if (pestana) pestana.click();
+      const casilla = document.getElementById('chk-zfp');
+      cargarZfp().then(capa => {
+        if (casilla) casilla.checked = true;
+        capa.addTo(map);
+        ptsAlFrente();
+        setTimeout(() => { map.invalidateSize(); map.fitBounds(capa.getBounds().pad(0.1)); }, 150);
+      }).catch(() => { if (casilla) casilla.checked = false; });
     };
 
     // Cache-buster (?v=...) para evitar que el navegador sirva un 404 viejo
@@ -869,8 +932,9 @@ function initCalleMap() {
     },
     'alerta-zfp': {
       titulo: 'Cruce de los 14 sectores del planeamiento con la zona de flujo preferente y la zona inundable T500', valor: '3 sectores tocan la zona de flujo preferente; 7 tocan la zona inundable (T500)', fuente: 'ZFP: MITECO, fichero ZFP_PenBal_sinHipotesis_20260114 (la página del Ministerio indica actualización del 01/06/2026); T500: SNCZI, edición de 14/01/2026; sectores: RPGUR (Principado de Asturias). Siglas del RPGUR: Resolución de 2 de septiembre de 2014 de la Consejería de Fomento, Ordenación del Territorio y Medio Ambiente (BOPA de 25/09/2014). Cálculo propio con TERRA el 02/10/2026',
-      explicación: 'La zona de flujo preferente (ZFP) publicada por el Ministerio ocupa 171,64 ha dentro del concejo, cerca del 7,8% de su superficie. Cruzada con los 14 sectores del RPGUR. Las siglas son las del propio registro: SU es suelo urbano, SUR es suelo urbanizable, y la letra final es el uso global que el plan asigna al sector, R residencial e I industrial. Los sectores cuyo nombre empieza por SAU (en los planes asturianos suele significar suelo apto para urbanizar; no se ha comprobado en el plan de Ribera de Arriba) figuran en el RPGUR como suelo urbanizable (SUR):<br><br><table style="width:100%; border-collapse:collapse; font-size:0.88em;"><tr><th style="text-align:left; padding:4px;">Sector (RPGUR)</th><th style="text-align:right; padding:4px;">Superficie</th><th style="text-align:right; padding:4px;">En zona de flujo preferente</th><th style="text-align:right; padding:4px;">En zona inundable T500</th></tr><tr><td style="padding:4px;">SAU Vegalencia: urbanizable industrial (SUR-I)</td><td style="text-align:right; padding:4px;">15,66 ha</td><td style="text-align:right; padding:4px;">3,19 ha (20,3%)</td><td style="text-align:right; padding:4px;">7,72 ha (49,3%)</td></tr><tr><td style="padding:4px;">Vegalencia: urbano industrial (SU-I)</td><td style="text-align:right; padding:4px;">4,96 ha</td><td style="text-align:right; padding:4px;">0,67 ha (13,5%)</td><td style="text-align:right; padding:4px;">4,96 ha (100%)</td></tr><tr><td style="padding:4px;">Soto de Ribera: urbano residencial (SU-R)</td><td style="text-align:right; padding:4px;">3,90 ha</td><td style="text-align:right; padding:4px;">0,02 ha (0,4%, solo un borde)</td><td style="text-align:right; padding:4px;">1,03 ha (26,3%)</td></tr><tr><td style="padding:4px;">SAU Soto del Rey: urbanizable residencial (SUR-R)</td><td style="text-align:right; padding:4px;">2,52 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">2,17 ha (86,4%)</td></tr><tr><td style="padding:4px;">Soto del Rey: urbano residencial (SU-R)</td><td style="text-align:right; padding:4px;">4,53 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">3,87 ha (85,5%)</td></tr><tr><td style="padding:4px;">SAU Ferreros-RMS: urbanizable residencial (SUR-R)</td><td style="text-align:right; padding:4px;">1,76 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">1,15 ha (65,1%)</td></tr><tr><td style="padding:4px;">Las Segadas: urbano residencial (SU-R)</td><td style="text-align:right; padding:4px;">4,50 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">0,96 ha (21,4%)</td></tr></table><br>Los otros 7 sectores (El Caleyo, SAU El Caleyo 1, 2 y 3, y SAU Soto de Ribera programado, no programado y RMS) no tocan ni la zona de flujo preferente ni la zona inundable T500.<br><br><b>Cómo leerlo.</b> Los porcentajes son sobre la superficie de cada sector del RPGUR; un porcentaje bajo puede ser solo un borde. Que un sector toque la zona de flujo preferente no significa una prohibición automática. El proyecto distingue si el suelo estaba a 30/12/2016 en situación básica de suelo rural o de suelo urbanizado (arts. 9 bis y 9 ter): para el suelo rural en zona de flujo preferente exige mantener esa situación (art. 9 bis.1), y las disposiciones transitorias mantienen la normativa anterior para desarrollos ya previstos en planeamiento aprobado o con licencia (disposición transitoria segunda). Ojo con las clasificaciones: urbano o urbanizable (la clase de suelo del plan) no es lo mismo que suelo urbanizado o rural (la situación básica que fija la ley). Según el texto refundido de la Ley de Suelo (art. 21.2.b), el suelo que el plan prevé urbanizar sigue en situación de suelo rural hasta que termina su urbanización. Por eso un sector urbanizable sin urbanizar, como puede ser SAU Vegalencia, estaría en situación de suelo rural, y su parte en zona de flujo preferente quedaría sujeta al art. 9 bis, salvo que la disposición transitoria segunda mantenga la normativa anterior por tener ya un plan aprobado. Este visor no sabe en qué estado de urbanización está cada sector, y habría que confirmarlo con el ayuntamiento o el equipo redactor del planeamiento.<br><br><b>Límites de los datos.</b> La zona de flujo preferente del Ministerio se basa en el estudio del sistema Nalón de primer ciclo, aprobado en 2015, con MDT LiDAR. La propia página del Ministerio indica que la ZFP publicada cubre el 20,3% de los cauces principales. Y el decreto es un proyecto aún sin aprobar.',
-      recomendacion: 'Antes de tramitar cualquier actuación en SAU Vegalencia, Vegalencia o Soto de Ribera conviene confirmar con la Confederación Hidrográfica del Cantábrico y con el equipo redactor del planeamiento la situación básica del suelo y si se aplica el régimen transitorio. Esta ficha es un diagnóstico de apoyo, no un informe oficial.'
+      explicación: 'La zona de flujo preferente (ZFP) publicada por el Ministerio ocupa 171,64 ha dentro del concejo, cerca del 7,8% de su superficie. Cruzada con los 14 sectores del RPGUR. Las siglas son las del propio registro: SU es suelo urbano, SUR es suelo urbanizable, y la letra final es el uso global que el plan asigna al sector, R residencial e I industrial. Los sectores cuyo nombre empieza por SAU (en los planes asturianos suele significar suelo apto para urbanizar; no se ha comprobado en el plan de Ribera de Arriba) figuran en el RPGUR como suelo urbanizable (SUR):<br><br><table style="width:100%; border-collapse:collapse; font-size:0.88em;"><tr><th style="text-align:left; padding:4px;">Sector (RPGUR)</th><th style="text-align:right; padding:4px;">Superficie</th><th style="text-align:right; padding:4px;">En zona de flujo preferente</th><th style="text-align:right; padding:4px;">En zona inundable T500</th></tr><tr><td style="padding:4px;">SAU Vegalencia: urbanizable industrial (SUR-I)</td><td style="text-align:right; padding:4px;">15,66 ha</td><td style="text-align:right; padding:4px;">3,19 ha (20,3%)</td><td style="text-align:right; padding:4px;">7,72 ha (49,3%)</td></tr><tr><td style="padding:4px;">Vegalencia: urbano industrial (SU-I)</td><td style="text-align:right; padding:4px;">4,96 ha</td><td style="text-align:right; padding:4px;">0,67 ha (13,5%)</td><td style="text-align:right; padding:4px;">4,96 ha (100%)</td></tr><tr><td style="padding:4px;">Soto de Ribera: urbano residencial (SU-R)</td><td style="text-align:right; padding:4px;">3,90 ha</td><td style="text-align:right; padding:4px;">0,02 ha (0,4%, solo un borde)</td><td style="text-align:right; padding:4px;">1,03 ha (26,3%)</td></tr><tr><td style="padding:4px;">SAU Soto del Rey: urbanizable residencial (SUR-R)</td><td style="text-align:right; padding:4px;">2,52 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">2,17 ha (86,4%)</td></tr><tr><td style="padding:4px;">Soto del Rey: urbano residencial (SU-R)</td><td style="text-align:right; padding:4px;">4,53 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">3,87 ha (85,5%)</td></tr><tr><td style="padding:4px;">SAU Ferreros-RMS: urbanizable residencial (SUR-R)</td><td style="text-align:right; padding:4px;">1,76 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">1,15 ha (65,1%)</td></tr><tr><td style="padding:4px;">Las Segadas: urbano residencial (SU-R)</td><td style="text-align:right; padding:4px;">4,50 ha</td><td style="text-align:right; padding:4px;">no</td><td style="text-align:right; padding:4px;">0,96 ha (21,4%)</td></tr></table><br>Los otros 7 sectores (El Caleyo, SAU El Caleyo 1, 2 y 3, y SAU Soto de Ribera programado, no programado y RMS) no tocan ni la zona de flujo preferente ni la zona inundable T500.<br><br><b>Cómo leerlo.</b> Los porcentajes son sobre la superficie de cada sector del RPGUR; un porcentaje bajo puede ser solo un borde. Que un sector toque la zona de flujo preferente no significa una prohibición automática. El proyecto distingue si el suelo estaba a 30/12/2016 en situación básica de suelo rural o de suelo urbanizado (arts. 9 bis y 9 ter): para el suelo rural en zona de flujo preferente exige mantener esa situación (art. 9 bis.1), y las disposiciones transitorias mantienen la normativa anterior para desarrollos ya previstos en planeamiento aprobado o con licencia (disposición transitoria segunda). Ojo con las clasificaciones: urbano o urbanizable (la clase de suelo del plan) no es lo mismo que suelo urbanizado o rural (la situación básica que fija la ley). Según el texto refundido de la Ley de Suelo (art. 21.2.b), el suelo que el plan prevé urbanizar sigue en situación de suelo rural hasta que termina su urbanización. Por eso un sector urbanizable sin urbanizar, como puede ser SAU Vegalencia, estaría en situación de suelo rural, y su parte en zona de flujo preferente quedaría sujeta al art. 9 bis, salvo que la disposición transitoria segunda mantenga la normativa anterior por tener ya un plan aprobado. Este visor no sabe en qué estado de urbanización está cada sector, y habría que confirmarlo con el ayuntamiento o el equipo redactor del planeamiento.<br><br><b>Límites de los datos.</b> La zona de flujo preferente del Ministerio se basa en el estudio del sistema Nalón de primer ciclo, aprobado en 2015, con MDT LiDAR. La propia página del Ministerio indica que la ZFP publicada cubre el 20,3% de los cauces principales. Que un tramo no tenga zona de flujo preferente publicada no significa que no exista: el Ministerio no la ha publicado para todos los cauces. Para esos tramos, T100 es la referencia disponible, y la delimitación debe consultarse a la Confederación Hidrográfica del Cantábrico. Y el decreto es un proyecto aún sin aprobar.',
+      recomendacion: 'Antes de tramitar cualquier actuación en SAU Vegalencia, Vegalencia o Soto de Ribera conviene confirmar con la Confederación Hidrográfica del Cantábrico y con el equipo redactor del planeamiento la situación básica del suelo y si se aplica el régimen transitorio. Esta ficha es un diagnóstico de apoyo, no un informe oficial.',
+      gráfico: '<button type="button" onclick="verZfp()" style="background:#ffd600; color:#212121; border:none; border-radius:6px; padding:10px 16px; font-size:15px; cursor:pointer;">Ver la zona de flujo preferente en el mapa</button>'
     },
         prtr: {
       titulo: 'PRTR — Plan de Recuperación, Transformación y Resiliencia', valor: 'Fondos Next Generation EU por componente', fuente: 'Gobierno de España — planderecuperacion.gob.es',
