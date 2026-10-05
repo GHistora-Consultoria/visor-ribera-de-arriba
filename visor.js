@@ -260,6 +260,69 @@ function initCalleMap() {
       }).catch(() => { if (casilla) casilla.checked = false; });
     };
 
+    // Zona inundable (T500) repartida por tipo de suelo del RPGUR: 14 sectores, núcleos rurales, suelo no urbanizable
+    // y sin clasificar. Archivo aparte (se descarga solo al activar la casilla). Cálculo propio con TERRA, 05/10/2026.
+    const COLORES_T500_CLASE = { sectores: '#FB8C00', nucleos: '#880E4F', snu: '#00897B', sin: '#9E9E9E' };
+    const NOTAS_T500_CLASE = {
+      sectores: ' Es la parte que recoge la Alerta de Planeamiento.',
+      nucleos: ' La Alerta de Planeamiento no señala los núcleos rurales; ver la ficha Dónde está la zona inundable del concejo.',
+      snu: ' No incluye los núcleos rurales, que se muestran aparte.',
+      sin: ' Terrenos sin polígono en la capa de subcategorías de suelo no urbanizable del RPGUR; la clasificación general los da como suelo no urbanizable.'
+    };
+    const claveT500Clase = (clase) => clase.indexOf('14 sectores') === 0 ? 'sectores' : (clase.indexOf('Núcleos') === 0 ? 'nucleos' : (clase.indexOf('Suelo no urbanizable') === 0 ? 'snu' : 'sin'));
+    let layerT500Clase = null;
+    let t500ClaseCargando = null;
+    function trasLaCapaDeClases() {
+      if (layerZfp && map.hasLayer(layerZfp)) layerZfp.bringToFront();
+      ptsAlFrente();
+    }
+    function cargarT500Clase() {
+      if (layerT500Clase) return Promise.resolve(layerT500Clase);
+      if (t500ClaseCargando) return t500ClaseCargando;
+      t500ClaseCargando = fetch('t500_por_clase.geojson?v=1').then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(gj => {
+        layerT500Clase = L.geoJSON(gj, {
+          style: (f) => { const c = COLORES_T500_CLASE[claveT500Clase(f.properties.clase)]; return { color: c, weight: 1, fillColor: c, fillOpacity: 0.75 }; },
+          onEachFeature: (f, layer) => {
+            const p = f.properties || {};
+            const ha = Number(p.t500_ha).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const pct = Number(p.pct_t500).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            layer.bindPopup('<b>' + escHtml(p.clase) + '</b><br>Zona inundable de T500 en esta clase de suelo: <b>' + ha + ' ha</b> (el ' + pct + '% de la zona inundable del concejo).' + NOTAS_T500_CLASE[claveT500Clase(p.clase)] +
+              '<br><span style="font-size:0.85em;">Zona inundable: SNCZI, edición vectorial de 14/01/2026. Clasificación del suelo: RPGUR (Principado de Asturias). Cálculo propio con TERRA, 05/10/2026.</span>', { maxWidth: 340 });
+          }
+        });
+        return layerT500Clase;
+      }).catch(e => {
+        t500ClaseCargando = null;
+        console.warn('Zona inundable por tipo de suelo no disponible:', e);
+        window.alert('No se pudo cargar la capa de la zona inundable por tipo de suelo. Recarga la página e inténtalo de nuevo.');
+        throw e;
+      });
+      return t500ClaseCargando;
+    }
+    document.getElementById('chk-t500-clase').addEventListener('change', (e) => {
+      const casilla = e.target;
+      if (casilla.checked) {
+        cargarT500Clase().then(capa => { if (casilla.checked) { capa.addTo(map); trasLaCapaDeClases(); } }).catch(() => { casilla.checked = false; });
+      } else if (layerT500Clase) {
+        map.removeLayer(layerT500Clase);
+      }
+    });
+    window.verT500Clase = function () {
+      document.getElementById('modal-overlay').classList.remove('activo');
+      const pestana = document.querySelector('.tab-btn[data-panel="panel-calle"]');
+      if (pestana) pestana.click();
+      const casilla = document.getElementById('chk-t500-clase');
+      cargarT500Clase().then(capa => {
+        if (casilla) casilla.checked = true;
+        capa.addTo(map);
+        trasLaCapaDeClases();
+        setTimeout(() => { map.invalidateSize(); map.fitBounds(capa.getBounds().pad(0.1)); }, 150);
+      }).catch(() => { if (casilla) casilla.checked = false; });
+    };
+
     // Cache-buster (?v=...) para evitar que el navegador sirva un 404 viejo
     // cacheado de antes de que existiera data/siose_simplificado.geojson.
     fetch('siose_simplificado.geojson?v=' + Date.now()).then(r => {
@@ -947,8 +1010,9 @@ function initCalleMap() {
     },
     'alerta-reparto': {
       titulo: 'Dónde está la zona inundable del concejo: sectores, núcleos rurales y suelo no urbanizable', valor: 'T500: 331,62 ha (15,1% del concejo); solo el 6,6% está en los 14 sectores del planeamiento', fuente: 'Zona inundable T500: SNCZI, edición vectorial de 14/01/2026; zona de flujo preferente (ZFP): MITECO, fichero ZFP_PenBal_sinHipotesis_20260114; clasificación del suelo: RPGUR (Principado de Asturias). Cálculo propio con TERRA: reparto por clases el 02/10/2026 y núcleos rurales el 04/10/2026',
-      explicación: 'Esta ficha mide dónde cae la zona inundable (T500) y la zona de flujo preferente (ZFP) del Ministerio según la clasificación del suelo del RPGUR. Los porcentajes pueden no sumar exactamente 100 por el redondeo.<br><br><table style="width:100%; border-collapse:collapse; font-size:0.9em;"><tr><th style="text-align:left; padding:4px;">Clase de suelo (RPGUR)</th><th style="padding:4px;">T500 (ha)</th><th style="padding:4px;">% de la zona inundable</th><th style="padding:4px;">ZFP (ha)</th><th style="padding:4px;">% de la ZFP</th></tr><tr><td style="padding:4px;">14 sectores de suelo urbano y urbanizable</td><td style="padding:4px; text-align:right;">21,85</td><td style="padding:4px; text-align:right;">6,6%</td><td style="padding:4px; text-align:right;">3,87</td><td style="padding:4px; text-align:right;">2,3%</td></tr><tr><td style="padding:4px;">Núcleos rurales</td><td style="padding:4px; text-align:right;">51,82</td><td style="padding:4px; text-align:right;">15,6%</td><td style="padding:4px; text-align:right;">17,23</td><td style="padding:4px; text-align:right;">10,0%</td></tr><tr><td style="padding:4px;">Suelo no urbanizable (sin los núcleos rurales)</td><td style="padding:4px; text-align:right;">256,47</td><td style="padding:4px; text-align:right;">77,3%</td><td style="padding:4px; text-align:right;">150,08</td><td style="padding:4px; text-align:right;">87,4%</td></tr><tr><td style="padding:4px;">Sin clasificar</td><td style="padding:4px; text-align:right;">1,48</td><td style="padding:4px; text-align:right;">0,4%</td><td style="padding:4px; text-align:right;">0,46</td><td style="padding:4px; text-align:right;">0,3%</td></tr><tr><td style="padding:4px;"><b>Total del concejo</b></td><td style="padding:4px; text-align:right;"><b>331,62</b></td><td style="padding:4px; text-align:right;"><b>100%</b></td><td style="padding:4px; text-align:right;"><b>171,64</b></td><td style="padding:4px; text-align:right;"><b>100%</b></td></tr></table><br><br><b>Cómo leer el 77,3%.</b> El suelo no urbanizable de esta tabla no incluye los núcleos rurales, que se muestran aparte. Si se suman los dos, el conjunto es el 93,0% de la zona inundable (308,29 de 331,62 ha) y el 97,5% de la zona de flujo preferente (167,31 de 171,64 ha). Esta ficha no determina si el planeamiento considera los núcleos rurales una subcategoría del suelo no urbanizable; por eso se separan.<br><br><b>Qué cubre la Alerta de Planeamiento y qué no.</b> La alerta solo mira los 14 sectores de suelo urbano y urbanizable. Quedan fuera de ella el 93,4% de la zona inundable y el 97,7% de la zona de flujo preferente: están en núcleos rurales, en suelo no urbanizable y en una pequeña parte sin clasificar. Esos terrenos no figuran en las fichas de alerta.<br><br><b>Núcleos rurales.</b> Tres de los doce registros de núcleos rurales concentran casi toda la superficie afectada: Ferreros, Palomar y Bueño reúnen 50,31 de las 51,82 ha de T500 y 15,93 de las 17,23 ha de ZFP de todos los núcleos rurales (el 97% y el 92%).<br><br><table style="width:100%; border-collapse:collapse; font-size:0.9em;"><tr><th style="text-align:left; padding:4px;">Núcleo rural</th><th style="padding:4px;">Superficie (ha)</th><th style="padding:4px;">En T500</th><th style="padding:4px;">En ZFP</th></tr><tr><td style="padding:4px;">Ferreros</td><td style="padding:4px; text-align:right;">26,78</td><td style="padding:4px; text-align:right;">25,89 ha (96,7%)</td><td style="padding:4px; text-align:right;">1,77 ha (6,6%)</td></tr><tr><td style="padding:4px;">Palomar</td><td style="padding:4px; text-align:right;">37,50</td><td style="padding:4px; text-align:right;">14,08 ha (37,5%)</td><td style="padding:4px; text-align:right;">11,02 ha (29,4%)</td></tr><tr><td style="padding:4px;">Bueño</td><td style="padding:4px; text-align:right;">11,98</td><td style="padding:4px; text-align:right;">10,34 ha (86,3%)</td><td style="padding:4px; text-align:right;">3,14 ha (26,2%)</td></tr></table><br>De los otros nueve registros, solo el que agrupa El Otero, La Roza, El Polledo y La Casa Nueva toca la zona inundable (1,50 ha en T500, el 3,0% de su superficie, y 1,31 ha en ZFP, el 2,6%). Los otros ocho no la tocan.<br><br><b>Un tercio del concejo.</b> Con 331,62 ha, la zona inundable de T500 es el 15,1% de la superficie del concejo, por debajo del tercio que el proyecto de decreto pide para el régimen especial del art. 14 ter. Es el resultado según el SNCZI y nuestra medición; la determinación oficial corresponde a las administraciones competentes.<br><br><b>Lo que esta ficha no dice.</b> No dice qué se puede construir en cada terreno ni si los núcleos rurales cuentan como suelo rural o urbanizado a efectos del proyecto (ver la ficha Qué dice el proyecto para el suelo rural). Tampoco cuenta edificios o viviendas afectados: mide superficie.',
-      recomendacion: 'Ferreros, Palomar y Bueño tienen una parte muy grande de su superficie en zona inundable, y parte de ella en zona de flujo preferente. Conviene que el ayuntamiento y la Confederación Hidrográfica del Cantábrico revisen su situación, y que el programa municipal de adaptación del proyecto de decreto (art. 23) tenga en cuenta estos núcleos, que la Alerta de Planeamiento no recoge.'
+      explicación: 'Esta ficha mide dónde cae la zona inundable (T500) y la zona de flujo preferente (ZFP) del Ministerio según la clasificación del suelo del RPGUR. Los porcentajes pueden no sumar exactamente 100 por el redondeo.<br><br><table style="width:100%; border-collapse:collapse; font-size:0.9em;"><tr><th style="text-align:left; padding:4px;">Clase de suelo (RPGUR)</th><th style="padding:4px;">T500 (ha)</th><th style="padding:4px;">% de la zona inundable</th><th style="padding:4px;">ZFP (ha)</th><th style="padding:4px;">% de la ZFP</th></tr><tr><td style="padding:4px;">14 sectores de suelo urbano y urbanizable</td><td style="padding:4px; text-align:right;">21,85</td><td style="padding:4px; text-align:right;">6,6%</td><td style="padding:4px; text-align:right;">3,87</td><td style="padding:4px; text-align:right;">2,3%</td></tr><tr><td style="padding:4px;">Núcleos rurales</td><td style="padding:4px; text-align:right;">51,82</td><td style="padding:4px; text-align:right;">15,6%</td><td style="padding:4px; text-align:right;">17,23</td><td style="padding:4px; text-align:right;">10,0%</td></tr><tr><td style="padding:4px;">Suelo no urbanizable (sin los núcleos rurales)</td><td style="padding:4px; text-align:right;">256,47</td><td style="padding:4px; text-align:right;">77,3%</td><td style="padding:4px; text-align:right;">150,08</td><td style="padding:4px; text-align:right;">87,4%</td></tr><tr><td style="padding:4px;">Sin clasificar (ver nota)</td><td style="padding:4px; text-align:right;">1,48</td><td style="padding:4px; text-align:right;">0,4%</td><td style="padding:4px; text-align:right;">0,46</td><td style="padding:4px; text-align:right;">0,3%</td></tr><tr><td style="padding:4px;"><b>Total del concejo</b></td><td style="padding:4px; text-align:right;"><b>331,62</b></td><td style="padding:4px; text-align:right;"><b>100%</b></td><td style="padding:4px; text-align:right;"><b>171,64</b></td><td style="padding:4px; text-align:right;"><b>100%</b></td></tr></table><br><br><b>Cómo leer el 77,3%.</b> El suelo no urbanizable de esta tabla no incluye los núcleos rurales, que se muestran aparte. Si se suman los dos, el conjunto es el 93,0% de la zona inundable (308,29 de 331,62 ha) y el 97,5% de la zona de flujo preferente (167,31 de 171,64 ha). Esta ficha no determina si el planeamiento considera los núcleos rurales una subcategoría del suelo no urbanizable; por eso se separan. La fila Sin clasificar (1,48 ha de T500) reúne terrenos que no tienen polígono en la capa de subcategorías de suelo no urbanizable del RPGUR, pero que la clasificación general del RPGUR da como suelo no urbanizable: si se cuentan como tal, el suelo no urbanizable sería de 257,96 ha (77,8%) y no quedaría nada sin clasificar en T500.<br><br><b>Qué cubre la Alerta de Planeamiento y qué no.</b> La alerta solo mira los 14 sectores de suelo urbano y urbanizable. Quedan fuera de ella el 93,4% de la zona inundable y el 97,7% de la zona de flujo preferente: están en núcleos rurales, en suelo no urbanizable y en una pequeña parte sin clasificar. Esos terrenos no figuran en las fichas de alerta.<br><br><b>Núcleos rurales.</b> Tres de los doce registros de núcleos rurales concentran casi toda la superficie afectada: Ferreros, Palomar y Bueño reúnen 50,31 de las 51,82 ha de T500 y 15,93 de las 17,23 ha de ZFP de todos los núcleos rurales (el 97% y el 92%).<br><br><table style="width:100%; border-collapse:collapse; font-size:0.9em;"><tr><th style="text-align:left; padding:4px;">Núcleo rural</th><th style="padding:4px;">Superficie (ha)</th><th style="padding:4px;">En T500</th><th style="padding:4px;">En ZFP</th></tr><tr><td style="padding:4px;">Ferreros</td><td style="padding:4px; text-align:right;">26,78</td><td style="padding:4px; text-align:right;">25,89 ha (96,7%)</td><td style="padding:4px; text-align:right;">1,77 ha (6,6%)</td></tr><tr><td style="padding:4px;">Palomar</td><td style="padding:4px; text-align:right;">37,50</td><td style="padding:4px; text-align:right;">14,08 ha (37,5%)</td><td style="padding:4px; text-align:right;">11,02 ha (29,4%)</td></tr><tr><td style="padding:4px;">Bueño</td><td style="padding:4px; text-align:right;">11,98</td><td style="padding:4px; text-align:right;">10,34 ha (86,3%)</td><td style="padding:4px; text-align:right;">3,14 ha (26,2%)</td></tr></table><br>De los otros nueve registros, solo el que agrupa El Otero, La Roza, El Polledo y La Casa Nueva toca la zona inundable (1,50 ha en T500, el 3,0% de su superficie, y 1,31 ha en ZFP, el 2,6%). Los otros ocho no la tocan.<br><br><b>Un tercio del concejo.</b> Con 331,62 ha, la zona inundable de T500 es el 15,1% de la superficie del concejo, por debajo del tercio que el proyecto de decreto pide para el régimen especial del art. 14 ter. Es el resultado según el SNCZI y nuestra medición; la determinación oficial corresponde a las administraciones competentes.<br><br><b>Lo que esta ficha no dice.</b> No dice qué se puede construir en cada terreno ni si los núcleos rurales cuentan como suelo rural o urbanizado a efectos del proyecto (ver la ficha Qué dice el proyecto para el suelo rural). Tampoco cuenta edificios o viviendas afectados: mide superficie.',
+      recomendacion: 'Ferreros, Palomar y Bueño tienen una parte muy grande de su superficie en zona inundable, y parte de ella en zona de flujo preferente. La Alerta de Planeamiento solo analiza los 14 sectores de suelo urbano y urbanizable, así que estos núcleos rurales quedan fuera de ella y no tienen alerta. Conviene que el ayuntamiento y la Confederación Hidrográfica del Cantábrico revisen su situación, y que el programa municipal de adaptación del proyecto de decreto (art. 23) tenga en cuenta estos núcleos.',
+      gráfico: '<button type="button" onclick="verT500Clase()" style="background:#FB8C00; color:#212121; border:none; border-radius:6px; padding:10px 16px; font-size:15px; cursor:pointer;">Ver la zona inundable por tipo de suelo en el mapa</button>'
     },
         prtr: {
       titulo: 'PRTR — Plan de Recuperación, Transformación y Resiliencia', valor: 'Fondos Next Generation EU por componente', fuente: 'Gobierno de España — planderecuperacion.gob.es',
