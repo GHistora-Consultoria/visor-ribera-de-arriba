@@ -857,30 +857,30 @@ function initCalleMap() {
       gráfico: donutSVG(USO_VIVIENDA)
     },
     'aemet-media': {
-      titulo: 'Temperatura media anual', valor: '13,4 °C', fuente: 'AEMET, normales climatológicas 1991-2020 (estación Oviedo)',
+      titulo: 'Temperatura media anual', valor: '13,4 °C', fuente: 'AEMET OpenData, valores normales de 30 años (referencia 1991-2020), estación de Oviedo (indicativo 1249I, 336 m, a unos 5 km del centro del concejo); consulta del 05/10/2026',
       explicación: 'Media de las temperaturas registradas a lo largo del año en la estación de referencia. Un régimen suave, sin extremos marcados, típico del clima oceánico de influencia atlántica de Asturias. Junto a la precipitación (1.028 mm/año) y la humedad (78%), sostiene una cubierta vegetal densa la mayor parte del año.',
       gráfico: histogramaSVG(TEMPERATURAS_AEMET, { max: 22 })
     },
     'aemet-máxima': {
-      titulo: 'Temperatura máxima media', valor: '17,5 °C', fuente: 'AEMET, normales climatológicas 1991-2020 (estación Oviedo)',
-      explicación: 'Media de las temperaturas máximas diarias a lo largo del año (no el pico absoluto de un día concreto, sino el promedio de los máximos). Este dato, junto con el número de días de lluvia (190/año), condiciona la ventana estacional recomendable para trabajos forestales o de campo.',
+      titulo: 'Temperatura máxima media', valor: '17,5 °C', fuente: 'AEMET OpenData, valores normales de 30 años (referencia 1991-2020), estación de Oviedo (indicativo 1249I, 336 m, a unos 5 km del centro del concejo); consulta del 05/10/2026',
+      explicación: 'Media de las temperaturas máximas diarias a lo largo del año (no el pico absoluto de un día concreto, sino el promedio de los máximos). Este dato, junto con el número de días de lluvia (179 al año, con 0,1 mm o más), condiciona la ventana estacional recomendable para trabajos forestales o de campo.',
       gráfico: histogramaSVG(TEMPERATURAS_AEMET, { max: 22 })
     },
     'aemet-mínima': {
-      titulo: 'Temperatura mínima media', valor: '9,3 °C', fuente: 'AEMET, normales climatológicas 1991-2020 (estación Oviedo)',
+      titulo: 'Temperatura mínima media', valor: '9,3 °C', fuente: 'AEMET OpenData, valores normales de 30 años (referencia 1991-2020), estación de Oviedo (indicativo 1249I, 336 m, a unos 5 km del centro del concejo); consulta del 05/10/2026',
       explicación: 'Media de las temperaturas mínimas diarias a lo largo del año. La diferencia con la máxima media (17,5 °C) da una oscilación térmica moderada de unos 8 °C, propia de un clima oceánico de influencia atlántica, sin apenas continentalidad — inviernos suaves, veranos frescos.',
       gráfico: histogramaSVG(TEMPERATURAS_AEMET, { max: 22 })
     },
     'aemet-precipitacion': {
-      titulo: 'Precipitación media anual', valor: '1.028 mm', fuente: 'AEMET, normales climatológicas 1991-2020 (estación Oviedo)',
-      explicación: 'Este régimen pluviométrico condiciona directamente la disponibilidad hídrica del territorio y la evolución estacional de la cubierta vegetal detectada por teledetección (NDVI). Es un valor alto, coherente con el clima oceánico de influencia atlántica de Asturias, y explica por qué el 79,2% del territorio mantiene su cobertura vegetal estable pese al cambio climático.'
+      titulo: 'Precipitación media anual', valor: '1.028 mm', fuente: 'AEMET OpenData, valores normales de 30 años (referencia 1991-2020), estación de Oviedo (indicativo 1249I, 336 m, a unos 5 km del centro del concejo); consulta del 05/10/2026',
+      explicación: 'Este régimen pluviométrico condiciona directamente la disponibilidad hídrica del territorio y la evolución estacional de la cubierta vegetal detectada por teledetección (NDVI). Es un valor alto, coherente con el clima oceánico de influencia atlántica de Asturias. Noviembre es el mes más lluvioso (134 mm de media) y julio el más seco (44 mm).'
     },
     'aemet-dias-lluvia': {
-      titulo: 'Días de lluvia al año', valor: '190', fuente: 'AEMET, normales climatológicas 1991-2020 (estación Oviedo)',
-      explicación: 'Más de la mitad de los días del año registran alguna precipitación. Dato relevante para planificar actuaciones de restauración forestal, desbroces o de campo, que conviene programar fuera de los meses más lluviosos (noviembre es el mes con más precipitación media; julio, el más seco).'
+      titulo: 'Días de lluvia al año (0,1 mm o más)', valor: '179', fuente: 'AEMET OpenData, valores normales de 30 años (referencia 1991-2020), estación de Oviedo (indicativo 1249I, 336 m, a unos 5 km del centro del concejo); contadores de días con 0,1 mm o más y con 1 mm o más de la propia estación; consulta del 05/10/2026',
+      explicación: 'Número medio de días al año con precipitación apreciable, de 0,1 mm o más: 179 de 365, casi la mitad de los días. Con 1 mm o más son 125 días al año y con 10 mm o más, 33. Dato relevante para planificar actuaciones de restauración forestal, desbroces o de campo, que conviene programar fuera de los meses más lluviosos (noviembre es el mes con más precipitación media, 134 mm; julio, el más seco, 44 mm).'
     },
     'aemet-humedad': {
-      titulo: 'Humedad relativa media', valor: '78%', fuente: 'AEMET, normales climatológicas 1991-2020 (estación Oviedo)',
+      titulo: 'Humedad relativa media', valor: '78%', fuente: 'AEMET OpenData, valores normales de 30 años (referencia 1991-2020), estación de Oviedo (indicativo 1249I, 336 m, a unos 5 km del centro del concejo); consulta del 05/10/2026',
       explicación: 'Humedad ambiental media a lo largo del año. Junto con la precipitación, sostiene una cubierta vegetal densa y reduce la vulnerabilidad del territorio a la sequía estructural, aunque el cambio climático (IPCC, 2022; MITECO, 2020) apunta a veranos más secos en el futuro.'
     },
     'mi-boe': {
