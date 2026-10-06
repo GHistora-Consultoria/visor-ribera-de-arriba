@@ -168,6 +168,15 @@
     '.g-sug-bt button { margin:0 6px 6px 0; }',
     '.g-pagin { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:8px 0; font-size:13px; color:var(--text-muted); }',
     '#panel-gestion .g-pagin button:disabled { opacity:.35; cursor:default; border-color:var(--border); }',
+    '.g-modal { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:100000; display:flex; align-items:center; justify-content:center; padding:14px; }',
+    '.g-modal-c { background:#1f2a24; color:#fff; border:2px solid #c9a65a; border-radius:12px; padding:16px 18px; width:100%; max-width:420px; max-height:92vh; overflow:auto; box-sizing:border-box; }',
+    '.g-modal-c h4 { margin:0 0 6px; color:#ffc15a; font-size:17px; }',
+    '.g-modal-med { color:#e8e2cf; font-size:13px; margin-bottom:6px; }',
+    '.g-modal-c label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#b9b39e; margin:9px 0 3px; }',
+    '.g-modal-c select, .g-modal-c input, .g-modal-c textarea { width:100%; background:#12201a; color:#fff; border:1px solid #6b6b5a; border-radius:6px; padding:7px; font-size:14px; font-family:inherit; box-sizing:border-box; color-scheme:dark; }',
+    '.g-modal-bt { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }',
+    '.g-modal-bt button { background:#2d3b33; color:#fff; border:1px solid #888; border-radius:6px; padding:8px 14px; cursor:pointer; font-size:14px; }',
+    '.g-modal-bt button.g-primario { background:#c9a65a; color:#1a1a1a; border-color:#c9a65a; font-weight:600; }',
     '.g-forma { font-size:13px; color:var(--gold-bright); margin:4px 0 6px; font-weight:600; }',
     '.g-dib-barra { position:absolute; top:10px; left:64px; right:10px; max-width:430px; z-index:1000; background:rgba(31,42,36,.94); color:#fff; border:2px solid #ff9f0a; border-radius:10px; padding:8px 12px; box-shadow:0 4px 16px rgba(0,0,0,.5); font-size:12.5px; }',
     '.g-dib-tit { font-weight:700; color:#ffc15a; margin-bottom:3px; }',
@@ -272,6 +281,43 @@
     });
   }
 
+  /* ---------- seguimiento nuevo a partir de un dibujo ---------- */
+  function anclaForma(f) {
+    if (f.tipo === 'zona') return centroidePts(f.pts);
+    return f.pts[Math.floor(f.pts.length / 2)];
+  }
+  function formNuevoDibujo(forma) {
+    var ov = document.createElement('div');
+    ov.className = 'g-modal';
+    ov.innerHTML = '<div class="g-modal-c"><h4>➕ Nuevo seguimiento</h4>' +
+      '<div class="g-modal-med">📐 ' + esc(medidaForma(forma)) + '</div>' +
+      '<label>Tipo</label><select id="gn-tipo">' + opciones(TIPOS, forma.tipo === 'linea' ? 'Camino' : 'Parcela') + '</select>' +
+      '<label>Prioridad</label><select id="gn-prio">' + opciones(PRIORIDADES, 'Media') + '</select>' +
+      '<label>Estado</label><select id="gn-estado">' + opciones(ESTADOS) + '</select>' +
+      '<label>Responsable (opcional)</label><input id="gn-resp" type="text" list="g-resp-lista-n" maxlength="60" placeholder="Quién se encarga">' + listaResp('g-resp-lista-n') +
+      '<label>Fecha límite (opcional)</label><input id="gn-limite" type="date">' +
+      '<label>Notas</label><textarea id="gn-notas" rows="3" placeholder="Qué hay que revisar, quién, cuándo…"></textarea>' +
+      '<div class="g-modal-bt"><button type="button" data-n="ok" class="g-primario">Guardar</button><button type="button" data-n="no">Descartar dibujo</button></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-n]'); if (!b) return;
+      if (b.getAttribute('data-n') === 'ok') {
+        var a = anclaForma(forma), estado = document.getElementById('gn-estado').value;
+        var it = normalizar({
+          id: siguienteId(), fecha: hoyISO(), lat: +a[0].toFixed(6), lon: +a[1].toFixed(6), refcat: '',
+          tipo: document.getElementById('gn-tipo').value, prioridad: document.getElementById('gn-prio').value, estado: estado,
+          responsable: document.getElementById('gn-resp').value.trim(), limite: document.getElementById('gn-limite').value,
+          notas: document.getElementById('gn-notas').value.trim(), diagnostico: {}, forma: forma,
+          historial: [{ f: hoyISO(), t: 'Creado como «' + estado + '» dibujando ' + (forma.tipo === 'zona' ? 'una zona' : 'una línea') + ' en el mapa — ' + medidaForma(forma) }]
+        });
+        items.push(it); visibles[it.id] = true;
+        guardar(); pintarMapa(); render();
+        var mp = getMapa(); if (mp) mp.fitBounds(forma.pts, { maxZoom: 18, padding: [60, 60] });
+      }
+      document.body.removeChild(ov);
+    });
+  }
+
   /* ---------- modo dibujo (línea o zona) ---------- */
   var dib = null; // { it, tipo, pts, capa, barra, onClick }
   function limiteDib() { return dib.tipo === 'zona' ? 3 : 2; }
@@ -303,6 +349,11 @@
   function terminarDibujo() {
     if (!dib || dib.pts.length < limiteDib()) return;
     var it = dib.it, tipo = dib.tipo, pts = dib.pts.slice();
+    if (!it) {
+      cerrarDibujo();
+      formNuevoDibujo({ tipo: tipo, pts: pts.map(function (p) { return [+p[0].toFixed(6), +p[1].toFixed(6)]; }) });
+      return;
+    }
     var tenia = !!it.forma;
     it.forma = { tipo: tipo, pts: pts.map(function (p) { return [+p[0].toFixed(6), +p[1].toFixed(6)]; }) };
     anotar(it, (tenia ? 'Redibujada ' : 'Dibujada ') + (tipo === 'zona' ? 'zona' : 'línea') + ' en el mapa — ' + medidaForma(it.forma));
@@ -313,13 +364,12 @@
     var mapa = getMapa();
     if (!mapa || typeof L === 'undefined') { alert('El mapa todavía no está listo. Espera un momento y vuelve a intentarlo.'); return; }
     cerrarDibujo();
-    visibles[it.id] = true;
-    pintarMapa(); render();
+    if (it) { visibles[it.id] = true; pintarMapa(); render(); }
     var tabMapa = document.querySelector('.tab-btn[data-panel="panel-calle"]');
     if (tabMapa) tabMapa.click();
     var barra = document.createElement('div');
     barra.className = 'g-dib-barra';
-    barra.innerHTML = '<div class="g-dib-tit">✏️ Dibujando ' + (tipo === 'zona' ? 'una zona' : 'una línea') + ' para el seguimiento #' + it.id + '</div>' +
+    barra.innerHTML = '<div class="g-dib-tit">✏️ Dibujando ' + (tipo === 'zona' ? 'una zona' : 'una línea') + (it ? ' para el seguimiento #' + it.id : ' para un seguimiento nuevo') + '</div>' +
       '<div class="g-dib-ayu">Haz clic en el mapa para ir poniendo puntos' + (tipo === 'zona' ? ' (mínimo 3; la zona se cierra sola)' : ' (mínimo 2)') + '. Cuando termines, pulsa «Terminar».</div>' +
       '<div class="g-dib-info"></div>' +
       '<div class="g-dib-bt"><button type="button" data-d="atras">↩️ Deshacer último punto</button><button type="button" data-d="fin" class="g-primario">✔ Terminar</button><button type="button" data-d="cancel">✖ Cancelar</button></div>';
@@ -338,7 +388,7 @@
       else if (a === 'cancel') cerrarDibujo();
     });
     pintarBorrador();
-    setTimeout(function () { mapa.invalidateSize(); mapa.setView([it.lat, it.lon], Math.max(mapa.getZoom(), 17)); }, 150);
+    setTimeout(function () { mapa.invalidateSize(); if (it) mapa.setView([it.lat, it.lon], Math.max(mapa.getZoom(), 17)); }, 150);
   }
 
   /* ---------- bloque dentro de la ficha del muñeco ---------- */
@@ -539,7 +589,7 @@
       '<h5>Importante saber</h5>' +
       '<ul><li>Los registros se guardan <b>solo en este navegador y este ordenador</b>. Si lo abres en otro equipo no los verás.</li>' +
       '<li>Para guardar una copia o compartirla usa <b>Exportar CSV</b> (se abre en Excel) o <b>Exportar GeoJSON</b> (se abre en programas de mapas como QGIS), y <b>Importar copia</b> para recuperarla.</li>' +
-      '<li><b>Dibujar líneas y zonas:</b> en cada seguimiento puedes pulsar «Dibujar línea» (un camino, una acequia, un linde) o «Dibujar zona» (una parcela, una zona dañada). Te lleva al mapa: haces clic para poner los puntos y pulsas «Terminar». Se calcula la longitud o la superficie (medida aproximada, no sustituye a un levantamiento topográfico). Sale en el informe, el CSV y el GeoJSON.</li>' +
+      '<li><b>Dibujar líneas y zonas:</b> en cada seguimiento puedes pulsar «Dibujar línea» (un camino, una acequia, un linde) o «Dibujar zona» (una parcela, una zona dañada). Te lleva al mapa: haces clic para poner los puntos y pulsas «Terminar». Se calcula la longitud o la superficie (medida aproximada, no sustituye a un levantamiento topográfico). También puedes crear un seguimiento nuevo directamente desde un dibujo con «Nuevo desde una línea» o «Nuevo desde una zona» (arriba, junto a Exportar). Sale en el informe, el CSV y el GeoJSON.</li>' +
       '<li><b>Fotos:</b> puedes añadir hasta 4 por seguimiento (desde el móvil se abre la cámara). Se reducen de tamaño automáticamente y se guardan <b>solo en este navegador</b>. No van en el CSV ni en el GeoJSON: para guardarlas usa <b>«Copia completa con fotos»</b> (un único archivo que luego se recupera con «Importar copia»). Las fotos sí salen en el informe imprimible.</li>' +
       '<li>Es una herramienta de apoyo para organizarse: <b>no sustituye</b> al registro oficial ni a los expedientes administrativos del ayuntamiento.</li></ul></details>';
 
@@ -562,6 +612,8 @@
       '<select data-accion="filtro-prio" title="Prioridad">' + opcionesCon('Todas', PRIORIDADES, filtroPrio) + '</select>' +
       '<input type="search" id="g-buscar" placeholder="🔎 Buscar (nota, responsable, ref. catastral…)" value="' + esc(busqueda) + '"></div>' +
       '<div class="g-barra">' +
+      '<button data-accion="nuevo-linea" title="Dibuja una línea en el mapa y crea un seguimiento nuevo con ella">✏️ Nuevo desde una línea</button>' +
+      '<button data-accion="nuevo-zona" title="Dibuja una zona en el mapa y crea un seguimiento nuevo con ella">⬠ Nuevo desde una zona</button>' +
       '<button data-accion="mostrar-todos">📍 Ver en mapa los de la lista</button>' +
       '<button data-accion="ocultar-todos">🙈 Ocultar todos</button>' +
       '<button data-accion="exp-csv">⬇️ Exportar CSV</button>' +
@@ -859,11 +911,24 @@
       ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar</button>';
     pop.querySelector('.g-pop-add').addEventListener('click', function () { anadirSug(id); });
     pop.querySelector('.g-pop-q').addEventListener('click', quitarMarcaSug);
-    L.circleMarker([c[1], c[0]], { radius: 15, color: '#7e57c2', weight: 4, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.35 })
+    var fs = formaSug(p);
+    if (fs) {
+      var est = { color: '#7e57c2', weight: 4, dashArray: '6,5', fillColor: '#b39ddb', fillOpacity: 0.3 };
+      (fs.tipo === 'zona' ? L.polygon(fs.pts, est) : L.polyline(fs.pts, est)).addTo(sugCapa);
+    }
+    L.circleMarker([c[1], c[0]], { radius: fs ? 7 : 15, color: '#7e57c2', weight: 4, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.35 })
       .bindPopup(pop).addTo(sugCapa).openPopup();
     var tab = document.querySelector('.tab-btn[data-panel="panel-calle"]');
     if (tab) tab.click();
-    setTimeout(function () { mapa.invalidateSize(); mapa.setView([c[1], c[0]], 17); }, 150);
+    setTimeout(function () {
+      mapa.invalidateSize();
+      if (fs) mapa.fitBounds(fs.pts, { maxZoom: 18, padding: [70, 70] }); else mapa.setView([c[1], c[0]], 17);
+    }, 150);
+  }
+  function formaSug(p) {
+    var t = { forma: p && p.forma };
+    var tmp = normalizar({ historial: [{ f: hoyISO(), t: 'x' }], forma: t.forma ? JSON.parse(JSON.stringify(t.forma)) : undefined });
+    return tmp.forma || null;
   }
   function anadirSug(id) {
     var f = sugPorId(id);
@@ -877,7 +942,7 @@
       prioridad: PRIORIDADES.indexOf(p.prioridad) > -1 ? p.prioridad : 'Media',
       responsable: '', limite: '', notas: p.nota || '',
       diagnostico: { 'Origen': p.origen, 'Elemento': p.titulo, 'Motivo': p.motivo },
-      sugerenciaId: p.id,
+      sugerenciaId: p.id, forma: formaSug(p) || undefined,
       historial: [{ f: hoyISO(), t: 'Creado desde sugerencia «' + p.origen + '» como «Pendiente»' }]
     });
     items.push(it);
@@ -981,6 +1046,7 @@
     var acc = b.getAttribute('data-accion');
     if (acc.indexOf('sug-') === 0) { manejarSug(acc, b); return; }
     if (acc.indexOf('foto-') === 0) { manejarFoto(acc, b); return; }
+    if (acc === 'nuevo-linea' || acc === 'nuevo-zona') { iniciarDibujo(null, acc === 'nuevo-zona' ? 'zona' : 'linea'); return; }
     if (acc === 'dib-linea' || acc === 'dib-zona') { var itd = itemDe(b); if (itd) iniciarDibujo(itd, acc === 'dib-zona' ? 'zona' : 'linea'); return; }
     if (acc === 'dib-quitar') {
       var itq = itemDe(b);
