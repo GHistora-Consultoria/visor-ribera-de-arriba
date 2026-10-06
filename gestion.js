@@ -42,6 +42,14 @@
     i.responsable = i.responsable || '';
     i.limite = i.limite || '';
     if (!Array.isArray(i.fotos)) i.fotos = [];
+    if (i.forma) {
+      var fm = i.forma, ok = fm && (fm.tipo === 'linea' || fm.tipo === 'zona') && Array.isArray(fm.pts) && fm.pts.length >= (fm.tipo === 'zona' ? 3 : 2);
+      if (ok) {
+        fm.pts = fm.pts.filter(function (p) { return Array.isArray(p) && typeof p[0] === 'number' && typeof p[1] === 'number'; });
+        ok = fm.pts.length >= (fm.tipo === 'zona' ? 3 : 2);
+      }
+      if (!ok) delete i.forma;
+    }
     if (!Array.isArray(i.historial) || !i.historial.length) {
       i.historial = [{ f: i.fecha || hoyISO(), t: 'Creado como «' + (i.estado || 'Pendiente') + '»' }];
     }
@@ -52,7 +60,7 @@
     catch (e) { return []; }
   }
   function firma(it) {
-    return JSON.stringify([it.tipo, it.estado, it.prioridad, it.responsable, it.limite, it.notas, it.lat, it.lon, it.historial.length]);
+    return JSON.stringify([it.tipo, it.estado, it.prioridad, it.responsable, it.limite, it.notas, it.lat, it.lon, it.historial.length, it.forma || null]);
   }
   function enArchivo(it) { return it.expSig === firma(it); }
   function idsFotos(it) { return (it.fotos || []).map(function (f) { return f.id; }).join(','); }
@@ -160,15 +168,84 @@
     '.g-sug-bt button { margin:0 6px 6px 0; }',
     '.g-pagin { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:8px 0; font-size:13px; color:var(--text-muted); }',
     '#panel-gestion .g-pagin button:disabled { opacity:.35; cursor:default; border-color:var(--border); }',
+    '.g-forma { font-size:13px; color:var(--gold-bright); margin:4px 0 6px; font-weight:600; }',
+    '.g-dib-barra { position:absolute; top:10px; left:64px; right:10px; max-width:430px; z-index:1000; background:rgba(31,42,36,.94); color:#fff; border:2px solid #ff9f0a; border-radius:10px; padding:8px 12px; box-shadow:0 4px 16px rgba(0,0,0,.5); font-size:12.5px; }',
+    '.g-dib-tit { font-weight:700; color:#ffc15a; margin-bottom:3px; }',
+    '.g-dib-ayu { color:#e8e2cf; margin-bottom:4px; }',
+    '.g-dib-info { font-weight:600; margin-bottom:6px; }',
+    '.g-dib-bt { display:flex; gap:8px; flex-wrap:wrap; }',
+    '.g-dib-bt button { background:#2d3b33; color:#fff; border:1px solid #888; border-radius:6px; padding:6px 10px; cursor:pointer; font-size:12.5px; }',
+    '.g-dib-bt button.g-primario { background:#c9a65a; color:#1a1a1a; border-color:#c9a65a; font-weight:600; }',
+    '.g-dib-bt button:disabled { opacity:.4; cursor:default; }',
     '.g-punto { display:inline-block; width:12px; height:12px; border-radius:50%; border:2px solid #fff; vertical-align:middle; margin-right:6px; }'
   ].join('\n');
   document.head.appendChild(st);
+
+  /* ---------- líneas y zonas dibujadas ---------- */
+  function distM(a, b) {
+    var R = 6371008.8, r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r;
+    var h = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function longitudM(pts, cerrar) {
+    var t = 0;
+    for (var k = 1; k < pts.length; k++) t += distM(pts[k - 1], pts[k]);
+    if (cerrar && pts.length > 2) t += distM(pts[pts.length - 1], pts[0]);
+    return t;
+  }
+  function areaM2(pts) {
+    if (pts.length < 3) return 0;
+    var r = Math.PI / 180, R = 6371008.8, la0 = 0;
+    pts.forEach(function (p) { la0 += p[0]; }); la0 /= pts.length;
+    var xy = pts.map(function (p) { return [p[1] * r * R * Math.cos(la0 * r), p[0] * r * R]; });
+    var a = 0;
+    for (var k = 0; k < xy.length; k++) { var q = xy[(k + 1) % xy.length]; a += xy[k][0] * q[1] - q[0] * xy[k][1]; }
+    return Math.abs(a) / 2;
+  }
+  function numES(n, dec) { return n.toLocaleString('es-ES', { maximumFractionDigits: dec == null ? 0 : dec, minimumFractionDigits: 0 }); }
+  function medidaForma(f) {
+    if (!f) return '';
+    if (f.tipo === 'linea') { var m = longitudM(f.pts, false); return 'Línea de ' + numES(m) + ' m'; }
+    var a = areaM2(f.pts);
+    return 'Zona de ' + numES(a) + ' m² (' + numES(a / 10000, 2) + ' ha) · perímetro ' + numES(longitudM(f.pts, true)) + ' m';
+  }
+  function centroidePts(pts) {
+    var la = 0, lo = 0;
+    pts.forEach(function (p) { la += p[0]; lo += p[1]; });
+    return [la / pts.length, lo / pts.length];
+  }
 
   /* ---------- capa de puntos en el mapa ---------- */
   var capa = null;
   var visibles = {}; // ids de los seguimientos que se están mostrando en el mapa (por defecto, ninguno)
   function getMapa() { return window.mapaTerraPropio || null; }
   function ocultarDelMapa(id) { delete visibles[id]; pintarMapa(); render(); }
+
+  function popupDe(it) {
+    var pop = document.createElement('div');
+    pop.innerHTML = '<b>#' + it.id + ' · ' + esc(it.tipo) + '</b>' + (vencido(it) ? ' ⏰ <b>vencido</b>' : '') +
+      '<br>' + esc(it.estado) + ' · prioridad ' + esc(it.prioridad) +
+      (it.responsable ? '<br>Responsable: ' + esc(it.responsable) : '') +
+      (it.limite ? '<br>Fecha límite: ' + esc(fechaES(it.limite)) : '') +
+      (it.forma ? '<br>📐 ' + esc(medidaForma(it.forma)) : '') +
+      (it.notas ? '<br>' + esc(it.notas) : '') +
+      '<br><button type="button" class="g-pop-btn" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Ocultar del mapa</button>';
+    if (it.fotos && it.fotos.length) {
+      var fw = document.createElement('div');
+      fw.style.cssText = 'margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;';
+      it.fotos.forEach(function (f) {
+        var im = document.createElement('img');
+        im.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #888;';
+        im.width = 64; im.height = 64; im.title = 'Ver ampliada'; im.alt = 'Foto';
+        im.addEventListener('click', function () { verFoto(f.id); });
+        fw.appendChild(im);
+        urlFoto(f.id, function (u) { if (u) im.src = u; else im.style.display = 'none'; });
+      });
+      pop.insertBefore(fw, pop.querySelector('.g-pop-btn'));
+    }
+    pop.querySelector('.g-pop-btn').addEventListener('click', function () { ocultarDelMapa(it.id); });
+    return pop;
+  }
 
   function pintarMapa() {
     var mapa = getMapa();
@@ -185,30 +262,83 @@
         html: '<span class="g-pin' + (it.estado === 'Pendiente' ? ' g-pend' : '') + '" style="--c:' + color + ';--rgb:' + rgb + ';width:' + d + 'px;height:' + d + 'px;"></span>',
         iconSize: [d, d], iconAnchor: [d / 2, d / 2], popupAnchor: [0, -d / 2]
       });
-      var pop = document.createElement('div');
-      pop.innerHTML = '<b>#' + it.id + ' · ' + esc(it.tipo) + '</b>' + (vencido(it) ? ' ⏰ <b>vencido</b>' : '') +
-        '<br>' + esc(it.estado) + ' · prioridad ' + esc(it.prioridad) +
-        (it.responsable ? '<br>Responsable: ' + esc(it.responsable) : '') +
-        (it.limite ? '<br>Fecha límite: ' + esc(fechaES(it.limite)) : '') +
-        (it.notas ? '<br>' + esc(it.notas) : '') +
-        '<br><button type="button" class="g-pop-btn" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Ocultar del mapa</button>';
-      if (it.fotos && it.fotos.length) {
-        var fw = document.createElement('div');
-        fw.style.cssText = 'margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;';
-        it.fotos.forEach(function (f) {
-          var im = document.createElement('img');
-          im.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #888;';
-          im.width = 64; im.height = 64; im.title = 'Ver ampliada'; im.alt = 'Foto';
-          im.addEventListener('click', function () { verFoto(f.id); });
-          fw.appendChild(im);
-          urlFoto(f.id, function (u) { if (u) im.src = u; else im.style.display = 'none'; });
-        });
-        pop.insertBefore(fw, pop.querySelector('.g-pop-btn'));
+      if (it.forma) {
+        var estilo = { color: color, weight: 5, opacity: 0.95, fillColor: color, fillOpacity: 0.28 };
+        var fig = it.forma.tipo === 'zona' ? L.polygon(it.forma.pts, estilo) : L.polyline(it.forma.pts, estilo);
+        fig.bindPopup(popupDe(it)).addTo(capa);
       }
-      pop.querySelector('.g-pop-btn').addEventListener('click', function () { ocultarDelMapa(it.id); });
       L.marker([it.lat, it.lon], { icon: icono, zIndexOffset: 1000 })
-        .bindPopup(pop).addTo(capa);
+        .bindPopup(popupDe(it)).addTo(capa);
     });
+  }
+
+  /* ---------- modo dibujo (línea o zona) ---------- */
+  var dib = null; // { it, tipo, pts, capa, barra, onClick }
+  function limiteDib() { return dib.tipo === 'zona' ? 3 : 2; }
+  function pintarBorrador() {
+    if (!dib) return;
+    dib.capa.clearLayers();
+    var col = '#ff9f0a';
+    dib.pts.forEach(function (p, k) {
+      L.circleMarker(p, { radius: k === 0 ? 7 : 5, color: '#fff', weight: 2, fillColor: col, fillOpacity: 1 }).addTo(dib.capa);
+    });
+    if (dib.pts.length > 1) {
+      var o = { color: col, weight: 4, dashArray: '8,6', fillColor: col, fillOpacity: 0.2 };
+      (dib.tipo === 'zona' && dib.pts.length > 2 ? L.polygon(dib.pts, o) : L.polyline(dib.pts, o)).addTo(dib.capa);
+    }
+    var info = dib.barra.querySelector('.g-dib-info');
+    var txt = dib.pts.length + ' punto(s)';
+    if (dib.pts.length > 1) txt += dib.tipo === 'zona' && dib.pts.length > 2 ? ' · ' + numES(areaM2(dib.pts)) + ' m²' : ' · ' + numES(longitudM(dib.pts, false)) + ' m';
+    info.textContent = txt;
+    dib.barra.querySelector('[data-d="fin"]').disabled = dib.pts.length < limiteDib();
+    dib.barra.querySelector('[data-d="atras"]').disabled = !dib.pts.length;
+  }
+  function cerrarDibujo() {
+    if (!dib) return;
+    var mapa = getMapa();
+    if (mapa) { mapa.off('click', dib.onClick); mapa.getContainer().style.cursor = ''; if (dib.capa) mapa.removeLayer(dib.capa); }
+    if (dib.barra && dib.barra.parentNode) dib.barra.parentNode.removeChild(dib.barra);
+    dib = null;
+  }
+  function terminarDibujo() {
+    if (!dib || dib.pts.length < limiteDib()) return;
+    var it = dib.it, tipo = dib.tipo, pts = dib.pts.slice();
+    var tenia = !!it.forma;
+    it.forma = { tipo: tipo, pts: pts.map(function (p) { return [+p[0].toFixed(6), +p[1].toFixed(6)]; }) };
+    anotar(it, (tenia ? 'Redibujada ' : 'Dibujada ') + (tipo === 'zona' ? 'zona' : 'línea') + ' en el mapa — ' + medidaForma(it.forma));
+    cerrarDibujo();
+    guardar(); pintarMapa(); render();
+  }
+  function iniciarDibujo(it, tipo) {
+    var mapa = getMapa();
+    if (!mapa || typeof L === 'undefined') { alert('El mapa todavía no está listo. Espera un momento y vuelve a intentarlo.'); return; }
+    cerrarDibujo();
+    visibles[it.id] = true;
+    pintarMapa(); render();
+    var tabMapa = document.querySelector('.tab-btn[data-panel="panel-calle"]');
+    if (tabMapa) tabMapa.click();
+    var barra = document.createElement('div');
+    barra.className = 'g-dib-barra';
+    barra.innerHTML = '<div class="g-dib-tit">✏️ Dibujando ' + (tipo === 'zona' ? 'una zona' : 'una línea') + ' para el seguimiento #' + it.id + '</div>' +
+      '<div class="g-dib-ayu">Haz clic en el mapa para ir poniendo puntos' + (tipo === 'zona' ? ' (mínimo 3; la zona se cierra sola)' : ' (mínimo 2)') + '. Cuando termines, pulsa «Terminar».</div>' +
+      '<div class="g-dib-info"></div>' +
+      '<div class="g-dib-bt"><button type="button" data-d="atras">↩️ Deshacer último punto</button><button type="button" data-d="fin" class="g-primario">✔ Terminar</button><button type="button" data-d="cancel">✖ Cancelar</button></div>';
+    var cont = mapa.getContainer();
+    cont.appendChild(barra);
+    if (typeof L.DomEvent !== 'undefined') { L.DomEvent.disableClickPropagation(barra); L.DomEvent.disableScrollPropagation(barra); }
+    dib = { it: it, tipo: tipo, pts: [], capa: L.layerGroup().addTo(mapa), barra: barra };
+    dib.onClick = function (e) { dib.pts.push([e.latlng.lat, e.latlng.lng]); pintarBorrador(); };
+    mapa.on('click', dib.onClick);
+    cont.style.cursor = 'crosshair';
+    barra.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-d]'); if (!b || b.disabled) return;
+      var a = b.getAttribute('data-d');
+      if (a === 'atras') { dib.pts.pop(); pintarBorrador(); }
+      else if (a === 'fin') terminarDibujo();
+      else if (a === 'cancel') cerrarDibujo();
+    });
+    pintarBorrador();
+    setTimeout(function () { mapa.invalidateSize(); mapa.setView([it.lat, it.lon], Math.max(mapa.getZoom(), 17)); }, 150);
   }
 
   /* ---------- bloque dentro de la ficha del muñeco ---------- */
@@ -362,10 +492,13 @@
         '<div class="g-fila"><div><label class="g-lab">Responsable</label><input type="text" data-campo="responsable" list="g-resp-lista-p" maxlength="60" placeholder="Quién se encarga" value="' + esc(it.responsable) + '"></div>' +
         '<div><label class="g-lab">Fecha límite</label><input type="date" data-campo="limite" value="' + esc(it.limite) + '"></div></div>' +
         '<textarea data-campo="notas" rows="2" placeholder="Notas…">' + esc(it.notas) + '</textarea>' +
+        (it.forma ? '<div class="g-forma">📐 ' + esc(medidaForma(it.forma)) + '</div>' : '') +
         htmlFotos(it) +
         '<details class="g-hist"><summary>🕓 Historial (' + it.historial.length + ')</summary><ul>' + hist + '</ul></details>' +
         '<div class="g-fila">' +
         (visibles[it.id] ? '<button data-accion="ver" class="g-primario">🙈 Ocultar del mapa</button>' : '<button data-accion="ver">📍 Ver en mapa</button>') +
+        (it.forma ? '<button data-accion="dib-linea">✏️ Redibujar línea</button><button data-accion="dib-zona">✏️ Redibujar zona</button><button data-accion="dib-quitar">🧽 Quitar dibujo</button>'
+                  : '<button data-accion="dib-linea">✏️ Dibujar línea</button><button data-accion="dib-zona">⬠ Dibujar zona</button>') +
         '<button data-accion="borrar">🗑️ Eliminar</button></div></div>';
     });
     return h + pieL;
@@ -406,6 +539,7 @@
       '<h5>Importante saber</h5>' +
       '<ul><li>Los registros se guardan <b>solo en este navegador y este ordenador</b>. Si lo abres en otro equipo no los verás.</li>' +
       '<li>Para guardar una copia o compartirla usa <b>Exportar CSV</b> (se abre en Excel) o <b>Exportar GeoJSON</b> (se abre en programas de mapas como QGIS), y <b>Importar copia</b> para recuperarla.</li>' +
+      '<li><b>Dibujar líneas y zonas:</b> en cada seguimiento puedes pulsar «Dibujar línea» (un camino, una acequia, un linde) o «Dibujar zona» (una parcela, una zona dañada). Te lleva al mapa: haces clic para poner los puntos y pulsas «Terminar». Se calcula la longitud o la superficie (medida aproximada, no sustituye a un levantamiento topográfico). Sale en el informe, el CSV y el GeoJSON.</li>' +
       '<li><b>Fotos:</b> puedes añadir hasta 4 por seguimiento (desde el móvil se abre la cámara). Se reducen de tamaño automáticamente y se guardan <b>solo en este navegador</b>. No van en el CSV ni en el GeoJSON: para guardarlas usa <b>«Copia completa con fotos»</b> (un único archivo que luego se recupera con «Importar copia»). Las fotos sí salen en el informe imprimible.</li>' +
       '<li>Es una herramienta de apoyo para organizarse: <b>no sustituye</b> al registro oficial ni a los expedientes administrativos del ayuntamiento.</li></ul></details>';
 
@@ -617,7 +751,7 @@
         responsable: String(p.responsable || ''), limite: /^\d{4}-\d{2}-\d{2}$/.test(p.limite || '') ? p.limite : '',
         notas: String(p.notas || ''), diagnostico: (p.diagnostico && typeof p.diagnostico === 'object') ? p.diagnostico : {},
         historial: Array.isArray(p.historial) ? p.historial.filter(function (x) { return x && typeof x.f === 'string' && typeof x.t === 'string'; }) : [],
-        fotos: fotos, sugerenciaId: (typeof p.sugerenciaId === 'string' && p.sugerenciaId) ? p.sugerenciaId : undefined
+        fotos: fotos, forma: p.forma || undefined, sugerenciaId: (typeof p.sugerenciaId === 'string' && p.sugerenciaId) ? p.sugerenciaId : undefined
       });
       nuevos.push(it);
     });
@@ -797,6 +931,7 @@
         '<tr><th>Responsable</th><td>' + (esc(it.responsable) || '—') + '</td><th>Fecha límite</th><td>' + (it.limite ? esc(fechaES(it.limite)) : '—') + '</td></tr>' +
         '<tr><th>Registrado</th><td>' + esc(fechaES(it.fecha)) + '</td><th>Ref. catastral</th><td>' + (esc(it.refcat) || '—') + '</td></tr>' +
         '<tr><th>Coordenadas</th><td colspan="3">' + it.lat.toFixed(5) + ', ' + it.lon.toFixed(5) + ' (WGS84)</td></tr>' +
+        (it.forma ? '<tr><th>Dibujo en mapa</th><td colspan="3">' + esc(medidaForma(it.forma)) + '</td></tr>' : '') +
         (it.notas ? '<tr><th>Notas</th><td colspan="3">' + esc(it.notas).replace(/\n/g, '<br>') + '</td></tr>' : '') +
         (diag ? '<tr><th>Datos del visor</th><td colspan="3" class="peq">' + diag + '</td></tr>' : '') +
         (fotosH ? '<tr><th>Fotos</th><td colspan="3">' + fotosH + '</td></tr>' : '') +
@@ -846,6 +981,14 @@
     var acc = b.getAttribute('data-accion');
     if (acc.indexOf('sug-') === 0) { manejarSug(acc, b); return; }
     if (acc.indexOf('foto-') === 0) { manejarFoto(acc, b); return; }
+    if (acc === 'dib-linea' || acc === 'dib-zona') { var itd = itemDe(b); if (itd) iniciarDibujo(itd, acc === 'dib-zona' ? 'zona' : 'linea'); return; }
+    if (acc === 'dib-quitar') {
+      var itq = itemDe(b);
+      if (itq && itq.forma && confirm('¿Quitar el dibujo del seguimiento #' + itq.id + '? El punto se mantiene.')) {
+        delete itq.forma; anotar(itq, 'Dibujo eliminado'); guardar(); pintarMapa(); render();
+      }
+      return;
+    }
     if (acc === 'exp-full') { exportarCompleto(); return; }
     if (acc === 'lst-sig') { listaPag++; actualizarLista(); return; }
     if (acc === 'lst-ant') { listaPag--; actualizarLista(); return; }
@@ -875,11 +1018,15 @@
       var tabMapa = document.querySelector('.tab-btn[data-panel="panel-calle"]');
       if (tabMapa) tabMapa.click();
       var mapa = getMapa();
-      if (mapa) setTimeout(function () { mapa.invalidateSize(); mapa.setView([it.lat, it.lon], 17); }, 150);
+      if (mapa) setTimeout(function () {
+        mapa.invalidateSize();
+        if (it.forma) mapa.fitBounds(it.forma.pts, { maxZoom: 18, padding: [60, 60] }); else mapa.setView([it.lat, it.lon], 17);
+      }, 150);
     } else if (acc === 'borrar') {
       var it2 = itemDe(b); if (!it2) return;
       if (confirm('¿Eliminar el seguimiento #' + it2.id + '? No se puede deshacer.')) {
         (it2.fotos || []).forEach(function (f) { borrarFoto(f.id); });
+        if (dib && dib.it === it2) cerrarDibujo();
         items = items.filter(function (i) { return i.id !== it2.id; });
         delete visibles[it2.id];
         guardar(); pintarMapa(); render();
@@ -944,14 +1091,20 @@
   }
   function celda(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
   function exportarCSV() {
-    var cab = ['id', 'fecha', 'tipo', 'estado', 'prioridad', 'responsable', 'fecha_limite', 'lat', 'lon', 'ref_catastral', 'notas', 'diagnostico', 'historial', 'sugerencia_id', 'n_fotos'];
+    var cab = ['id', 'fecha', 'tipo', 'estado', 'prioridad', 'responsable', 'fecha_limite', 'lat', 'lon', 'ref_catastral', 'notas', 'diagnostico', 'historial', 'sugerencia_id', 'n_fotos', 'dibujo', 'medida'];
     var filas = items.map(function (i) {
       var d = Object.keys(i.diagnostico || {}).map(function (k) { return k + ': ' + i.diagnostico[k]; }).join(' | ');
       var h = i.historial.map(function (x) { return fechaES(x.f) + ' ' + x.t; }).join(' | ');
-      return [i.id, i.fecha, i.tipo, i.estado, i.prioridad, i.responsable, i.limite, i.lat, i.lon, i.refcat, i.notas, d, h, i.sugerenciaId || '', i.fotos.length].map(celda).join(';');
+      return [i.id, i.fecha, i.tipo, i.estado, i.prioridad, i.responsable, i.limite, i.lat, i.lon, i.refcat, i.notas, d, h, i.sugerenciaId || '', i.fotos.length, i.forma ? (i.forma.tipo === 'zona' ? 'zona' : 'linea') : '', i.forma ? medidaForma(i.forma) : ''].map(celda).join(';');
     });
     descargar('seguimiento_municipal_' + hoyISO() + '.csv', 'text/csv;charset=utf-8',
       '﻿' + cab.join(';') + '\r\n' + filas.join('\r\n'));
+  }
+  function geomDe(i) {
+    if (!i.forma) return { type: 'Point', coordinates: [i.lon, i.lat] };
+    var c = i.forma.pts.map(function (p) { return [p[1], p[0]]; });
+    if (i.forma.tipo === 'zona') { c.push(c[0]); return { type: 'Polygon', coordinates: [c] }; }
+    return { type: 'LineString', coordinates: c };
   }
   function exportarGeoJSON() {
     var fc = {
@@ -959,8 +1112,8 @@
       features: items.map(function (i) {
         return {
           type: 'Feature',
-          geometry: { type: 'Point', coordinates: [i.lon, i.lat] },
-          properties: { id: i.id, fecha: i.fecha, tipo: i.tipo, estado: i.estado, prioridad: i.prioridad,
+          geometry: geomDe(i),
+          properties: { id: i.id, lat: i.lat, lon: i.lon, dibujo: i.forma ? i.forma.tipo : '', fecha: i.fecha, tipo: i.tipo, estado: i.estado, prioridad: i.prioridad,
             responsable: i.responsable, fecha_limite: i.limite,
             ref_catastral: i.refcat, notas: i.notas, diagnostico: i.diagnostico || {}, historial: i.historial, sugerencia_id: i.sugerenciaId || '', n_fotos: i.fotos.length }
         };
@@ -978,9 +1131,19 @@
         var feats = (fc && fc.features) || [];
         var n = 0;
         feats.forEach(function (f) {
-          if (!f.geometry || f.geometry.type !== 'Point') return;
-          var p = f.properties || {}, c = f.geometry.coordinates;
-          if (typeof c[0] !== 'number' || typeof c[1] !== 'number') return;
+          if (!f.geometry) return;
+          var p = f.properties || {}, c = f.geometry.coordinates, forma = null;
+          if (f.geometry.type === 'LineString' || f.geometry.type === 'Polygon') {
+            var anillo = f.geometry.type === 'Polygon' ? (c && c[0]) : c;
+            if (!Array.isArray(anillo)) return;
+            var pts = anillo.filter(function (q) { return Array.isArray(q) && typeof q[0] === 'number' && typeof q[1] === 'number'; }).map(function (q) { return [q[1], q[0]]; });
+            if (f.geometry.type === 'Polygon' && pts.length > 1 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1]) pts.pop();
+            forma = { tipo: f.geometry.type === 'Polygon' ? 'zona' : 'linea', pts: pts };
+            if (pts.length < (forma.tipo === 'zona' ? 3 : 2)) return;
+            var ce = (typeof p.lat === 'number' && typeof p.lon === 'number') ? [p.lat, p.lon] : centroidePts(pts);
+            c = [ce[1], ce[0]];
+          } else if (f.geometry.type !== 'Point') return;
+          if (!Array.isArray(c) || typeof c[0] !== 'number' || typeof c[1] !== 'number') return;
           var hist = Array.isArray(p.historial) ? p.historial.filter(function (x) { return x && typeof x.f === 'string' && typeof x.t === 'string'; }) : [];
           items.push(normalizar({
             id: siguienteId(), fecha: p.fecha || hoyISO(), lat: c[1], lon: c[0],
@@ -989,7 +1152,7 @@
             prioridad: PRIORIDADES.indexOf(p.prioridad) > -1 ? p.prioridad : 'Media',
             responsable: String(p.responsable || ''), limite: /^\d{4}-\d{2}-\d{2}$/.test(p.fecha_limite || '') ? p.fecha_limite : '',
             notas: String(p.notas || ''), diagnostico: (p.diagnostico && typeof p.diagnostico === 'object') ? p.diagnostico : {},
-            historial: hist,
+            historial: hist, forma: forma || undefined,
             sugerenciaId: (typeof p.sugerencia_id === 'string' && p.sugerencia_id) ? p.sugerencia_id : undefined
           }));
           items[items.length - 1].expSig = firma(items[items.length - 1]);
