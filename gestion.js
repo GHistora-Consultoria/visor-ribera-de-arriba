@@ -104,6 +104,7 @@
     '#gestion-form select, #gestion-form textarea, #gestion-form input, #panel-gestion select, #panel-gestion textarea, #panel-gestion input[type=text], #panel-gestion input[type=date], #panel-gestion input[type=search] { width:100%; background:var(--navy-dark); color:var(--text-light); border:1px solid var(--border); border-radius:6px; padding:6px; font-size:13px; font-family:inherit; box-sizing:border-box; color-scheme:dark; }',
     '#gestion-msg { font-size:12px; color:var(--gold-bright); margin-top:8px; }',
     '#panel-gestion { overflow:auto; }',
+    '#panel-gestion > *:not(.cielo-estrellado) { position:relative; z-index:1; }',
     '.g-wrap { padding:24px; max-width:1000px; margin:0 auto; width:100%; box-sizing:border-box; }',
     '.g-wrap h2 { color:var(--gold-bright); margin:0 0 6px; }',
     '.g-sub { color:var(--text-muted); font-size:13px; margin-bottom:16px; }',
@@ -474,7 +475,17 @@
     panel = document.createElement('div');
     panel.id = 'panel-gestion';
     panel.className = 'panel';
+    // Fondo de estrellas (parpadeo + fugaces), igual que Panel de datos y Preguntas frecuentes.
+    // Se crea una sola vez y vive fuera del contenido, que se repinta en cada render().
+    var cielo = document.createElement('div');
+    cielo.className = 'cielo-estrellado';
+    cielo.id = 'cielo-panel-gestion';
+    panel.appendChild(cielo);
+    var contenido = document.createElement('div');
+    contenido.id = 'g-contenido';
+    panel.appendChild(contenido);
     main.appendChild(panel);
+    if (typeof generarCieloEstrellado === 'function') generarCieloEstrellado('cielo-panel-gestion', 100);
 
     btn.addEventListener('click', function () {
       document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
@@ -625,7 +636,8 @@
       listaResp('g-resp-lista-p') +
       '<div id="g-sug">' + htmlSug() + '</div>' +
       '<div id="g-lista">' + htmlLista() + '</div></div>';
-    panel.innerHTML = html;
+    var cont = document.getElementById('g-contenido');
+    if (cont) cont.innerHTML = html; else panel.innerHTML = html;
     cargarMiniaturas();
   }
 
