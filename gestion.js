@@ -134,6 +134,16 @@
     '.g-ayuda p, .g-ayuda li { font-size:13.5px; line-height:1.55; color:var(--text-light); }',
     '.g-ayuda ul { padding-left:20px; margin:6px 0 10px; }',
     '.g-ayuda h5 { margin:12px 0 4px; font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); }',
+    '.g-sug { background:var(--navy-dark); border:1px solid var(--border); border-left:5px solid #9575cd; border-radius:8px; padding:4px 14px; margin-bottom:16px; }',
+    '.g-sug > summary { cursor:pointer; padding:10px 0; font-weight:600; color:var(--gold-bright); }',
+    '.g-sug p { font-size:13px; line-height:1.5; color:var(--text-light); margin:4px 0 10px; }',
+    '.g-sug-it { border-top:1px solid var(--border); padding:10px 0; }',
+    '.g-sug-it b { color:var(--text-light); }',
+    '.g-sug-mot { display:block; font-size:12.5px; color:var(--text-muted); margin:3px 0 7px; }',
+    '.g-sug-pri { display:inline-block; margin-left:8px; padding:1px 8px; border-radius:10px; font-size:11px; font-weight:600; color:#fff; vertical-align:middle; }',
+    '.g-sug-bt button { margin:0 6px 6px 0; }',
+    '.g-pagin { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:8px 0; font-size:13px; color:var(--text-muted); }',
+    '#panel-gestion .g-pagin button:disabled { opacity:.35; cursor:default; border-color:var(--border); }',
     '.g-punto { display:inline-block; width:12px; height:12px; border-radius:50%; border:2px solid #fff; vertical-align:middle; margin-right:6px; }'
   ].join('\n');
   document.head.appendChild(st);
@@ -269,6 +279,7 @@
     panel.addEventListener('change', manejarChange);
     panel.addEventListener('focusout', manejarBlur);
     panel.addEventListener('input', manejarInput);
+    panel.addEventListener('toggle', function (e) { if (e.target.classList && e.target.classList.contains('g-sug')) sugOpen = e.target.open; }, true);
   }
 
   function diasDesdeExport() {
@@ -304,7 +315,12 @@
       return h + '<div class="g-vacio">' + (items.length ? 'Ningún registro coincide con los filtros o la búsqueda.' :
         'Aún no hay seguimientos. En «Mapa y Ficha técnica», suelta el muñeco en un punto y pulsa «Añadir a seguimiento».') + '</div>';
     }
-    lista.forEach(function (it) {
+    var nPagL = Math.ceil(lista.length / LISTA_POR_PAG);
+    if (listaPag > nPagL - 1) listaPag = nPagL - 1;
+    if (listaPag < 0) listaPag = 0;
+    var pieL = htmlPagLista(nPagL, lista.length);
+    h += pieL;
+    lista.slice(listaPag * LISTA_POR_PAG, (listaPag + 1) * LISTA_POR_PAG).forEach(function (it) {
       var diag = Object.keys(it.diagnostico || {}).map(function (k) { return '<b>' + esc(k) + ':</b> ' + esc(it.diagnostico[k]); }).join('<br>');
       var hist = it.historial.slice().reverse().map(function (h2) { return '<li>' + esc(fechaES(h2.f)) + ' — ' + esc(h2.t) + '</li>'; }).join('');
       h += '<div class="g-item" data-id="' + it.id + '" style="border-left-color:' + (COLOR[it.estado] || '#c9a65a') + '">' +
@@ -322,7 +338,7 @@
         (visibles[it.id] ? '<button data-accion="ver" class="g-primario">🙈 Ocultar del mapa</button>' : '<button data-accion="ver">📍 Ver en mapa</button>') +
         '<button data-accion="borrar">🗑️ Eliminar</button></div></div>';
     });
-    return h;
+    return h + pieL;
   }
 
   function actualizarLista() {
@@ -389,8 +405,135 @@
       '<button data-accion="imp">⬆️ Importar copia</button>' +
       '<input type="file" id="g-file" accept=".json,.geojson" style="display:none"></div>' +
       listaResp('g-resp-lista-p') +
+      '<div id="g-sug">' + htmlSug() + '</div>' +
       '<div id="g-lista">' + htmlLista() + '</div></div>';
     panel.innerHTML = html;
+  }
+
+  /* ---------- sugerencias del visor (precarga opcional) ---------- */
+  var listaPag = 0, LISTA_POR_PAG = 15;
+  function htmlPagLista(nPag, total) {
+    if (nPag < 2) return '';
+    return '<div class="g-pagin"><button data-accion="lst-ant"' + (listaPag === 0 ? ' disabled' : '') + '>← Anterior</button>' +
+      '<span>Página ' + (listaPag + 1) + ' de ' + nPag + ' · ' + total + ' seguimientos</span>' +
+      '<button data-accion="lst-sig"' + (listaPag >= nPag - 1 ? ' disabled' : '') + '>Siguiente →</button></div>';
+  }
+  var CLAVE_DESC = 'ghistora_gestion_ribera_descartes';
+  var sugerencias = null, sugError = '', sugOrigen = 'Todas', sugPag = 0, SUG_POR_PAG = 15, sugOpen = false, sugCapa = null;
+  var descartadas = {};
+  try { descartadas = JSON.parse(localStorage.getItem(CLAVE_DESC) || '{}') || {}; } catch (e) { descartadas = {}; }
+  function guardarDescartes() { try { localStorage.setItem(CLAVE_DESC, JSON.stringify(descartadas)); } catch (e) {} }
+  var PRI_COLOR = { 'Alta': '#c4112f', 'Media': '#b8860b', 'Baja': '#4b7a5a' };
+
+  function cargarSugerencias() {
+    if (typeof fetch === 'undefined') { sugError = 'Este navegador no permite cargar las sugerencias.'; return; }
+    fetch('sugerencias_gestion.geojson?v=1')
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (gj) {
+        sugerencias = (gj.features || []).filter(function (f) {
+          return f && f.geometry && f.geometry.type === 'Point' && f.properties && f.properties.id;
+        });
+        actualizarSug();
+      })
+      .catch(function () { sugError = 'No se han podido cargar las sugerencias (¿falta el archivo sugerencias_gestion.geojson?).'; actualizarSug(); });
+  }
+  function yaAnadida(id) { return items.some(function (i) { return i.sugerenciaId === id; }); }
+  function sugPorId(id) { return (sugerencias || []).filter(function (f) { return f.properties.id === id; })[0] || null; }
+  function sugPendientes() {
+    return (sugerencias || []).filter(function (f) { return !descartadas[f.properties.id] && !yaAnadida(f.properties.id); });
+  }
+
+  function htmlSug() {
+    var h = '<details class="g-sug"' + (sugOpen ? ' open' : '') + '><summary>💡 Sugerencias del visor';
+    if (sugError) return h + '</summary><p>' + esc(sugError) + '</p></details>';
+    if (!sugerencias) return h + ' (cargando…)</summary><p>Cargando…</p></details>';
+    var pend = sugPendientes();
+    h += ' (' + pend.length + ' por revisar)</summary>' +
+      '<p>Puntos que el propio visor propone revisar, calculados a partir de sus análisis: sectores de planeamiento con alguna alerta y parcelas con indicio de abandono agrícola. <b>No son seguimientos hasta que tú los añadas</b>: pulsa «Añadir a seguimiento» en los que te interesen y «Descartar» en los que no. Son indicios, no confirmaciones: hay que verificarlos en campo y con ortoimagen.</p>';
+    var origenes = {};
+    pend.forEach(function (f) { origenes[f.properties.origen] = (origenes[f.properties.origen] || 0) + 1; });
+    h += '<div class="g-barra"><select data-accion="sug-origen" title="Origen"><option value="Todas">Todas (' + pend.length + ')</option>' +
+      Object.keys(origenes).map(function (o) { return '<option value="' + esc(o) + '"' + (o === sugOrigen ? ' selected' : '') + '>' + esc(o) + ' (' + origenes[o] + ')</option>'; }).join('') +
+      '</select><button data-accion="sug-ocultar">🙈 Quitar marca del mapa</button>';
+    var nDesc = Object.keys(descartadas).length;
+    if (nDesc) h += '<button data-accion="sug-restaurar">↩️ Recuperar descartadas (' + nDesc + ')</button>';
+    h += '</div>';
+    var lista = pend.filter(function (f) { return sugOrigen === 'Todas' || f.properties.origen === sugOrigen; });
+    if (!lista.length) return h + '<p>No quedan sugerencias por revisar con este filtro.</p></details>';
+    var nPag = Math.ceil(lista.length / SUG_POR_PAG);
+    if (sugPag > nPag - 1) sugPag = nPag - 1;
+    if (sugPag < 0) sugPag = 0;
+    var pie = nPag > 1
+      ? '<div class="g-pagin"><button data-accion="sug-ant"' + (sugPag === 0 ? ' disabled' : '') + '>← Anterior</button>' +
+        '<span>Página ' + (sugPag + 1) + ' de ' + nPag + ' · ' + lista.length + ' sugerencias</span>' +
+        '<button data-accion="sug-sig"' + (sugPag >= nPag - 1 ? ' disabled' : '') + '>Siguiente →</button></div>'
+      : '';
+    h += pie;
+    lista.slice(sugPag * SUG_POR_PAG, (sugPag + 1) * SUG_POR_PAG).forEach(function (f) {
+      var p = f.properties;
+      h += '<div class="g-sug-it"><b>' + esc(p.titulo) + '</b>' +
+        '<span class="g-sug-pri" style="background:' + (PRI_COLOR[p.prioridad] || '#777') + '">Prioridad ' + esc(p.prioridad) + '</span>' +
+        '<span class="g-sug-mot">' + esc(p.origen) + ' · ' + esc(p.motivo) + '</span>' +
+        '<div class="g-sug-bt">' +
+        '<button data-accion="sug-ver" data-sid="' + esc(p.id) + '">📍 Ver en mapa</button>' +
+        '<button class="g-primario" data-accion="sug-add" data-sid="' + esc(p.id) + '">➕ Añadir a seguimiento</button>' +
+        '<button data-accion="sug-desc" data-sid="' + esc(p.id) + '">✖ Descartar</button></div></div>';
+    });
+    return h + pie + '</details>';
+  }
+  function actualizarSug() {
+    var c = document.getElementById('g-sug');
+    if (c) c.innerHTML = htmlSug();
+  }
+
+  function quitarMarcaSug() { if (sugCapa) sugCapa.clearLayers(); }
+  function verSug(id) {
+    var f = sugPorId(id), mapa = getMapa();
+    if (!f || !mapa || typeof L === 'undefined') return;
+    var c = f.geometry.coordinates, p = f.properties;
+    if (!sugCapa) sugCapa = L.layerGroup().addTo(mapa);
+    sugCapa.clearLayers();
+    var pop = document.createElement('div');
+    pop.innerHTML = '<b>💡 ' + esc(p.titulo) + '</b><br>' + esc(p.origen) + '<br>' + esc(p.motivo) +
+      '<br><button type="button" class="g-pop-add" style="margin-top:8px;padding:5px 10px;cursor:pointer;">➕ Añadir a seguimiento</button>' +
+      ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar</button>';
+    pop.querySelector('.g-pop-add').addEventListener('click', function () { anadirSug(id); });
+    pop.querySelector('.g-pop-q').addEventListener('click', quitarMarcaSug);
+    L.circleMarker([c[1], c[0]], { radius: 15, color: '#7e57c2', weight: 4, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.35 })
+      .bindPopup(pop).addTo(sugCapa).openPopup();
+    var tab = document.querySelector('.tab-btn[data-panel="panel-calle"]');
+    if (tab) tab.click();
+    setTimeout(function () { mapa.invalidateSize(); mapa.setView([c[1], c[0]], 17); }, 150);
+  }
+  function anadirSug(id) {
+    var f = sugPorId(id);
+    if (!f || yaAnadida(id)) return;
+    var p = f.properties, c = f.geometry.coordinates;
+    var tipo = TIPOS.indexOf(p.tipo) > -1 ? p.tipo : 'Otro';
+    if (p.origen === 'Alerta de Planeamiento' && /inundaci/i.test(p.motivo || '')) tipo = 'Inundación';
+    var it = normalizar({
+      id: siguienteId(), fecha: hoyISO(), lat: c[1], lon: c[0],
+      refcat: p.refcat || '', tipo: tipo, estado: 'Pendiente',
+      prioridad: PRIORIDADES.indexOf(p.prioridad) > -1 ? p.prioridad : 'Media',
+      responsable: '', limite: '', notas: p.nota || '',
+      diagnostico: { 'Origen': p.origen, 'Elemento': p.titulo, 'Motivo': p.motivo },
+      sugerenciaId: p.id,
+      historial: [{ f: hoyISO(), t: 'Creado desde sugerencia «' + p.origen + '» como «Pendiente»' }]
+    });
+    items.push(it);
+    guardar(); quitarMarcaSug(); pintarMapa(); render();
+  }
+  function manejarSug(acc, b) {
+    var id = b.getAttribute('data-sid');
+    if (acc === 'sug-ver') verSug(id);
+    else if (acc === 'sug-add') anadirSug(id);
+    else if (acc === 'sug-desc') { descartadas[id] = true; guardarDescartes(); actualizarSug(); }
+    else if (acc === 'sug-sig') { sugPag++; actualizarSug(); }
+    else if (acc === 'sug-ant') { sugPag--; actualizarSug(); }
+    else if (acc === 'sug-ocultar') quitarMarcaSug();
+    else if (acc === 'sug-restaurar') {
+      if (confirm('¿Recuperar todas las sugerencias descartadas?')) { descartadas = {}; guardarDescartes(); actualizarSug(); }
+    }
   }
 
   /* ---------- informe imprimible ---------- */
@@ -467,6 +610,9 @@
     var b = e.target.closest('button[data-accion]');
     if (!b) return;
     var acc = b.getAttribute('data-accion');
+    if (acc.indexOf('sug-') === 0) { manejarSug(acc, b); return; }
+    if (acc === 'lst-sig') { listaPag++; actualizarLista(); return; }
+    if (acc === 'lst-ant') { listaPag--; actualizarLista(); return; }
     if (acc === 'exp-csv') exportarCSV();
     else if (acc === 'exp-geo') exportarGeoJSON();
     else if (acc === 'imp') document.getElementById('g-file').click();
@@ -507,9 +653,10 @@
   function manejarChange(e) {
     var t = e.target;
     var acc = t.getAttribute('data-accion');
-    if (acc === 'filtro-estado') { filtro = t.value; render(); return; }
-    if (acc === 'filtro-tipo') { filtroTipo = t.value; render(); return; }
-    if (acc === 'filtro-prio') { filtroPrio = t.value; render(); return; }
+    if (acc === 'sug-origen') { sugOrigen = t.value; sugPag = 0; actualizarSug(); return; }
+    if (acc === 'filtro-estado') { filtro = t.value; listaPag = 0; render(); return; }
+    if (acc === 'filtro-tipo') { filtroTipo = t.value; listaPag = 0; render(); return; }
+    if (acc === 'filtro-prio') { filtroPrio = t.value; listaPag = 0; render(); return; }
     if (t.id === 'g-file') { importar(t.files[0]); t.value = ''; return; }
     var campo = t.getAttribute('data-campo');
     if (!campo) return;
@@ -532,7 +679,7 @@
   }
 
   function manejarInput(e) {
-    if (e.target.id === 'g-buscar') { busqueda = e.target.value; actualizarLista(); }
+    if (e.target.id === 'g-buscar') { busqueda = e.target.value; listaPag = 0; actualizarLista(); }
   }
 
   function manejarBlur(e) {
@@ -559,11 +706,11 @@
   }
   function celda(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
   function exportarCSV() {
-    var cab = ['id', 'fecha', 'tipo', 'estado', 'prioridad', 'responsable', 'fecha_limite', 'lat', 'lon', 'ref_catastral', 'notas', 'diagnostico', 'historial'];
+    var cab = ['id', 'fecha', 'tipo', 'estado', 'prioridad', 'responsable', 'fecha_limite', 'lat', 'lon', 'ref_catastral', 'notas', 'diagnostico', 'historial', 'sugerencia_id'];
     var filas = items.map(function (i) {
       var d = Object.keys(i.diagnostico || {}).map(function (k) { return k + ': ' + i.diagnostico[k]; }).join(' | ');
       var h = i.historial.map(function (x) { return fechaES(x.f) + ' ' + x.t; }).join(' | ');
-      return [i.id, i.fecha, i.tipo, i.estado, i.prioridad, i.responsable, i.limite, i.lat, i.lon, i.refcat, i.notas, d, h].map(celda).join(';');
+      return [i.id, i.fecha, i.tipo, i.estado, i.prioridad, i.responsable, i.limite, i.lat, i.lon, i.refcat, i.notas, d, h, i.sugerenciaId || ''].map(celda).join(';');
     });
     descargar('seguimiento_municipal_' + hoyISO() + '.csv', 'text/csv;charset=utf-8',
       '﻿' + cab.join(';') + '\r\n' + filas.join('\r\n'));
@@ -577,7 +724,7 @@
           geometry: { type: 'Point', coordinates: [i.lon, i.lat] },
           properties: { id: i.id, fecha: i.fecha, tipo: i.tipo, estado: i.estado, prioridad: i.prioridad,
             responsable: i.responsable, fecha_limite: i.limite,
-            ref_catastral: i.refcat, notas: i.notas, diagnostico: i.diagnostico || {}, historial: i.historial }
+            ref_catastral: i.refcat, notas: i.notas, diagnostico: i.diagnostico || {}, historial: i.historial, sugerencia_id: i.sugerenciaId || '' }
         };
       })
     };
@@ -603,7 +750,8 @@
             prioridad: PRIORIDADES.indexOf(p.prioridad) > -1 ? p.prioridad : 'Media',
             responsable: String(p.responsable || ''), limite: /^\d{4}-\d{2}-\d{2}$/.test(p.fecha_limite || '') ? p.fecha_limite : '',
             notas: String(p.notas || ''), diagnostico: (p.diagnostico && typeof p.diagnostico === 'object') ? p.diagnostico : {},
-            historial: hist
+            historial: hist,
+            sugerenciaId: (typeof p.sugerencia_id === 'string' && p.sugerencia_id) ? p.sugerencia_id : undefined
           }));
           items[items.length - 1].expSig = firma(items[items.length - 1]);
           n++;
@@ -619,6 +767,7 @@
   function iniciar() {
     montarFicha();
     montarPanel();
+    cargarSugerencias();
     var intentos = 0;
     (function esperarMapa() {
       if (getMapa()) { pintarMapa(); return; }
