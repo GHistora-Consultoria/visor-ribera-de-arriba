@@ -279,11 +279,11 @@
         </div>
         <div class="ficha-acordeon" data-abierto="false">
           <button class="ficha-cabecera" type="button">
-            <span class="ficha-label">NBR / riesgo de quema</span>
+            <span class="ficha-label">NBR / estrés de la vegetación</span>
             <span class="ficha-valor" id="ficha-nbr">—</span>
             <span class="ficha-chevron">▾</span>
           </button>
-          <div class="ficha-detalle">Cambio real en el índice de severidad de quema (Normalized Burn Ratio) entre 2018 y 2026, calculado a partir de imágenes de satélite Sentinel-2. Valores positivos altos indican pérdida de vegetación o quema; valores negativos, regeneración de la cubierta vegetal. Importante: el NBR detecta un patrón espectral compatible con suelo quemado, no identifica la causa — no distingue por sí solo una quema agrícola controlada de un incendio forestal o de un desbroce; confirmar siempre sobre el terreno antes de sacar conclusiones.</div>
+          <div class="ficha-detalle">Cambio del índice NBR (Normalized Burn Ratio) entre 2018 y 2026, calculado a partir de imágenes Sentinel-2. El valor es NBR 2026 − NBR 2018: negativo si el índice ha bajado (menos agua o cobertura en la vegetación, o suelo desnudo o quemado) y positivo si ha subido. Es una señal, no un hecho verificado: el NBR no distingue la causa (sequía, siega, desbroce, quema agrícola o incendio forestal) y el resultado depende de las dos fechas comparadas. Confirmar siempre sobre el terreno antes de sacar conclusiones.</div>
         </div>
         <div class="ficha-acordeon" data-abierto="false">
           <button class="ficha-cabecera" type="button">
@@ -366,19 +366,19 @@
       <div class="dash-cajas-grid">
         <div class="dash-caja" data-key="ndvi-2018" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NDVI 2018 (referencia T1)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado inicial</div></div>
         <div class="dash-caja" data-key="ndvi-2026" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NDVI 2026 (reciente T2)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado actual</div></div>
-        <div class="dash-caja" data-key="ndvi-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">19,1% pérdida</div><div class="dash-caja-sub">420,85 ha — ver mapa</div></div>
+        <div class="dash-caja" data-key="ndvi-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0504d;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">19,1% con descenso</div><div class="dash-caja-sub">420,85 ha · escenas de verano — ver mapa</div></div>
       </div>
-      <p class="dash-note">⚠️ Las 37,55 ha de regeneración espontánea (matorral sin gestionar) elevan el riesgo de incendio si no se desbrozan. Las 420,85 ha de pérdida aumentan la vulnerabilidad a erosión hídrica en pendiente. 💡 Se recomienda priorizar el desbroce preventivo en las zonas de regeneración y valorar restauración de cubierta vegetal donde hubo pérdida en pendiente. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
+      <p class="dash-note">Lectura prudente: 420,85 ha (19,1 %) muestran un descenso de NDVI y 37,55 ha un aumento entre dos escenas de verano (5 de agosto de 2018 y 29 de julio de 2026). Es una señal, no una pérdida de cobertura confirmada: con dos escenas de septiembre (2 de septiembre de 2018 y 14 de septiembre de 2026) el descenso baja al 4,6 % y el NDVI medio es el mismo que en 2018, y los veranos de 2025 y 2026 son los más secos de la serie 2018-2026 (ver la ficha «Veranos secos y teledetección», en el bloque de clima). Falta contrastarlo con la ortofoto. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
     </div>
 
-    <h3 class="dash-section">Riesgo de incendios — histórico (NBR), tiempo real (FIRMS) e índice oficial (IRIF)</h3>
+    <h3 class="dash-section">Estrés de la vegetación (NBR), incendios en tiempo real (FIRMS) e índice oficial (IRIF)</h3>
     <div class="chart-box">
       <div class="dash-cajas-grid">
         <div class="dash-caja" data-key="nbr-2018" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NBR 2018 (referencia T1)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado inicial</div></div>
         <div class="dash-caja" data-key="nbr-2026" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#4f8a5b;"></span><span class="dash-caja-label">NBR 2026 (reciente T2)</span><div class="dash-caja-val">Mapa completo</div><div class="dash-caja-sub">Ver estado actual</div></div>
-        <div class="dash-caja" data-key="nbr-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">13,4% pérdida</div><div class="dash-caja-sub">293,1 ha — ver mapa</div></div>
+        <div class="dash-caja" data-key="nbr-cambio" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#c0316b;"></span><span class="dash-caja-label">Cambio 2018→2026</span><div class="dash-caja-val">Señal de descenso</div><div class="dash-caja-sub">depende de las fechas — ver mapa</div></div>
       </div>
-      <p class="dash-note">El NBR (Key &amp; Benson, 2006) usa la misma escala de color en todo TERRA — magenta/rosa para suelo quemado o desnudo, tonos claros para vegetación dispersa o bajo estrés hídrico, y verde para vegetación sana y densa. A diferencia del NDVI (que mide "cuánta" vegetación hay), el NBR está pensado específicamente para detectar quema: es más sensible al agua en la hoja y al carbón residual tras un incendio — aunque no distingue por sí solo la causa: una quema agrícola controlada y un incendio forestal producen un patrón espectral similar, y la diferencia hay que confirmarla en campo. El NBR medio del concejo ha bajado de 0,237 (2018) a 0,196 (2026): sigue en zona de vegetación sana, pero con una tendencia a la baja que conviene vigilar, sobre todo cruzada con las zonas de pérdida de NDVI ya señaladas arriba. 💡 Ninguna zona del concejo muestra hoy quema activa generalizada (NBR bajo), pero el descenso del NBR medio es una señal temprana a seguir en los próximos informes anuales. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus), T1 2018-08-05 – T2 2026-07-29.</p>
+      <p class="dash-note">El NBR (Key &amp; Benson, 2006) combina el infrarrojo cercano y el infrarrojo de onda corta (SWIR2): baja cuando la vegetación pierde agua o cobertura y cuando hay suelo desnudo o quemado, y no distingue la causa (quema, sequía, siega o desbroce). La superficie que se marca depende de qué dos fechas se comparen: con escenas de verano es mucho mayor que con escenas de septiembre, y coincide con los dos veranos más secos de la serie 2018-2026 (ver la ficha «Veranos secos y teledetección»). No hay evidencia de quemas generalizadas: es una señal a contrastar con la ortofoto y con los focos de incendio. Fuente: TERRA, Sentinel-2 L2A (ESA/Copernicus).</p>
       <div class="dash-grid" style="margin-top:14px;">
         <div class="dash-card" data-key="firms-municipio"><span class="dash-val">🔥 FIRMS</span><span class="dash-lbl">focos de incendio activos (NASA, satélite)</span><span class="dash-src">tiempo casi real</span></div>
         <div class="dash-card" data-key="irif"><span class="dash-val">🔥 IRIF hoy</span><span class="dash-lbl">índice de riesgo de incendio (1-5) por concejo</span><span class="dash-src">asturias.es, actualización diaria</span></div>
@@ -419,7 +419,10 @@
       <div class="dash-card" data-key="aemet-precipitacion"><span class="dash-val">1.028 mm</span><span class="dash-lbl">precipitación media anual</span><span class="dash-src">AEMET</span></div>
       <div class="dash-card" data-key="aemet-dias-lluvia"><span class="dash-val">179</span><span class="dash-lbl">días de lluvia al año (0,1 mm o más)</span><span class="dash-src">AEMET</span></div>
       <div class="dash-card" data-key="aemet-humedad"><span class="dash-val">78 %</span><span class="dash-lbl">humedad relativa media</span><span class="dash-src">AEMET</span></div>
+      <div class="dash-card" data-key="clima-veranos"><span class="dash-val">2025-26</span><span class="dash-lbl">veranos secos y teledetección</span><span class="dash-src">AEMET + Sentinel-2</span></div>
     </div>
+
+    <p class="dash-note" style="margin-top:12px;">ℹ️ Qué son las normales climatológicas: los valores de este bloque son el promedio de 30 años (1991-2020) de la estación de Oviedo (indicativo 1249I) y describen el clima típico del lugar, no el de un año concreto. Esa estación ya no devuelve datos diarios desde 2023, pero sus normales siguen siendo válidas como referencia. Para comparar veranos concretos (2018-2026) se usan los datos diarios de las estaciones de Oviedo (1249X) y Mieres-Baíña (1234P): ver la ficha «Veranos secos y teledetección».</p>
 
     <h3 class="dash-section">Normativa aplicable al concejo</h3>
     <div class="chart-box">
@@ -591,7 +594,7 @@
         <li><b>Censo INE (vivienda, mercado laboral):</b> desde el cambio de metodología de 2021, el INE separó ambas variables. <b>Vivienda</b> sigue en el dato de 2021, que es la edición más reciente disponible — el INE aún no ha publicado ninguna posterior. <b>Mercado laboral</b> (tasas de empleo, actividad y paro) sí se actualiza cada año desde 2021, y en este visor ya refleja el dato de 2024, el último confirmado.</li>
         <li><b>SIOSE (uso del suelo):</b> todo el visor usa ya SIOSE AR 2020 (actualizado el 23/09/2026, la edición más reciente disponible para Asturias) — abandono agrícola, erosión, medio ambiente y fragmentación parcelaria comparten el mismo dato.</li>
         <li><b>RPGUR:</b> es una herramienta de consulta cartográfica del Principado, no sustituye al documento legal vigente (las Normas Subsidiarias del concejo y sus modificaciones posteriores, que pueden no estar todas digitalizadas).</li>
-        <li><b>NBR (riesgo de quema):</b> detecta un patrón espectral compatible con suelo quemado, no distingue la causa — una quema agrícola controlada y un incendio forestal pueden dar una señal parecida; hay que confirmar en campo.</li>
+        <li><b>NBR (estrés de la vegetación):</b> baja con estrés hídrico, desbroces, suelo desnudo o quemado y no distingue la causa; es una señal a confirmar en campo.</li>
         <li><b>Calendario de convocatorias de financiación:</b> las "ventanas habituales" se basan en el histórico de 1-2 convocatorias investigadas a mano, no en un análisis estadístico de muchos años — son una orientación, no una garantía de que se repita el mismo patrón.</li>
         <li><b>Inventario de patrimonio cultural:</b> combina el registro oficial (IPCA) con una fuente académica (Estrada García, 2007) más amplia pero con documento fuente ilegible por OCR — la extracción del listado se hizo leyendo el documento a mano.</li>
       </ul>
