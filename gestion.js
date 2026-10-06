@@ -385,11 +385,75 @@
       '<button data-accion="ocultar-todos">🙈 Ocultar todos</button>' +
       '<button data-accion="exp-csv">⬇️ Exportar CSV</button>' +
       '<button data-accion="exp-geo">⬇️ Exportar GeoJSON</button>' +
+      '<button data-accion="informe">🖨️ Informe imprimible</button>' +
       '<button data-accion="imp">⬆️ Importar copia</button>' +
       '<input type="file" id="g-file" accept=".json,.geojson" style="display:none"></div>' +
       listaResp('g-resp-lista-p') +
       '<div id="g-lista">' + htmlLista() + '</div></div>';
     panel.innerHTML = html;
+  }
+
+  /* ---------- informe imprimible ---------- */
+  function informe() {
+    var lista = listaFiltrada();
+    if (!lista.length) { alert('No hay seguimientos en la lista actual para imprimir. Ajusta los filtros o añade alguno.'); return; }
+    var w = window.open('', '_blank');
+    if (!w) { alert('El navegador ha bloqueado la ventana del informe. Permite las ventanas emergentes para este sitio y vuelve a pulsar el botón.'); return; }
+    var cont = { 'Pendiente': 0, 'En proceso': 0, 'Resuelto': 0 }, venc = 0;
+    lista.forEach(function (i) { cont[i.estado] = (cont[i.estado] || 0) + 1; if (vencido(i)) venc++; });
+    var filtros = [];
+    if (filtro !== 'Todos') filtros.push('estado: ' + filtro);
+    if (filtroTipo !== 'Todos') filtros.push('tipo: ' + filtroTipo);
+    if (filtroPrio !== 'Todas') filtros.push('prioridad: ' + filtroPrio);
+    if (busqueda.trim()) filtros.push('búsqueda: «' + busqueda.trim() + '»');
+    var TXT = { 'Pendiente': '#fff', 'En proceso': '#3a2e00', 'Resuelto': '#06391a' };
+    var PRIC = { 'Alta': '#c4112f', 'Media': '#b8860b', 'Baja': '#4b7a5a' };
+    var filas = lista.map(function (it) {
+      var c = COLOR[it.estado] || '#999';
+      var diag = Object.keys(it.diagnostico || {}).map(function (k) { return '<b>' + esc(k) + ':</b> ' + esc(it.diagnostico[k]); }).join('<br>');
+      var hist = it.historial.map(function (h2) { return esc(fechaES(h2.f)) + ' — ' + esc(h2.t); }).join('<br>');
+      return '<section class="it" style="border-left-color:' + c + '">' +
+        '<h3><span class="dot" style="background:' + c + '"></span>#' + it.id + ' · ' + esc(it.tipo) +
+        '<span class="pill" style="background:' + c + ';color:' + (TXT[it.estado] || '#fff') + '">' + esc(it.estado) + '</span>' +
+        '<span class="pill pri" style="border-color:' + (PRIC[it.prioridad] || '#777') + ';color:' + (PRIC[it.prioridad] || '#555') + '">Prioridad ' + esc(it.prioridad) + '</span>' +
+        (vencido(it) ? '<span class="pill venc">⏰ VENCIDO</span>' : '') + '</h3>' +
+        '<table>' +
+        '<tr><th>Responsable</th><td>' + (esc(it.responsable) || '—') + '</td><th>Fecha límite</th><td>' + (it.limite ? esc(fechaES(it.limite)) : '—') + '</td></tr>' +
+        '<tr><th>Registrado</th><td>' + esc(fechaES(it.fecha)) + '</td><th>Ref. catastral</th><td>' + (esc(it.refcat) || '—') + '</td></tr>' +
+        '<tr><th>Coordenadas</th><td colspan="3">' + it.lat.toFixed(5) + ', ' + it.lon.toFixed(5) + ' (WGS84)</td></tr>' +
+        (it.notas ? '<tr><th>Notas</th><td colspan="3">' + esc(it.notas).replace(/\n/g, '<br>') + '</td></tr>' : '') +
+        (diag ? '<tr><th>Datos del visor</th><td colspan="3" class="peq">' + diag + '</td></tr>' : '') +
+        '<tr><th>Historial</th><td colspan="3" class="peq">' + hist + '</td></tr>' +
+        '</table></section>';
+    }).join('');
+    var css = '*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+      'body{font:13px/1.45 Arial,Helvetica,sans-serif;color:#1a1a1a;margin:0;}' +
+      '.cab{background:#1f2a24;color:#fff;padding:18px 28px 14px;border-bottom:5px solid #c9a65a;}' +
+      '.cab h1{font-size:22px;margin:0 0 3px;letter-spacing:.3px;} .cab .sub{color:#d9d2bd;font-size:12px;} .cab .mun{color:#c9a65a;font-weight:bold;}' +
+      '.cuerpo{padding:16px 28px 20px;}' +
+      '.res{display:flex;gap:10px;margin:0 0 18px;flex-wrap:wrap;} .res div{flex:1;min-width:90px;border-radius:8px;padding:8px 10px;text-align:center;font-size:11.5px;} .res b{display:block;font-size:24px;line-height:1.1;}' +
+      '.it{border:1px solid #cfcfcf;border-left:7px solid #999;border-radius:6px;padding:9px 12px;margin-bottom:11px;page-break-inside:avoid;}' +
+      '.it h3{margin:0 0 7px;font-size:15px;} .dot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:7px;vertical-align:-2px;box-shadow:0 0 0 2px #fff,0 0 0 3px #888;}' +
+      '.pill{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:11px;font-size:11.5px;font-weight:bold;vertical-align:1px;} .pri{background:#fff;border:1.5px solid;} .venc{background:#c4112f;color:#fff;}' +
+      'table{width:100%;border-collapse:collapse;} th{width:16%;text-align:left;vertical-align:top;color:#666;font-weight:600;padding:2px 6px 2px 0;} td{padding:2px 8px 2px 0;vertical-align:top;} .peq{font-size:11.5px;color:#333;}' +
+      '.pie{margin-top:16px;border-top:2px solid #c9a65a;padding-top:8px;font-size:11px;color:#555;}' +
+      '.bar{background:#fff7dc;border-bottom:1px solid #e0cf99;padding:8px 28px;font-size:12px;} .bar button{font-size:14px;padding:6px 14px;cursor:pointer;margin-right:12px;} @media print{.bar{display:none;}} @page{margin:10mm;}';
+    var hoy = fechaES(hoyISO());
+    var caja = function (n, t, bg, fg) { return '<div style="background:' + bg + ';color:' + fg + '"><b>' + n + '</b>' + t + '</div>'; };
+    var doc = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de seguimiento municipal — Ribera de Arriba — ' + hoy + '</title><style>' + css + '</style></head><body>' +
+      '<div class="bar"><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>Consejo: en el cuadro de impresión, desmarca «Encabezados y pies de página» y marca «Gráficos de fondo» si aparece.</div>' +
+      '<div class="cab"><h1>Informe de seguimiento municipal</h1>' +
+      '<div class="sub"><span class="mun">Ribera de Arriba</span> · Generado el ' + hoy + ' desde el visor GHistora' + (filtros.length ? ' · Filtros aplicados: ' + esc(filtros.join(', ')) : '') + '</div></div>' +
+      '<div class="cuerpo"><div class="res">' +
+      caja(lista.length, 'seguimientos', '#1f2a24', '#fff') +
+      caja(cont['Pendiente'], 'pendientes', COLOR['Pendiente'], '#fff') +
+      caja(cont['En proceso'], 'en proceso', COLOR['En proceso'], '#3a2e00') +
+      caja(cont['Resuelto'], 'resueltos', COLOR['Resuelto'], '#06391a') +
+      caja(venc, 'vencidos', '#7a0c1f', '#fff') + '</div>' +
+      filas +
+      '<div class="pie">Documento de trabajo interno. Los datos de cada seguimiento los ha introducido la persona usuaria del visor; la información territorial procede de fuentes públicas (Catastro, SIOSE, SNCZI, espacios protegidos) y no tiene valor de certificación oficial.</div></div>' +
+      '</body></html>';
+    w.document.open(); w.document.write(doc); w.document.close();
   }
 
   function itemDe(el) {
@@ -406,6 +470,7 @@
     if (acc === 'exp-csv') exportarCSV();
     else if (acc === 'exp-geo') exportarGeoJSON();
     else if (acc === 'imp') document.getElementById('g-file').click();
+    else if (acc === 'informe') informe();
     else if (acc === 'ocultar-todos') { visibles = {}; pintarMapa(); render(); }
     else if (acc === 'mostrar-todos') {
       var lista = listaFiltrada();
