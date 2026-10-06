@@ -456,7 +456,7 @@ function initCalleMap() {
       if (capaNBR.clases) {
         // Rejilla de clases derivada del propio mapa de cambio: -1 descenso, 0 estable, 1 aumento
         const clase = valorByte < 0 ? '🔻 Descenso' : (valorByte > 0 ? '🌱 Aumento' : '✅ Estable');
-        el.textContent = clase + ' (según el mapa de cambio de NBR; señal, sin verificar)';
+        el.textContent = clase + ' (según el mapa de cambio de NBR; señal satelital, pendiente de verificar en campo y con ortoimagen)';
         return;
       }
       let categoria;
@@ -465,7 +465,7 @@ function initCalleMap() {
       else if (cambio < -0.15) categoria = '⚠️ Descenso leve';
       else if (cambio <= 0.15) categoria = '✅ Estable';
       else categoria = '🌱 Aumento';
-      el.textContent = 'ΔNBR ' + cambio.toFixed(2) + ' — ' + categoria + ' (señal, sin verificar)';
+      el.textContent = 'ΔNBR ' + cambio.toFixed(2) + ' — ' + categoria + ' (señal satelital, pendiente de verificar en campo y con ortoimagen)';
     }
 
     // --- NASA FIRMS: focos de incendio activo detectados por satélite, últimos días ---
