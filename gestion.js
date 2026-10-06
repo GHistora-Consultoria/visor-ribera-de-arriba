@@ -41,6 +41,7 @@
   function normalizar(i) {
     i.responsable = i.responsable || '';
     i.limite = i.limite || '';
+    if (!Array.isArray(i.fotos)) i.fotos = [];
     if (!Array.isArray(i.historial) || !i.historial.length) {
       i.historial = [{ f: i.fecha || hoyISO(), t: 'Creado como «' + (i.estado || 'Pendiente') + '»' }];
     }
@@ -54,7 +55,11 @@
     return JSON.stringify([it.tipo, it.estado, it.prioridad, it.responsable, it.limite, it.notas, it.lat, it.lon, it.historial.length]);
   }
   function enArchivo(it) { return it.expSig === firma(it); }
+  function idsFotos(it) { return (it.fotos || []).map(function (f) { return f.id; }).join(','); }
   function htmlInsignia(it) {
+    if (enArchivo(it) && it.fotos.length && it.expFotos !== idsFotos(it)) {
+      return '<span class="g-sav g-sav-fo" data-sid="' + it.id + '" title="Los datos están en tu archivo, pero las fotos no van en el CSV ni en el GeoJSON. Usa «Copia completa con fotos».">⚠ Fotos sin copia</span>';
+    }
     return enArchivo(it)
       ? '<span class="g-sav g-sav-ok" data-sid="' + it.id + '" title="Incluido en el último archivo exportado">✔ En tu archivo</span>'
       : '<span class="g-sav g-sav-no" data-sid="' + it.id + '" title="Hay cambios o es nuevo: exporta para incluirlo en tu copia de seguridad">✖ Sin exportar</span>';
@@ -108,6 +113,17 @@
     '.g-sav { display:inline-block; margin-left:8px; padding:1px 7px; border-radius:10px; font-size:10.5px; font-weight:600; vertical-align:middle; white-space:nowrap; }',
     '.g-sav-ok { background:#e3f8ea; color:#157a3a; border:1px solid #30e36b; }',
     '.g-sav-no { background:#ffe8ec; color:#c4112f; border:1px solid #ff2d55; }',
+    '.g-sav-fo { background:#fff3d6; color:#8a5a00; border:1px solid #ffb300; }',
+    '.g-fotos { margin:8px 0; }',
+    '.g-fotos-fila { display:flex; flex-wrap:wrap; align-items:center; }',
+    '.g-foto { position:relative; display:inline-block; margin:0 10px 8px 0; }',
+    '#panel-gestion button.g-foto-img { padding:0; width:92px; height:92px; overflow:hidden; border-radius:6px; border:2px solid var(--border); background:var(--navy-dark); color:var(--text-muted); font-size:11px; }',
+    '.g-foto-img img { width:100%; height:100%; object-fit:cover; display:block; }',
+    '#panel-gestion button.g-foto-x { position:absolute; top:-7px; right:-7px; width:24px; height:24px; padding:0; border-radius:50%; background:#c4112f; color:#fff; border:2px solid #fff; font-size:11px; line-height:1; }',
+    '.g-fotobtn { display:inline-block; padding:7px 12px; border:1px dashed var(--gold); border-radius:6px; cursor:pointer; font-size:13px; color:var(--gold-bright); margin:0 0 8px; }',
+    '.g-visor-foto { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:100000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; }',
+    '.g-visor-foto img { max-width:96vw; max-height:80vh; border-radius:6px; background:#000; }',
+    '.g-visor-foto .g-vf-bt { margin-top:12px; display:flex; gap:10px; }',
     '.g-venc { display:inline-block; margin-left:8px; padding:1px 8px; border-radius:10px; background:#ff2d55; color:#fff; font-size:11px; font-weight:600; vertical-align:middle; }',
     '.g-meta { font-size:12px; color:var(--text-muted); margin-bottom:6px; }',
     '.g-diag { font-size:12px; color:var(--text-muted); margin:6px 0; }',
@@ -176,6 +192,19 @@
         (it.limite ? '<br>Fecha límite: ' + esc(fechaES(it.limite)) : '') +
         (it.notas ? '<br>' + esc(it.notas) : '') +
         '<br><button type="button" class="g-pop-btn" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Ocultar del mapa</button>';
+      if (it.fotos && it.fotos.length) {
+        var fw = document.createElement('div');
+        fw.style.cssText = 'margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;';
+        it.fotos.forEach(function (f) {
+          var im = document.createElement('img');
+          im.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:4px;cursor:pointer;border:1px solid #888;';
+          im.width = 64; im.height = 64; im.title = 'Ver ampliada'; im.alt = 'Foto';
+          im.addEventListener('click', function () { verFoto(f.id); });
+          fw.appendChild(im);
+          urlFoto(f.id, function (u) { if (u) im.src = u; else im.style.display = 'none'; });
+        });
+        pop.insertBefore(fw, pop.querySelector('.g-pop-btn'));
+      }
       pop.querySelector('.g-pop-btn').addEventListener('click', function () { ocultarDelMapa(it.id); });
       L.marker([it.lat, it.lon], { icon: icono, zIndexOffset: 1000 })
         .bindPopup(pop).addTo(capa);
@@ -333,6 +362,7 @@
         '<div class="g-fila"><div><label class="g-lab">Responsable</label><input type="text" data-campo="responsable" list="g-resp-lista-p" maxlength="60" placeholder="Quién se encarga" value="' + esc(it.responsable) + '"></div>' +
         '<div><label class="g-lab">Fecha límite</label><input type="date" data-campo="limite" value="' + esc(it.limite) + '"></div></div>' +
         '<textarea data-campo="notas" rows="2" placeholder="Notas…">' + esc(it.notas) + '</textarea>' +
+        htmlFotos(it) +
         '<details class="g-hist"><summary>🕓 Historial (' + it.historial.length + ')</summary><ul>' + hist + '</ul></details>' +
         '<div class="g-fila">' +
         (visibles[it.id] ? '<button data-accion="ver" class="g-primario">🙈 Ocultar del mapa</button>' : '<button data-accion="ver">📍 Ver en mapa</button>') +
@@ -343,7 +373,7 @@
 
   function actualizarLista() {
     var c = document.getElementById('g-lista');
-    if (c) c.innerHTML = htmlLista();
+    if (c) { c.innerHTML = htmlLista(); cargarMiniaturas(); }
   }
 
   function render() {
@@ -376,6 +406,7 @@
       '<h5>Importante saber</h5>' +
       '<ul><li>Los registros se guardan <b>solo en este navegador y este ordenador</b>. Si lo abres en otro equipo no los verás.</li>' +
       '<li>Para guardar una copia o compartirla usa <b>Exportar CSV</b> (se abre en Excel) o <b>Exportar GeoJSON</b> (se abre en programas de mapas como QGIS), y <b>Importar copia</b> para recuperarla.</li>' +
+      '<li><b>Fotos:</b> puedes añadir hasta 4 por seguimiento (desde el móvil se abre la cámara). Se reducen de tamaño automáticamente y se guardan <b>solo en este navegador</b>. No van en el CSV ni en el GeoJSON: para guardarlas usa <b>«Copia completa con fotos»</b> (un único archivo que luego se recupera con «Importar copia»). Las fotos sí salen en el informe imprimible.</li>' +
       '<li>Es una herramienta de apoyo para organizarse: <b>no sustituye</b> al registro oficial ni a los expedientes administrativos del ayuntamiento.</li></ul></details>';
 
     if (nVenc) {
@@ -401,6 +432,7 @@
       '<button data-accion="ocultar-todos">🙈 Ocultar todos</button>' +
       '<button data-accion="exp-csv">⬇️ Exportar CSV</button>' +
       '<button data-accion="exp-geo">⬇️ Exportar GeoJSON</button>' +
+      '<button data-accion="exp-full">💾 Copia completa con fotos</button>' +
       '<button data-accion="informe">🖨️ Informe imprimible</button>' +
       '<button data-accion="imp">⬆️ Importar copia</button>' +
       '<input type="file" id="g-file" accept=".json,.geojson" style="display:none"></div>' +
@@ -408,6 +440,200 @@
       '<div id="g-sug">' + htmlSug() + '</div>' +
       '<div id="g-lista">' + htmlLista() + '</div></div>';
     panel.innerHTML = html;
+    cargarMiniaturas();
+  }
+
+  /* ---------- fotos (se guardan en IndexedDB, no en localStorage) ---------- */
+  var MAX_FOTOS = 4, DB_FOTOS = 'ghistora_gestion_fotos', db = null, urlsFotos = {};
+  function abrirDB(cb) {
+    if (db) return cb(null, db);
+    if (typeof indexedDB === 'undefined') return cb(new Error('Este navegador no permite guardar fotos.'));
+    var rq;
+    try { rq = indexedDB.open(DB_FOTOS, 1); } catch (e) { return cb(e); }
+    rq.onupgradeneeded = function () { rq.result.createObjectStore('fotos', { keyPath: 'id' }); };
+    rq.onsuccess = function () { db = rq.result; cb(null, db); };
+    rq.onerror = function () { cb(rq.error || new Error('No se pudo abrir el almacén de fotos.')); };
+  }
+  function dbOp(modo, fn, cb) {
+    abrirDB(function (err, d) {
+      if (err) return cb(err);
+      var res;
+      try {
+        var tx = d.transaction('fotos', modo);
+        res = fn(tx.objectStore('fotos'));
+        tx.oncomplete = function () { cb(null, res && res.result); };
+        tx.onerror = function () { cb(tx.error || new Error('Error al guardar la foto.')); };
+        tx.onabort = function () { cb(tx.error || new Error('No hay espacio suficiente para guardar la foto.')); };
+      } catch (e) { cb(e); }
+    });
+  }
+  function guardarFoto(rec, cb) { dbOp('readwrite', function (st) { return st.put(rec); }, function (e) { cb(e); }); }
+  function leerFoto(id, cb) { dbOp('readonly', function (st) { return st.get(id); }, cb); }
+  function borrarFoto(id, cb) {
+    if (urlsFotos[id]) { try { URL.revokeObjectURL(urlsFotos[id]); } catch (e) {} delete urlsFotos[id]; }
+    dbOp('readwrite', function (st) { return st.delete(id); }, function (e) { if (cb) cb(e); });
+  }
+  function urlFoto(id, cb) {
+    if (urlsFotos[id]) return cb(urlsFotos[id]);
+    leerFoto(id, function (err, rec) {
+      if (err || !rec || !rec.blob) return cb(null);
+      urlsFotos[id] = URL.createObjectURL(rec.blob);
+      cb(urlsFotos[id]);
+    });
+  }
+  function cargarMiniaturas() {
+    var imgs = document.querySelectorAll('#panel-gestion img[data-fid]');
+    for (var k = 0; k < imgs.length; k++) (function (img) {
+      urlFoto(img.getAttribute('data-fid'), function (u) {
+        if (u) img.src = u;
+        else if (img.parentNode) { img.parentNode.textContent = 'No está en este navegador'; }
+      });
+    })(imgs[k]);
+  }
+  function comprimir(file, cb) {
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function () {
+      var max = 1280, r = Math.min(1, max / Math.max(img.width, img.height));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * r)); c.height = Math.max(1, Math.round(img.height * r));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(function (b) {
+        URL.revokeObjectURL(url);
+        if (b) cb(null, b); else cb(new Error('No se pudo reducir la foto.'));
+      }, 'image/jpeg', 0.72);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); cb(new Error('«' + file.name + '» no se puede leer como imagen (formatos válidos: JPG, PNG, WebP).')); };
+    img.src = url;
+  }
+  function htmlFotos(it) {
+    var h = '<div class="g-fotos"><span class="g-lab">Fotos (' + it.fotos.length + '/' + MAX_FOTOS + ')</span><div class="g-fotos-fila">';
+    it.fotos.forEach(function (f) {
+      h += '<span class="g-foto"><button type="button" class="g-foto-img" data-accion="foto-ver" data-fid="' + esc(f.id) + '" title="Ver ampliada"><img data-fid="' + esc(f.id) + '" alt="Foto del ' + esc(fechaES(f.f)) + '"></button>' +
+        '<button type="button" class="g-foto-x" data-accion="foto-del" data-fid="' + esc(f.id) + '" title="Eliminar foto">✖</button></span>';
+    });
+    if (it.fotos.length < MAX_FOTOS) {
+      h += '<label class="g-fotobtn">📷 Añadir foto<input type="file" accept="image/*" multiple data-accion="foto-add" style="display:none"></label>';
+    }
+    return h + '</div></div>';
+  }
+  function subirFotos(input) {
+    var it = itemDe(input);
+    if (!it || !input.files || !input.files.length) return;
+    var files = Array.prototype.slice.call(input.files, 0, MAX_FOTOS - it.fotos.length);
+    var extra = input.files.length - files.length;
+    var errores = [];
+    (function siguiente(n) {
+      if (n >= files.length) {
+        input.value = '';
+        guardar(); actualizarLista();
+        if (extra > 0) errores.push('Se ignoraron ' + extra + ' foto(s): el máximo es ' + MAX_FOTOS + ' por seguimiento.');
+        if (errores.length) alert(errores.join('\n'));
+        return;
+      }
+      comprimir(files[n], function (err, blob) {
+        if (err) { errores.push(err.message); return siguiente(n + 1); }
+        var id = 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        guardarFoto({ id: id, itemId: it.id, blob: blob, fecha: hoyISO(), nombre: files[n].name }, function (e2) {
+          if (e2) { errores.push('No se pudo guardar «' + files[n].name + '»: ' + e2.message); return siguiente(n + 1); }
+          it.fotos.push({ id: id, f: hoyISO(), n: files[n].name });
+          anotar(it, 'Foto añadida');
+          siguiente(n + 1);
+        });
+      });
+    })(0);
+  }
+  function verFoto(fid) {
+    urlFoto(fid, function (u) {
+      if (!u) { alert('Esta foto no está disponible en este navegador.'); return; }
+      var ov = document.createElement('div');
+      ov.className = 'g-visor-foto';
+      ov.innerHTML = '<img alt="Foto ampliada"><div class="g-vf-bt"><a class="g-vf-dl" style="color:#fff;padding:8px 12px;border:1px solid #fff;border-radius:6px;text-decoration:none;">⬇️ Descargar</a><button type="button" style="padding:8px 12px;cursor:pointer;">Cerrar</button></div>';
+      ov.querySelector('img').src = u;
+      var a = ov.querySelector('.g-vf-dl'); a.href = u; a.download = 'foto_' + fid + '.jpg';
+      function cerrar() { document.removeEventListener('keydown', tecla); if (ov.parentNode) ov.parentNode.removeChild(ov); }
+      function tecla(e) { if (e.key === 'Escape') cerrar(); }
+      ov.querySelector('button').addEventListener('click', cerrar);
+      ov.addEventListener('click', function (e) { if (e.target === ov) cerrar(); });
+      document.addEventListener('keydown', tecla);
+      document.body.appendChild(ov);
+    });
+  }
+  function manejarFoto(acc, b) {
+    var fid = b.getAttribute('data-fid');
+    if (acc === 'foto-ver') verFoto(fid);
+    else if (acc === 'foto-del') {
+      var it = itemDe(b); if (!it) return;
+      if (!confirm('¿Eliminar esta foto? No se puede deshacer.')) return;
+      borrarFoto(fid, function () {
+        it.fotos = it.fotos.filter(function (x) { return x.id !== fid; });
+        anotar(it, 'Foto eliminada');
+        guardar(); actualizarLista();
+      });
+    }
+  }
+  function dataUrlsFotos(ids, cb) {
+    var out = {}, i = 0;
+    (function sig() {
+      if (i >= ids.length) return cb(out);
+      var id = ids[i++];
+      leerFoto(id, function (err, rec) {
+        if (err || !rec || !rec.blob) return sig();
+        var fr = new FileReader();
+        fr.onload = function () { out[id] = fr.result; sig(); };
+        fr.onerror = function () { sig(); };
+        fr.readAsDataURL(rec.blob);
+      });
+    })();
+  }
+  function exportarCompleto() {
+    var ids = [];
+    items.forEach(function (it) { it.fotos.forEach(function (f) { ids.push(f.id); }); });
+    dataUrlsFotos(ids, function (mapa) {
+      var copia = items.map(function (it) {
+        var c = JSON.parse(JSON.stringify(it));
+        delete c.expSig; delete c.expFotos;
+        return c;
+      });
+      var faltan = ids.length - Object.keys(mapa).length;
+      items.forEach(function (x) { x.expFotos = idsFotos(x); });
+      descargar('copia_completa_con_fotos_' + hoyISO() + '.json', 'application/json',
+        JSON.stringify({ formato: 'ghistora-gestion-copia-completa', version: 1, municipio: 'Ribera de Arriba', exportado: new Date().toISOString(), items: copia, fotos: mapa }));
+      if (faltan > 0) alert('Aviso: ' + faltan + ' foto(s) no se han podido leer y no van en la copia.');
+    });
+  }
+  function importarCompleto(d) {
+    var lista = Array.isArray(d.items) ? d.items : [], fotosD = (d.fotos && typeof d.fotos === 'object') ? d.fotos : {};
+    var nuevos = [], pendientes = [];
+    lista.forEach(function (p) {
+      if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') return;
+      var fotos = (Array.isArray(p.fotos) ? p.fotos : []).filter(function (f) { return f && typeof f.id === 'string' && typeof fotosD[f.id] === 'string'; })
+        .map(function (f) { return { id: f.id, f: String(f.f || hoyISO()), n: String(f.n || '') }; });
+      fotos.forEach(function (f) { pendientes.push(f.id); });
+      var it = normalizar({
+        id: siguienteId() + nuevos.length, fecha: p.fecha || hoyISO(), lat: p.lat, lon: p.lon,
+        refcat: String(p.refcat || ''), tipo: TIPOS.indexOf(p.tipo) > -1 ? p.tipo : 'Otro',
+        estado: ESTADOS.indexOf(p.estado) > -1 ? p.estado : 'Pendiente',
+        prioridad: PRIORIDADES.indexOf(p.prioridad) > -1 ? p.prioridad : 'Media',
+        responsable: String(p.responsable || ''), limite: /^\d{4}-\d{2}-\d{2}$/.test(p.limite || '') ? p.limite : '',
+        notas: String(p.notas || ''), diagnostico: (p.diagnostico && typeof p.diagnostico === 'object') ? p.diagnostico : {},
+        historial: Array.isArray(p.historial) ? p.historial.filter(function (x) { return x && typeof x.f === 'string' && typeof x.t === 'string'; }) : [],
+        fotos: fotos, sugerenciaId: (typeof p.sugerenciaId === 'string' && p.sugerenciaId) ? p.sugerenciaId : undefined
+      });
+      nuevos.push(it);
+    });
+    var errFotos = 0, k = 0;
+    (function sig() {
+      if (k >= pendientes.length) {
+        nuevos.forEach(function (it) { it.expSig = firma(it); it.expFotos = idsFotos(it); items.push(it); });
+        guardar(); pintarMapa(); render();
+        alert('Importados ' + nuevos.length + ' seguimientos con sus fotos' + (errFotos ? ' (' + errFotos + ' foto(s) no se pudieron guardar)' : '') + '. Se han añadido a los existentes con id nuevo.');
+        return;
+      }
+      var id = pendientes[k++];
+      fetch(fotosD[id]).then(function (r) { return r.blob(); }).then(function (blob) {
+        guardarFoto({ id: id, blob: blob, fecha: hoyISO() }, function (e) { if (e) errFotos++; sig(); });
+      }).catch(function () { errFotos++; sig(); });
+    })();
   }
 
   /* ---------- sugerencias del visor (precarga opcional) ---------- */
@@ -542,6 +768,12 @@
     if (!lista.length) { alert('No hay seguimientos en la lista actual para imprimir. Ajusta los filtros o añade alguno.'); return; }
     var w = window.open('', '_blank');
     if (!w) { alert('El navegador ha bloqueado la ventana del informe. Permite las ventanas emergentes para este sitio y vuelve a pulsar el botón.'); return; }
+    var ids = [];
+    lista.forEach(function (it) { it.fotos.forEach(function (f) { ids.push(f.id); }); });
+    try { w.document.write('<p style="font:14px Arial;margin:20px">Preparando el informe…</p>'); } catch (e) {}
+    dataUrlsFotos(ids, function (mapaF) { informeFinal(w, lista, mapaF); });
+  }
+  function informeFinal(w, lista, mapaF) {
     var cont = { 'Pendiente': 0, 'En proceso': 0, 'Resuelto': 0 }, venc = 0;
     lista.forEach(function (i) { cont[i.estado] = (cont[i.estado] || 0) + 1; if (vencido(i)) venc++; });
     var filtros = [];
@@ -555,6 +787,7 @@
       var c = COLOR[it.estado] || '#999';
       var diag = Object.keys(it.diagnostico || {}).map(function (k) { return '<b>' + esc(k) + ':</b> ' + esc(it.diagnostico[k]); }).join('<br>');
       var hist = it.historial.map(function (h2) { return esc(fechaES(h2.f)) + ' — ' + esc(h2.t); }).join('<br>');
+      var fotosH = it.fotos.filter(function (f) { return mapaF[f.id]; }).map(function (f) { return '<img class="ft" src="' + mapaF[f.id] + '" alt="Foto">'; }).join('');
       return '<section class="it" style="border-left-color:' + c + '">' +
         '<h3><span class="dot" style="background:' + c + '"></span>#' + it.id + ' · ' + esc(it.tipo) +
         '<span class="pill" style="background:' + c + ';color:' + (TXT[it.estado] || '#fff') + '">' + esc(it.estado) + '</span>' +
@@ -566,6 +799,7 @@
         '<tr><th>Coordenadas</th><td colspan="3">' + it.lat.toFixed(5) + ', ' + it.lon.toFixed(5) + ' (WGS84)</td></tr>' +
         (it.notas ? '<tr><th>Notas</th><td colspan="3">' + esc(it.notas).replace(/\n/g, '<br>') + '</td></tr>' : '') +
         (diag ? '<tr><th>Datos del visor</th><td colspan="3" class="peq">' + diag + '</td></tr>' : '') +
+        (fotosH ? '<tr><th>Fotos</th><td colspan="3">' + fotosH + '</td></tr>' : '') +
         '<tr><th>Historial</th><td colspan="3" class="peq">' + hist + '</td></tr>' +
         '</table></section>';
     }).join('');
@@ -580,7 +814,7 @@
       '.pill{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:11px;font-size:11.5px;font-weight:bold;vertical-align:1px;} .pri{background:#fff;border:1.5px solid;} .venc{background:#c4112f;color:#fff;}' +
       'table{width:100%;border-collapse:collapse;} th{width:16%;text-align:left;vertical-align:top;color:#666;font-weight:600;padding:2px 6px 2px 0;} td{padding:2px 8px 2px 0;vertical-align:top;} .peq{font-size:11.5px;color:#333;}' +
       '.pie{margin-top:16px;border-top:2px solid #c9a65a;padding-top:8px;font-size:11px;color:#555;}' +
-      '.bar{background:#fff7dc;border-bottom:1px solid #e0cf99;padding:8px 28px;font-size:12px;} .bar button{font-size:14px;padding:6px 14px;cursor:pointer;margin-right:12px;} @media print{.bar{display:none;}} @page{margin:10mm;}';
+      '.ft{max-width:250px;max-height:190px;margin:3px 8px 3px 0;border:1px solid #bbb;border-radius:4px;} .bar{background:#fff7dc;border-bottom:1px solid #e0cf99;padding:8px 28px;font-size:12px;} .bar button{font-size:14px;padding:6px 14px;cursor:pointer;margin-right:12px;} @media print{.bar{display:none;}} @page{margin:10mm;}';
     var hoy = fechaES(hoyISO());
     var caja = function (n, t, bg, fg) { return '<div style="background:' + bg + ';color:' + fg + '"><b>' + n + '</b>' + t + '</div>'; };
     var doc = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de seguimiento municipal — Ribera de Arriba — ' + hoy + '</title><style>' + css + '</style></head><body>' +
@@ -611,6 +845,8 @@
     if (!b) return;
     var acc = b.getAttribute('data-accion');
     if (acc.indexOf('sug-') === 0) { manejarSug(acc, b); return; }
+    if (acc.indexOf('foto-') === 0) { manejarFoto(acc, b); return; }
+    if (acc === 'exp-full') { exportarCompleto(); return; }
     if (acc === 'lst-sig') { listaPag++; actualizarLista(); return; }
     if (acc === 'lst-ant') { listaPag--; actualizarLista(); return; }
     if (acc === 'exp-csv') exportarCSV();
@@ -643,6 +879,7 @@
     } else if (acc === 'borrar') {
       var it2 = itemDe(b); if (!it2) return;
       if (confirm('¿Eliminar el seguimiento #' + it2.id + '? No se puede deshacer.')) {
+        (it2.fotos || []).forEach(function (f) { borrarFoto(f.id); });
         items = items.filter(function (i) { return i.id !== it2.id; });
         delete visibles[it2.id];
         guardar(); pintarMapa(); render();
@@ -653,6 +890,7 @@
   function manejarChange(e) {
     var t = e.target;
     var acc = t.getAttribute('data-accion');
+    if (acc === 'foto-add') { subirFotos(t); return; }
     if (acc === 'sug-origen') { sugOrigen = t.value; sugPag = 0; actualizarSug(); return; }
     if (acc === 'filtro-estado') { filtro = t.value; listaPag = 0; render(); return; }
     if (acc === 'filtro-tipo') { filtroTipo = t.value; listaPag = 0; render(); return; }
@@ -706,11 +944,11 @@
   }
   function celda(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
   function exportarCSV() {
-    var cab = ['id', 'fecha', 'tipo', 'estado', 'prioridad', 'responsable', 'fecha_limite', 'lat', 'lon', 'ref_catastral', 'notas', 'diagnostico', 'historial', 'sugerencia_id'];
+    var cab = ['id', 'fecha', 'tipo', 'estado', 'prioridad', 'responsable', 'fecha_limite', 'lat', 'lon', 'ref_catastral', 'notas', 'diagnostico', 'historial', 'sugerencia_id', 'n_fotos'];
     var filas = items.map(function (i) {
       var d = Object.keys(i.diagnostico || {}).map(function (k) { return k + ': ' + i.diagnostico[k]; }).join(' | ');
       var h = i.historial.map(function (x) { return fechaES(x.f) + ' ' + x.t; }).join(' | ');
-      return [i.id, i.fecha, i.tipo, i.estado, i.prioridad, i.responsable, i.limite, i.lat, i.lon, i.refcat, i.notas, d, h, i.sugerenciaId || ''].map(celda).join(';');
+      return [i.id, i.fecha, i.tipo, i.estado, i.prioridad, i.responsable, i.limite, i.lat, i.lon, i.refcat, i.notas, d, h, i.sugerenciaId || '', i.fotos.length].map(celda).join(';');
     });
     descargar('seguimiento_municipal_' + hoyISO() + '.csv', 'text/csv;charset=utf-8',
       '﻿' + cab.join(';') + '\r\n' + filas.join('\r\n'));
@@ -724,7 +962,7 @@
           geometry: { type: 'Point', coordinates: [i.lon, i.lat] },
           properties: { id: i.id, fecha: i.fecha, tipo: i.tipo, estado: i.estado, prioridad: i.prioridad,
             responsable: i.responsable, fecha_limite: i.limite,
-            ref_catastral: i.refcat, notas: i.notas, diagnostico: i.diagnostico || {}, historial: i.historial, sugerencia_id: i.sugerenciaId || '' }
+            ref_catastral: i.refcat, notas: i.notas, diagnostico: i.diagnostico || {}, historial: i.historial, sugerencia_id: i.sugerenciaId || '', n_fotos: i.fotos.length }
         };
       })
     };
@@ -736,6 +974,7 @@
     r.onload = function () {
       try {
         var fc = JSON.parse(r.result);
+        if (fc && fc.formato === 'ghistora-gestion-copia-completa') { importarCompleto(fc); return; }
         var feats = (fc && fc.features) || [];
         var n = 0;
         feats.forEach(function (f) {
