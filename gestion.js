@@ -274,10 +274,10 @@
       if (it.forma) {
         var estilo = { color: color, weight: 5, opacity: 0.95, fillColor: color, fillOpacity: 0.28 };
         var fig = it.forma.tipo === 'zona' ? L.polygon(it.forma.pts, estilo) : L.polyline(it.forma.pts, estilo);
-        fig.bindPopup(popupDe(it)).addTo(capa);
+        fig.bindPopup(popupDe(it), { minWidth: 230, maxWidth: 300 }).addTo(capa);
       }
       L.marker([it.lat, it.lon], { icon: icono, zIndexOffset: 1000 })
-        .bindPopup(popupDe(it)).addTo(capa);
+        .bindPopup(popupDe(it), { minWidth: 230, maxWidth: 300 }).addTo(capa);
     });
   }
 
@@ -916,13 +916,14 @@
       var est = { color: '#7e57c2', weight: 4, dashArray: '6,5', fillColor: '#b39ddb', fillOpacity: 0.3 };
       (fs.tipo === 'zona' ? L.polygon(fs.pts, est) : L.polyline(fs.pts, est)).addTo(sugCapa);
     }
-    L.circleMarker([c[1], c[0]], { radius: fs ? 7 : 15, color: '#7e57c2', weight: 4, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.35 })
-      .bindPopup(pop).addTo(sugCapa).openPopup();
+    var marca = L.circleMarker([c[1], c[0]], { radius: fs ? 7 : 15, color: '#7e57c2', weight: 4, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.35 })
+      .bindPopup(pop, { minWidth: 230, maxWidth: 300, autoPanPadding: [30, 30] }).addTo(sugCapa);
     var tab = document.querySelector('.tab-btn[data-panel="panel-calle"]');
     if (tab) tab.click();
     setTimeout(function () {
       mapa.invalidateSize();
       if (fs) mapa.fitBounds(fs.pts, { maxZoom: 18, padding: [70, 70] }); else mapa.setView([c[1], c[0]], 17);
+      setTimeout(function () { if (sugCapa && sugCapa.hasLayer(marca)) marca.openPopup(); }, 350);
     }, 150);
   }
   function formaSug(p) {
