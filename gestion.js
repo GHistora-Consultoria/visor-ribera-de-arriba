@@ -910,8 +910,15 @@
     if (c) c.innerHTML = htmlSug();
   }
 
-  var sugMulti = false;
-  function quitarMarcaSug() { sugMulti = false; if (sugCapa) sugCapa.clearLayers(); }
+  var sugMulti = false, sugMarcas = {};
+  function quitarMarcaSug() { sugMulti = false; sugMarcas = {}; if (sugCapa) sugCapa.clearLayers(); }
+  function descartarSug(id) {
+    descartadas[id] = true; guardarDescartes();
+    var m = sugMarcas[id];
+    if (sugMulti && m && sugCapa) { sugCapa.removeLayer(m); delete sugMarcas[id]; }
+    else quitarMarcaSug();
+    actualizarSug();
+  }
   function verTodasSug() {
     var mapa = getMapa();
     if (!mapa || typeof L === 'undefined') return;
@@ -919,17 +926,19 @@
     if (!lista.length) { alert('No hay sugerencias por revisar con este filtro.'); return; }
     if (!sugCapa) sugCapa = L.layerGroup().addTo(mapa);
     sugCapa.clearLayers();
-    sugMulti = true;
+    sugMulti = true; sugMarcas = {};
     var pts = [];
     lista.forEach(function (f) {
       var p = f.properties, c = f.geometry.coordinates, id = p.id;
       var pop = document.createElement('div');
       pop.innerHTML = '<b>💡 ' + esc(p.titulo) + '</b><br>' + esc(p.origen) + '<br>' + esc(p.motivo) +
         '<br><button type="button" class="g-pop-add" style="margin-top:8px;padding:5px 10px;cursor:pointer;">➕ Añadir a seguimiento</button>' +
-        ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar todas</button>';
+        ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar todas</button>' +
+        '<button type="button" class="g-pop-d" style="margin-top:8px;padding:5px 10px;cursor:pointer;">✖ Descartar esta</button>';
       pop.querySelector('.g-pop-add').addEventListener('click', function () { anadirSug(id); });
       pop.querySelector('.g-pop-q').addEventListener('click', quitarMarcaSug);
-      L.circleMarker([c[1], c[0]], { radius: 9, color: '#7e57c2', weight: 3, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.45 })
+      pop.querySelector('.g-pop-d').addEventListener('click', function () { descartarSug(id); });
+      sugMarcas[id] = L.circleMarker([c[1], c[0]], { radius: 9, color: '#7e57c2', weight: 3, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.45 })
         .bindPopup(pop, { minWidth: 230, maxWidth: 300, autoPanPadding: [30, 30] }).addTo(sugCapa);
       pts.push([c[1], c[0]]);
     });
@@ -950,9 +959,11 @@
     var pop = document.createElement('div');
     pop.innerHTML = '<b>💡 ' + esc(p.titulo) + '</b><br>' + esc(p.origen) + '<br>' + esc(p.motivo) +
       '<br><button type="button" class="g-pop-add" style="margin-top:8px;padding:5px 10px;cursor:pointer;">➕ Añadir a seguimiento</button>' +
-      ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar</button>';
+      ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar</button>' +
+      '<button type="button" class="g-pop-d" style="margin-top:8px;padding:5px 10px;cursor:pointer;">✖ Descartar esta</button>';
     pop.querySelector('.g-pop-add').addEventListener('click', function () { anadirSug(id); });
     pop.querySelector('.g-pop-q').addEventListener('click', quitarMarcaSug);
+    pop.querySelector('.g-pop-d').addEventListener('click', function () { descartarSug(id); });
     var fs = formaSug(p);
     if (fs) {
       var est = { color: '#7e57c2', weight: 4, dashArray: '6,5', fillColor: '#b39ddb', fillOpacity: 0.3 };

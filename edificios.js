@@ -944,8 +944,8 @@
     });
     var o = [];
     if (pend) o.push({ nombre: 'Edificio que toca T500', tipo: 'poligono', color: '#ff9f0a' });
-    if (ver) o.push({ nombre: 'Edificio que toca T500, verificado por el ayuntamiento', tipo: 'poligono', color: '#30e36b' });
-    if (man) o.push({ nombre: 'Edificio añadido por el ayuntamiento (no consta en Catastro)', tipo: 'punto', color: '#e91e8c', borde: '#7a0f57' });
+    if (ver) o.push({ nombre: 'Edificio verificado por el ayuntamiento', tipo: 'poligono', color: '#30e36b' });
+    if (man) o.push({ nombre: 'Edificio añadido por el ayuntamiento', tipo: 'punto', color: '#e91e8c', borde: '#7a0f57' });
     if (res) o.push({ nombre: 'Edificio resaltado', tipo: 'contorno', color: '#00e5ff' });
     return o;
   });
