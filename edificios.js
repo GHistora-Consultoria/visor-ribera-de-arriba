@@ -172,7 +172,21 @@
     '.e-visor-foto { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:100000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; }',
     '.e-visor-foto img { max-width:96vw; max-height:80vh; border-radius:6px; background:#000; }',
     '.e-art23 { width:100%; border-collapse:collapse; margin:8px 0; font-size:13px; } .e-art23 th, .e-art23 td { border:1px solid var(--border); padding:6px 8px; text-align:left; vertical-align:top; } .e-art23 th { color:var(--text-muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; } .e-art23 td.n { text-align:right; white-space:nowrap; } .e-art23 small { color:var(--text-muted); display:block; }',
-    '.e-guardado { font-size:11.5px; color:#30e36b; margin-left:8px; }'
+    '.e-guardado { font-size:11.5px; color:#30e36b; margin-left:8px; }',
+    '.e-expl summary { font-size:16.5px; font-weight:700; padding:10px 0; }',
+    '.e-expl.e-lista { border-left:5px solid #e6c229; }',
+    '.e-expl.e-art23d { border-left:5px solid #5b8ac9; background:rgba(91,138,201,.10); } .e-expl.e-art23d summary { color:#8fb6f2; }',
+    '.e-bloque b.e-tit { font-size:14.5px; text-transform:none; letter-spacing:0; font-weight:700; margin-bottom:6px; }',
+    '.e-cat b.e-tit { color:#8fb6f2; } .e-osm b.e-tit { color:#d9a0ee; } .e-ayto b.e-tit { color:#4be98a; font-size:15.5px; }',
+    '.e-ayto label { font-size:12.5px; font-weight:600; color:var(--text-light); text-transform:none; letter-spacing:0; }',
+    '.e-item h4 { font-size:16.5px; font-weight:600; }',
+    '.e-ayto .e-sit { background:rgba(255,193,7,.10); border:1px solid rgba(255,193,7,.55); border-radius:6px; padding:6px 10px 8px; margin:8px 0; }',
+    '.e-ayto .e-sit label { color:#ffcf4d; font-size:14px; margin-top:2px; }',
+    '.e-ayto details.e-ods { background:rgba(0,188,212,.10); border:1px solid rgba(0,188,212,.5); border-radius:6px; padding:4px 10px 8px; margin:8px 0; }',
+    '.e-ayto details.e-ods summary { cursor:pointer; font-size:14.5px; font-weight:700; color:#5fe0f0; padding:4px 0; }',
+    '.e-h { font-size:15px; font-weight:700; color:var(--gold-bright); margin:12px 0 4px; }',
+    '.e-expl a, .e-ayto a { color:var(--gold-bright); text-decoration:underline; }',
+    '.e-ayto details.e-ods label { font-weight:400; color:var(--text-light); }'
   ].join('\n');
   document.head.appendChild(st);
 
@@ -347,14 +361,15 @@
     var h = '<div class="e-bloque e-ayto"><b class="e-tit">Ayuntamiento: qué es este edificio</b>' +
       '<label>Qué es</label><select data-campo="tipo" data-ref="' + ref + '">' +
       TIPOS.map(function (t) { return '<option' + ((x.tipo || PENDIENTE) === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
-      '<label>Situación actual del edificio</label><select data-campo="ocupacion" data-ref="' + ref + '">' +
-      OCUP.map(function (t) { return '<option' + ((x.ocupacion || OCUP[0]) === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select>' +
+      '<div class="e-sit"><label>Situación actual del edificio · ¿está en uso?</label><select data-campo="ocupacion" data-ref="' + ref + '">' +
+      OCUP.map(function (t) { return '<option' + ((x.ocupacion || OCUP[0]) === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select></div>' +
       '<label>Detalle (nombre, titularidad, uso real…)</label><input type="text" maxlength="200" data-campo="detalle" data-ref="' + ref + '" value="' + esc(x.detalle) + '" placeholder="Ej.: Consultorio local, titularidad municipal">' +
       '<div class="e-fila"><div><label>Lo confirma (nombre o servicio)</label><input type="text" maxlength="80" data-campo="por" data-ref="' + ref + '" value="' + esc(x.por) + '"></div>' +
       '<div><label>Fecha de la comprobación</label><input type="date" data-campo="fecha" data-ref="' + ref + '" value="' + esc(x.fecha) + '"></div></div>' +
       '<label>Notas</label><textarea rows="2" maxlength="1000" data-campo="notas" data-ref="' + ref + '" placeholder="Cómo se ha comprobado, qué falta, a quién consultar…">' + esc(x.notas) + '</textarea>' +
-      '<details style="margin:6px 0;"><summary style="cursor:pointer;">Enlace con la Agenda 2030 (opcional)' + (x.ods.length ? ' · ' + x.ods.length + ' marcado(s)' : '') + '</summary>' +
+      '<details class="e-ods"><summary>Enlace con la Agenda 2030 (opcional)' + (x.ods.length ? ' · ' + x.ods.length + ' marcado(s)' : '') + '</summary>' +
       '<div style="font-size:12.5px;color:var(--text-muted);margin:4px 0;">Marca los Objetivos de Desarrollo Sostenible con los que el ayuntamiento relaciona su actuación sobre este edificio en el programa de adaptación. Es solo una referencia para el informe: no indica que el edificio ni el municipio cumplan la Agenda 2030.</div>' +
+      '<div style="font-size:12.5px;margin:4px 0 6px;">Para consultar la situación de los ODS en los concejos asturianos: <a href="https://app.powerbi.com/view?r=eyJrIjoiMDE2M2QxODUtYjZiZC00ZjgwLTgxOTctZWQ1YzhlZmEwNjkwIiwidCI6ImIwOTViNzZhLTAzZDYtNGM4Yi04N2QwLWUxYTA2ZTc3OTYwYyIsImMiOjl9" target="_blank" rel="noopener">SIS_MLA, Sistema de Información de Sostenibilidad en el Mapa Local Asturiano</a> (Cátedra Concepción Arenal, Universidad de Oviedo). Es un visor público de consulta, independiente de este.</div>' +
       ODS.map(function (o) { return '<label style="display:flex;gap:6px;align-items:flex-start;font-size:13px;margin:2px 0;"><input type="checkbox" data-ods="' + o[0] + '" data-ref="' + ref + '"' + (x.ods.indexOf(o[0]) >= 0 ? ' checked' : '') + '> <span><b>ODS ' + o[0] + '</b> · ' + esc(o[1]) + '</span></label>'; }).join('') + '</details>' +
       '<div><label>Fotos (' + x.fotos.length + '/' + MAX_FOTOS + ')</label><div class="e-fotos-fila">';
     x.fotos.forEach(function (f) {
@@ -412,14 +427,15 @@
     return c(n, 'edificios del Catastro que tocan T500') + c(np, 'no son vivienda ni agrarios') + c(ok + ' de ' + datos.length, 'verificados por el ayuntamiento') + (nm ? c(nm, 'añadidos por el ayuntamiento') : '') + c(t10, 'tocan T10 (inundación frecuente)') + c(zf, 'tocan la zona de flujo preferente');
   }
   function explicacionHTML() {
-    return '<details class="e-expl"><summary>¿Qué es esta lista y cómo leerla?</summary>' +
-      '<ul><li><b>Qué incluye.</b> <b>Todos</b> los edificios del Catastro cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio, sea cual sea su uso: servicios públicos, industrial, comercial, vivienda y agrario. Con el filtro «Todos los usos» puedes elegir qué ver. Un edificio que no esté dibujado en la cartografía del Catastro (obra reciente o sin declarar) no puede aparecer aquí. Si el ayuntamiento detecta alguno, el titular puede regularizarlo con la declaración de alteraciones catastrales (modelo 900D, Orden HAC/1293/2018); cuando el Catastro lo incorpore, aparecerá en este cruce al actualizar los datos.</li>' +
+    return '<details class="e-expl e-lista"><summary>¿Qué es esta lista y cómo leerla?</summary>' +
+      '<ul><li><b>Norma a la que se refiere.</b> Las referencias al «artículo 23.2» que aparecen en esta pantalla son las del <b>Proyecto de Real Decreto por el que se adoptan medidas de gestión de los riesgos de inundación</b> (Ministerio para la Transición Ecológica y el Reto Demográfico; información pública del 16/07/2026 al 16/09/2026). Es un <b>proyecto sin aprobar</b>: añade un artículo 23 al Real Decreto 903/2010, de evaluación y gestión de riesgos de inundación, y pediría a los ayuntamientos situados en áreas de riesgo potencial significativo de inundación (ARPSI) un programa municipal de adaptación. Texto del proyecto: <a href="https://www.miteco.gob.es/content/dam/miteco/es/agua/participacion-publica/anexos/20260716-proyecto-rd-gestion-riesgo-inundaciones.pdf" target="_blank" rel="noopener">documento oficial (PDF)</a> · <a href="https://www.miteco.gob.es/es/agua/participacion-publica/pp-rd-medidas-inundacion-jul2026.html" target="_blank" rel="noopener">ficha de información pública</a>. Cuando se apruebe, habrá que contrastar estos textos con el definitivo.</li>' +
+      '<li><b>Qué incluye.</b> <b>Todos</b> los edificios del Catastro cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio, sea cual sea su uso: servicios públicos, industrial, comercial, vivienda y agrario. Con el filtro «Todos los usos» puedes elegir qué ver. Un edificio que no esté dibujado en la cartografía del Catastro (obra reciente o sin declarar) no puede aparecer aquí. Si el ayuntamiento detecta alguno, el titular puede regularizarlo con la declaración de alteraciones catastrales (modelo 900D, Orden HAC/1293/2018); cuando el Catastro lo incorpore, aparecerá en este cruce al actualizar los datos.</li>' +
       '<li><b>Edificios que Catastro no tiene.</b> Con el botón «➕ Añadir edificio que no está en Catastro» el ayuntamiento marca su ubicación en el mapa y completa su ficha. Figuran aparte en el resumen.</li>' +
       '<li><b>«Toca» no es «está afectado».</b> Quiere decir que una parte de la huella del edificio cae dentro de la zona; el porcentaje indica cuánta. Que un edificio toque la zona no dice nada sobre su vulnerabilidad real.</li>' +
       '<li><b>Tres fuentes, tres colores.</b> En azul, lo que dice la ficha de <b>Catastro</b> (oficial). En morado, la <b>pista de OpenStreetMap</b> (no oficial, solo para orientar). En verde, lo que <b>comprueba y escribe el ayuntamiento</b>.</li>' +
-      '<li><b>Por qué debe completarlo el ayuntamiento.</b> El proyecto de Real Decreto (sin aprobar) pide identificar «edificios públicos, equipamientos básicos y zonas comerciales» en zona inundable (art. 23.2.b), pero no define qué es un «equipamiento básico». Cita ejemplos (hospitales, centros escolares o sanitarios, residencias, centros deportivos cubiertos, parques de bomberos…; y, como servicios públicos esenciales, también centros deportivos descubiertos, depuradoras e instalaciones de Protección Civil). Decidir en cuál encaja cada edificio es una comprobación que hace quien lo conoce.</li>' +
+      '<li><b>Por qué debe completarlo el ayuntamiento.</b> El proyecto de Real Decreto citado arriba pide identificar «edificios públicos, equipamientos básicos y zonas comerciales» en zona inundable (art. 23.2.b), pero no define qué es un «equipamiento básico». Cita ejemplos (hospitales, centros escolares o sanitarios, residencias, centros deportivos cubiertos, parques de bomberos…; y, como servicios públicos esenciales, también centros deportivos descubiertos, depuradoras e instalaciones de Protección Civil). Decidir en cuál encaja cada edificio es una comprobación que hace quien lo conoce.</li>' +
       '<li><b>Dónde se guarda lo que escribas.</b> Solo en este navegador y en este ordenador. Para conservarlo o pasarlo a otro equipo, usa los botones de exportar. Si se borran los datos del navegador, se pierde.</li>' +
-      '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (art. 23.2.b del proyecto) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li></ul></details>';
+      '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (artículo 23.2.b del proyecto de Real Decreto citado arriba) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li></ul></details>';
   }
 
   function fichaArt23HTML() {
@@ -451,7 +467,8 @@
       var v = 0; l.forEach(function (f) { v += (f.properties.viviendas || 0); });
       return { n: l.length, v: v };
     }
-    var h = '<details class="e-expl"><summary>Resumen para el programa municipal de adaptación (art. 23.2 del proyecto de RD, sin aprobar)</summary>' +
+    var h = '<details class="e-expl e-art23d"><summary>Resumen para el programa municipal de adaptación · artículo 23.2 del proyecto de Real Decreto sobre riesgos de inundación (sin aprobar)</summary>' +
+      '<p class="e-sub" style="margin:4px 0 8px;">Los apartados 23.2.b, c y d son los del <b>Proyecto de Real Decreto por el que se adoptan medidas de gestión de los riesgos de inundación</b> (MITECO, 16/07/2026), <a href="https://www.miteco.gob.es/content/dam/miteco/es/agua/participacion-publica/anexos/20260716-proyecto-rd-gestion-riesgo-inundaciones.pdf" target="_blank" rel="noopener">texto oficial</a>. Está sin aprobar.</p>' +
       '<table class="e-art23"><thead><tr><th>Apartado del art. 23.2</th><th>Uso según Catastro</th>' + ESC.map(function (e) { return '<th>' + e[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
     FILAS.forEach(function (fl) {
       h += '<tr><td>' + esc(fl[1]) + '</td><td>' + esc(fl[0]) + '</td>';
@@ -485,7 +502,7 @@
   }
   function conservacionHTML() {
     var filas = cuentaCons();
-    var h = '<p class="e-sub" style="margin:6px 0 2px;"><b>Edificios en T500 según su estado de conservación en Catastro</b> (una fila por uso; son los mismos edificios, no se suman a la tabla anterior):</p>' +
+    var h = '<p class="e-h">Edificios en T500 según su estado de conservación en Catastro</p><p class="e-sub" style="margin:0 0 2px;">Una fila por uso; son los mismos edificios, no se suman a la tabla anterior.</p>' +
       '<table class="e-art23"><thead><tr><th>Uso según Catastro</th><th>Funcionales</th><th>Deficientes («declined»)</th><th>Ruinosos («ruin»)</th><th>Sin dato</th></tr></thead><tbody>';
     filas.forEach(function (c) { h += '<tr><td>' + esc(c.g) + '</td><td class="n">' + c.Funcional + '</td><td class="n">' + c.Deficiente + '</td><td class="n">' + c.Ruinoso + '</td><td class="n">' + c['Sin dato'] + '</td></tr>'; });
     return h + '</tbody></table><p class="e-sub" style="margin:4px 0 6px;">El estado de conservación describe la construcción, no si está en uso. Para separar los edificios en uso de los vacíos o en ruina, el ayuntamiento marca la «Situación actual» en la tarjeta de cada edificio, dentro del bloque verde «Ayuntamiento: qué es este edificio» (sale en el CSV).</p>';
