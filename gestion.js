@@ -581,10 +581,10 @@
 
     html += '<details class="g-ayuda"' + (items.length ? '' : ' open') + '><summary>❓ ¿Para qué sirve esto y para quién?</summary>' +
       '<h5>En una frase</h5>' +
-      '<p>Es una <b>libreta de avisos pegada al mapa</b>: apuntas qué hay que revisar o arreglar, dónde está exactamente y en qué punto va, sin papeles sueltos ni hojas de cálculo.</p>' +
+      '<p>Es un <b>registro de avisos y actuaciones vinculado al mapa</b>: permite anotar qué hay que revisar o arreglar, su localización exacta y su estado de tramitación, de forma centralizada y sin depender de papeles sueltos ni hojas de cálculo.</p>' +
       '<h5>¿Para quién?</h5>' +
-      '<ul><li>Alcaldía, concejales, técnicos y operarios de ayuntamientos pequeños que no tienen (ni pueden pagar) un programa de mapas profesional.</li>' +
-      '<li>Cualquier persona que acompañe a un ayuntamiento rural y necesite llevar un control sencillo de lo pendiente.</li></ul>' +
+      '<ul><li>Alcaldía, concejalías y personal técnico del ayuntamiento, para coordinar el seguimiento de incidencias, inspecciones y actuaciones sobre el territorio municipal.</li>' +
+      '<li>Personal técnico de las áreas de urbanismo, obras y medio ambiente, que puede compartir la copia exportada y mantener un control común de lo pendiente.</li></ul>' +
       '<h5>Un ejemplo</h5>' +
       '<p>Un vecino avisa de que se ha desprendido el margen de un camino. En «Mapa y Ficha técnica» sueltas el muñeco en ese punto y pulsas <b>«Añadir a seguimiento»</b>. Eliges tipo «Camino», prioridad «Alta», quién se encarga («Obras y servicios») y una fecha límite, y escribes una nota. La ficha guarda automáticamente lo que el visor sabe de ese lugar (si es zona inundable, uso del suelo, referencia catastral…). Cuando se arregla, cambias el estado a «Resuelto».</p>' +
       '<h5>Cómo se sigue cada aviso</h5>' +
