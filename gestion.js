@@ -579,7 +579,7 @@
     var html = '<div class="g-wrap"><h2>🛠️ Gestión municipal</h2>' +
       '<div class="g-sub">Seguimiento ligero de incidencias, inspecciones y actuaciones. Los datos se guardan solo en este navegador: exporta una copia de vez en cuando.</div>';
 
-    html += '<details class="g-ayuda"' + (items.length ? '' : ' open') + '><summary>❓ ¿Para qué sirve esto y para quién?</summary>' +
+    html += '<details class="g-ayuda"><summary>❓ ¿Para qué sirve esto y para quién?</summary>' +
       '<h5>En una frase</h5>' +
       '<p>Es un <b>registro de avisos y actuaciones vinculado al mapa</b>: permite anotar qué hay que revisar o arreglar, su localización exacta y su estado de tramitación, de forma centralizada y sin depender de papeles sueltos ni hojas de cálculo.</p>' +
       '<h5>¿Para quién?</h5>' +
