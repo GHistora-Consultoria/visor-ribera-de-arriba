@@ -838,6 +838,26 @@
     });
   }
 
+  /* Leyenda del mapa exportado (cámara 📷): terra_layers.js lee window.GHISTORA_LEYENDA y añade lo que cada módulo dibuja en el mapa. */
+  (window.GHISTORA_LEYENDA = window.GHISTORA_LEYENDA || []).push(function (mapa) {
+    if (!capaMapa || !mapa || !mapa.hasLayer(capaMapa)) return [];
+    var vista = mapa.getBounds(), pend = 0, ver = 0, res = 0, man = 0;
+    capaMapa.eachLayer(function (l) {
+      if (!l.feature) return;
+      var b = l.getBounds ? l.getBounds() : (l.getLatLng ? L.latLngBounds([l.getLatLng(), l.getLatLng()]) : null);
+      if (!b || !vista.intersects(b)) return;
+      var p = l.feature.properties;
+      if (p.manual) man++; else if (verificado(p.ref)) ver++; else pend++;
+      if (resaltados[p.ref]) res++;
+    });
+    var o = [];
+    if (pend) o.push({ nombre: 'Edificio que toca T500, pendiente de verificar', tipo: 'poligono', color: '#ff9f0a' });
+    if (ver) o.push({ nombre: 'Edificio que toca T500, verificado por el ayuntamiento', tipo: 'poligono', color: '#30e36b' });
+    if (man) o.push({ nombre: 'Edificio añadido por el ayuntamiento (no consta en Catastro)', tipo: 'punto', color: '#ff9f0a', borde: '#8a5a00' });
+    if (res) o.push({ nombre: 'Edificio resaltado', tipo: 'contorno', color: '#00e5ff' });
+    return o;
+  });
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { cargarDatos(); });
   else cargarDatos();
 })();
