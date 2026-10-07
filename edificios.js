@@ -10,6 +10,7 @@
 
   var CLAVE = 'ghistora_edificios_ribera_v1';
   var URL_DATOS = 'edificios_inundables.geojson';
+  var FECHA_CATASTRO = '07/10/2026'; // fecha en que se consultó Catastro para generar edificios_inundables.geojson (cambiar al regenerar)
   var MAX_FOTOS = 6;
   var DB_FOTOS = 'ghistora_edificios_fotos';
   var PENDIENTE = 'Pendiente de verificar';
@@ -272,6 +273,7 @@
       h += 'La ficha de Catastro <b>no informa de un uso</b> para este edificio (en los datos de edificios figura como «' + esc(p.uso_inspire) + '»).';
       if (p.cat_aviso) h += '<br><span style="color:var(--text-muted);font-size:12.5px;">' + esc(p.cat_aviso) + '</span>';
     }
+    h += '<br><span style="color:var(--text-muted);font-size:12.5px;">Fuente: Dirección General del Catastro, consultado el ' + FECHA_CATASTRO + '.</span>';
     return h + '</div>';
   }
   function bloqueOsm(p) {

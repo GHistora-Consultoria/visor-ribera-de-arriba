@@ -934,7 +934,7 @@ if (document.readyState === 'complete') {
         `<tr>
             <th>${aliases[i]}</th>
             
-            <td>${handleObject(layer.feature.properties[v])}</td>
+            <td>${v === 'area_m2' && isFinite(parseFloat(layer.feature.properties[v])) ? Math.round(parseFloat(layer.feature.properties[v])).toLocaleString('es-ES') : handleObject(layer.feature.properties[v])}</td>
         </tr>`).join(''))
     +'</table>';
     div.innerHTML=table;
