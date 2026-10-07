@@ -407,6 +407,7 @@
         <div class="dash-caja" data-key="alerta-zfp" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#ffd600;"></span><span class="dash-caja-label">Cruce con la zona de flujo preferente</span><div class="dash-caja-val">3 de 14 sectores</div><div class="dash-caja-sub">SAU Vegalencia 20,3%, Vegalencia 13,5%, Soto de Ribera 0,4% (borde)</div></div>
         <div class="dash-caja" data-key="alerta-suelo-rural" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#8d6e63;"></span><span class="dash-caja-label">Qué dice el proyecto para el suelo rural</span><div class="dash-caja-val">Zona inundable rural</div><div class="dash-caja-sub">Límites en zona de flujo preferente y en el resto de la zona inundable (proyecto, sin aprobar)</div></div>
         <div class="dash-caja" data-key="alerta-reparto" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#26a69a;"></span><span class="dash-caja-label">Dónde está la zona inundable del concejo</span><div class="dash-caja-val">6,6% en los 14 sectores</div><div class="dash-caja-sub">El resto (T500): núcleos rurales 15,6% y suelo no urbanizable 77,3% (sin contar los núcleos)</div></div>
+        <div class="dash-caja" data-key="alerta-edificios" style="cursor:pointer;"><span class="dash-caja-swatch" style="background:#00897b;"></span><span class="dash-caja-label">Edificios en zona inundable (T500)</span><div class="dash-caja-val" id="ed-caja-val">Ver lista</div><div class="dash-caja-sub" id="ed-caja-sub">Edificios de servicios públicos, sin uso asignado o con pista, según Catastro; los completa el ayuntamiento</div></div>
       </div>
       <p class="dash-note">💡 Esta ficha compara la clasificación urbanística ya aprobada por el Principado (RPGUR) con la cartografia mas reciente de inundabilidad (SNCZI) y patrimonio (BIC). Como son dos fuentes que se actualizan en momentos distintos, puede haber sectores ya clasificados como urbanizables que hoy coinciden con una zona de riesgo detectada despues. Esta comprobación cobra más peso con el RD 665/2023, que ya obliga a incorporar esta cartografía al planeamiento en un plazo de 5 años, y con el proyecto de Real Decreto del Ministerio para la Transición Ecológica (consulta pública hasta el 16/09/2026, pendiente de aprobación), que reforzaría esa obligación. Haz clic en cualquier casilla para ver el detalle y la explicación completa.</p>
     </div>
@@ -634,6 +635,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="visor.js"></script>
+<script src="edificios.js"></script>
 <script src="gestion.js"></script>
 </body>
 </html>
