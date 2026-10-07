@@ -139,6 +139,7 @@
     '.e-fotobtn { display:inline-block; padding:7px 12px; border:1px dashed var(--gold); border-radius:6px; cursor:pointer; font-size:13px; color:var(--gold-bright); margin:0 0 8px; }',
     '.e-visor-foto { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:100000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; }',
     '.e-visor-foto img { max-width:96vw; max-height:80vh; border-radius:6px; background:#000; }',
+    '.e-art23 { width:100%; border-collapse:collapse; margin:8px 0; font-size:13px; } .e-art23 th, .e-art23 td { border:1px solid var(--border); padding:6px 8px; text-align:left; vertical-align:top; } .e-art23 th { color:var(--text-muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; } .e-art23 td.n { text-align:right; white-space:nowrap; } .e-art23 small { color:var(--text-muted); display:block; }',
     '.e-guardado { font-size:11.5px; color:#30e36b; margin-left:8px; }'
   ].join('\n');
   document.head.appendChild(st);
@@ -352,6 +353,45 @@
       '<li><b>Dónde se guarda lo que escribas.</b> Solo en este navegador y en este ordenador. Para conservarlo o pasarlo a otro equipo, usa los botones de exportar. Si se borran los datos del navegador, se pierde.</li>' +
       '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (art. 23.2.b del proyecto) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li></ul></details>';
   }
+
+  function resumenArt23HTML() {
+    var ESC = [['T10', 'T10 (frecuente)'], ['T100', 'T100 (media)'], ['T500', 'T500 (baja)'], ['ZFP', 'Flujo preferente']];
+    var FILAS = [
+      ['Servicios públicos', 'b) Edificios públicos y equipamientos'],
+      ['Comercial y oficinas', 'b) Zonas comerciales'],
+      ['Residencial', 'c) Edificaciones residenciales'],
+      ['Industrial', 'd) Zonas industriales'],
+      ['Agrario', 'No figura en el art. 23.2'],
+      ['Sin clasificar', 'Sin uso en los datos de edificios']];
+    function cuenta(grupo, esc) {
+      var l = datos.filter(function (f) { return (f.properties.grupo || 'Sin clasificar') === grupo && f.properties[esc]; });
+      var v = 0; l.forEach(function (f) { v += (f.properties.viviendas || 0); });
+      return { n: l.length, v: v };
+    }
+    var h = '<details class="e-expl" open><summary>Resumen para el programa municipal de adaptación (art. 23.2 del proyecto de RD, sin aprobar)</summary>' +
+      '<table class="e-art23"><thead><tr><th>Apartado del art. 23.2</th><th>Uso según Catastro</th>' + ESC.map(function (e) { return '<th>' + e[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
+    FILAS.forEach(function (fl) {
+      h += '<tr><td>' + esc(fl[1]) + '</td><td>' + esc(fl[0]) + '</td>';
+      ESC.forEach(function (e) {
+        var c = cuenta(fl[0], e[0]);
+        h += '<td class="n">' + c.n + (fl[0] === 'Residencial' && c.n ? '<small>' + num(c.v) + ' viviendas</small>' : '') + '</td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    var res = datos.filter(function (f) { return f.properties.grupo === 'Residencial' && f.properties.T500; });
+    var est = { f: 0, d: 0, r: 0, o: 0 };
+    res.forEach(function (f) {
+      var e = String(f.properties.estado || '');
+      if (e.indexOf('functional') >= 0) est.f++; else if (e.indexOf('declined') >= 0) est.d++; else if (e.indexOf('ruin') >= 0) est.r++; else est.o++;
+    });
+    h += '<p class="e-sub" style="margin:6px 0;"><b>Edificios residenciales en T500 según su estado de conservación en Catastro:</b> ' + est.f + ' funcionales, ' + est.d + ' deficientes («declined»), ' + est.r + ' ruinosos («ruin»)' + (est.o ? ', ' + est.o + ' sin dato' : '') +
+      '. El estado de conservación no dice si el edificio está habitado.</p>' +
+      '<ul><li><b>Cada cifra cuenta edificios cuya huella toca la zona</b>, no edificios afectados. Las viviendas son las que figuran en Catastro dentro de esos edificios.</li>' +
+      '<li><b>Población (art. 23.2.c).</b> Catastro registra viviendas, no personas. El número de habitantes residentes en zona inundable lo completa el ayuntamiento con el padrón municipal.</li>' +
+      '<li><b>Zonas industriales (art. 23.2.d).</b> La fila cuenta edificios con uso industrial en Catastro (muchos son almacenes pequeños). Qué conjuntos constituyen una «zona industrial» y sus riesgos tecnológicos y ambientales lo valora el ayuntamiento.</li></ul></details>';
+    return h;
+  }
   function barraHTML() {
     function op(l, a) { return l.map(function (o) { return '<option' + (o === a ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join(''); }
     return '<div class="e-barra"><select data-filtro="estado">' + op(['Todos', 'Pendientes', 'Verificados'], filtroEstado) + '</select>' +
@@ -388,7 +428,7 @@
       h += '<div class="e-sub">' + (errorDatos ? 'No se pudieron cargar los datos (' + esc(errorDatos) + '). Si abres el visor como archivo local, sírvelo desde un servidor o desde la web publicada.' : 'Cargando datos…') + '</div></div>';
       contenido.innerHTML = h; return;
     }
-    h += explicacionHTML() + '<div class="e-cajas" id="e-resumen">' + resumenHTML() + '</div>' + barraHTML() + '<div id="e-lista"></div></div>';
+    h += explicacionHTML() + resumenArt23HTML() + '<div class="e-cajas" id="e-resumen">' + resumenHTML() + '</div>' + barraHTML() + '<div id="e-lista"></div></div>';
     contenido.innerHTML = h;
     pintarLista();
   }
