@@ -320,7 +320,7 @@
   function bloqueManual(p) {
     var ref = esc(p.ref), x = reg[p.ref] || {}, m = x.manual || {};
     function op(l, a) { return l.map(function (o) { return '<option' + (o === a ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join(''); }
-    return '<div class="e-bloque e-cat" style="background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.55);"><b class="e-tit">No consta en Catastro · añadido por el ayuntamiento' + (m.creado ? ' el ' + esc(fechaES(m.creado)) : '') + '</b>' +
+    return '<div class="e-bloque e-cat" style="background:rgba(233,30,140,.10);border-color:rgba(233,30,140,.55);"><b class="e-tit" style="color:#ff8fcf;">No consta en Catastro · añadido por el ayuntamiento' + (m.creado ? ' el ' + esc(fechaES(m.creado)) : '') + '</b>' +
       'Este edificio no figura en la cartografía del Catastro consultada, por eso no ha entrado en el cruce. La ubicación es la del punto marcado en el mapa. Si es una construcción nueva o sin declarar, puede regularizarse con la declaración de alteraciones catastrales (modelo 900D).' +
       '<div class="e-fila"><div><label>¿En qué zona inundable está?</label><select data-manual="zona" data-ref="' + ref + '">' + op(ZONAS_MANUAL, m.zona || 'Sin comprobar') + '</select></div>' +
       '<div><label>¿En zona de flujo preferente?</label><select data-manual="zfp" data-ref="' + ref + '">' + op(['Sin comprobar', 'Sí', 'No'], m.zfp || 'Sin comprobar') + '</select></div></div>' +
@@ -381,7 +381,7 @@
   }
   function insignias(ref, p) {
     return (verificado(ref) ? '<span class="e-ins e-ins-ok">✔ Verificado por el ayuntamiento</span>' : '<span class="e-ins e-ins-no">⏳ Pendiente de verificar</span>') +
-      (p.manual ? '<span class="e-ins e-ins-cx" style="background:#fff3d6;color:#8a5a00;border-color:#ffb300;">➕ Añadido por el ayuntamiento</span>' : '') +
+      (p.manual ? '<span class="e-ins e-ins-cx" style="background:#fde3f2;color:#8a0f55;border-color:#e91e8c;">➕ Añadido por el ayuntamiento</span>' : '') +
       (p.cat_uso ? '<span class="e-ins e-ins-cx">Catastro: ' + esc(p.cat_uso) + '</span>' : '');
   }
   function tarjeta(f) {
@@ -577,6 +577,7 @@
   function nResaltados() { return Object.keys(resaltados).length; }
   function estiloDe(f, resaltado) {
     var ok = verificado(f.properties.ref), c = ok ? '#30e36b' : '#ff9f0a';
+    if (f.properties.manual) c = '#e91e8c'; // lo añadido por el ayuntamiento (no consta en Catastro) siempre en magenta
     if (resaltado) return { color: COLOR_RESALTE, weight: 5, opacity: 1, fillColor: c, fillOpacity: 0.5 };
     return { color: c, weight: 2, opacity: 0.9, fillColor: c, fillOpacity: 0.3 };
   }
@@ -944,10 +945,18 @@
     var o = [];
     if (pend) o.push({ nombre: 'Edificio que toca T500, pendiente de verificar', tipo: 'poligono', color: '#ff9f0a' });
     if (ver) o.push({ nombre: 'Edificio que toca T500, verificado por el ayuntamiento', tipo: 'poligono', color: '#30e36b' });
-    if (man) o.push({ nombre: 'Edificio añadido por el ayuntamiento (no consta en Catastro)', tipo: 'punto', color: '#ff9f0a', borde: '#8a5a00' });
+    if (man) o.push({ nombre: 'Edificio añadido por el ayuntamiento (no consta en Catastro)', tipo: 'punto', color: '#e91e8c', borde: '#7a0f57' });
     if (res) o.push({ nombre: 'Edificio resaltado', tipo: 'contorno', color: '#00e5ff' });
     return o;
   });
+
+  /* La casilla «Edificios en zona inundable (T500)» del Panel de datos abre la lista directamente (sin ventana intermedia). */
+  document.addEventListener('click', function (e) {
+    var c = e.target && e.target.closest ? e.target.closest('.dash-caja[data-key="alerta-edificios"]') : null;
+    if (!c) return;
+    e.stopPropagation(); e.preventDefault();
+    window.abrirEdificios();
+  }, true);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { cargarDatos(); });
   else cargarDatos();
