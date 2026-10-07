@@ -412,7 +412,7 @@
     return c(n, 'edificios del Catastro que tocan T500') + c(np, 'no son vivienda ni agrarios') + c(ok + ' de ' + datos.length, 'verificados por el ayuntamiento') + (nm ? c(nm, 'añadidos por el ayuntamiento') : '') + c(t10, 'tocan T10 (inundación frecuente)') + c(zf, 'tocan la zona de flujo preferente');
   }
   function explicacionHTML() {
-    return '<details class="e-expl" open><summary>¿Qué es esta lista y cómo leerla?</summary>' +
+    return '<details class="e-expl"><summary>¿Qué es esta lista y cómo leerla?</summary>' +
       '<ul><li><b>Qué incluye.</b> <b>Todos</b> los edificios del Catastro cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio, sea cual sea su uso: servicios públicos, industrial, comercial, vivienda y agrario. Con el filtro «Todos los usos» puedes elegir qué ver. Un edificio que no esté dibujado en la cartografía del Catastro (obra reciente o sin declarar) no puede aparecer aquí. Si el ayuntamiento detecta alguno, el titular puede regularizarlo con la declaración de alteraciones catastrales (modelo 900D, Orden HAC/1293/2018); cuando el Catastro lo incorpore, aparecerá en este cruce al actualizar los datos.</li>' +
       '<li><b>Edificios que Catastro no tiene.</b> Con el botón «➕ Añadir edificio que no está en Catastro» el ayuntamiento marca su ubicación en el mapa y completa su ficha. Figuran aparte en el resumen.</li>' +
       '<li><b>«Toca» no es «está afectado».</b> Quiere decir que una parte de la huella del edificio cae dentro de la zona; el porcentaje indica cuánta. Que un edificio toque la zona no dice nada sobre su vulnerabilidad real.</li>' +
@@ -451,7 +451,7 @@
       var v = 0; l.forEach(function (f) { v += (f.properties.viviendas || 0); });
       return { n: l.length, v: v };
     }
-    var h = '<details class="e-expl" open><summary>Resumen para el programa municipal de adaptación (art. 23.2 del proyecto de RD, sin aprobar)</summary>' +
+    var h = '<details class="e-expl"><summary>Resumen para el programa municipal de adaptación (art. 23.2 del proyecto de RD, sin aprobar)</summary>' +
       '<table class="e-art23"><thead><tr><th>Apartado del art. 23.2</th><th>Uso según Catastro</th>' + ESC.map(function (e) { return '<th>' + e[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
     FILAS.forEach(function (fl) {
       h += '<tr><td>' + esc(fl[1]) + '</td><td>' + esc(fl[0]) + '</td>';
@@ -488,7 +488,7 @@
     var h = '<p class="e-sub" style="margin:6px 0 2px;"><b>Edificios en T500 según su estado de conservación en Catastro</b> (una fila por uso; son los mismos edificios, no se suman a la tabla anterior):</p>' +
       '<table class="e-art23"><thead><tr><th>Uso según Catastro</th><th>Funcionales</th><th>Deficientes («declined»)</th><th>Ruinosos («ruin»)</th><th>Sin dato</th></tr></thead><tbody>';
     filas.forEach(function (c) { h += '<tr><td>' + esc(c.g) + '</td><td class="n">' + c.Funcional + '</td><td class="n">' + c.Deficiente + '</td><td class="n">' + c.Ruinoso + '</td><td class="n">' + c['Sin dato'] + '</td></tr>'; });
-    return h + '</tbody></table><p class="e-sub" style="margin:4px 0 6px;">El estado de conservación describe la construcción, no si está en uso. Para separar los edificios en uso de los vacíos o en ruina, el ayuntamiento marca la «Situación actual» en cada ficha (se puede filtrar y sale en el CSV).</p>';
+    return h + '</tbody></table><p class="e-sub" style="margin:4px 0 6px;">El estado de conservación describe la construcción, no si está en uso. Para separar los edificios en uso de los vacíos o en ruina, el ayuntamiento marca la «Situación actual» en la tarjeta de cada edificio, dentro del bloque verde «Ayuntamiento: qué es este edificio» (sale en el CSV).</p>';
   }
   function barraHTML() {
     function op(l, a) { return l.map(function (o) { return '<option' + (o === a ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join(''); }
