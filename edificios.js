@@ -369,7 +369,7 @@
       '<label>Notas</label><textarea rows="2" maxlength="1000" data-campo="notas" data-ref="' + ref + '" placeholder="Cómo se ha comprobado, qué falta, a quién consultar…">' + esc(x.notas) + '</textarea>' +
       '<details class="e-ods"><summary>Enlace con la Agenda 2030 (opcional)' + (x.ods.length ? ' · ' + x.ods.length + ' marcado(s)' : '') + '</summary>' +
       '<div style="font-size:12.5px;color:var(--text-muted);margin:4px 0;">Marca los Objetivos de Desarrollo Sostenible con los que el ayuntamiento relaciona su actuación sobre este edificio en el programa de adaptación. Es solo una referencia para el informe: no indica que el edificio ni el municipio cumplan la Agenda 2030.</div>' +
-      '<div style="font-size:12.5px;margin:4px 0 6px;">Para consultar la situación de los ODS en los concejos asturianos: <a href="https://app.powerbi.com/view?r=eyJrIjoiMDE2M2QxODUtYjZiZC00ZjgwLTgxOTctZWQ1YzhlZmEwNjkwIiwidCI6ImIwOTViNzZhLTAzZDYtNGM4Yi04N2QwLWUxYTA2ZTc3OTYwYyIsImMiOjl9" target="_blank" rel="noopener">SIS_MLA, Sistema de Información de Sostenibilidad en el Mapa Local Asturiano</a> (Cátedra Concepción Arenal, Universidad de Oviedo). Es un visor público de consulta, independiente de este.</div>' +
+      '<div style="font-size:12.5px;margin:4px 0 6px;"><b>También puede servir de ayuda consultar:</b> <a href="https://app.powerbi.com/view?r=eyJrIjoiMDE2M2QxODUtYjZiZC00ZjgwLTgxOTctZWQ1YzhlZmEwNjkwIiwidCI6ImIwOTViNzZhLTAzZDYtNGM4Yi04N2QwLWUxYTA2ZTc3OTYwYyIsImMiOjl9" target="_blank" rel="noopener">SIS_MLA, Sistema de Información de Sostenibilidad en el Mapa Local Asturiano</a> (Cátedra Concepción Arenal, Universidad de Oviedo), visor público e informativo sobre los ODS en los concejos asturianos.</div>' +
       ODS.map(function (o) { return '<label style="display:flex;gap:6px;align-items:flex-start;font-size:13px;margin:2px 0;"><input type="checkbox" data-ods="' + o[0] + '" data-ref="' + ref + '"' + (x.ods.indexOf(o[0]) >= 0 ? ' checked' : '') + '> <span><b>ODS ' + o[0] + '</b> · ' + esc(o[1]) + '</span></label>'; }).join('') + '</details>' +
       '<div><label>Fotos (' + x.fotos.length + '/' + MAX_FOTOS + ')</label><div class="e-fotos-fila">';
     x.fotos.forEach(function (f) {
@@ -428,14 +428,15 @@
   }
   function explicacionHTML() {
     return '<details class="e-expl e-lista"><summary>¿Qué es esta lista y cómo leerla?</summary>' +
-      '<ul><li><b>Norma a la que se refiere.</b> Las referencias al «artículo 23.2» que aparecen en esta pantalla son las del <b>Proyecto de Real Decreto por el que se adoptan medidas de gestión de los riesgos de inundación</b> (Ministerio para la Transición Ecológica y el Reto Demográfico; información pública del 16/07/2026 al 16/09/2026). Es un <b>proyecto sin aprobar</b>: añade un artículo 23 al Real Decreto 903/2010, de evaluación y gestión de riesgos de inundación, y pediría a los ayuntamientos situados en áreas de riesgo potencial significativo de inundación (ARPSI) un programa municipal de adaptación. Texto del proyecto: <a href="https://www.miteco.gob.es/content/dam/miteco/es/agua/participacion-publica/anexos/20260716-proyecto-rd-gestion-riesgo-inundaciones.pdf" target="_blank" rel="noopener">documento oficial (PDF)</a> · <a href="https://www.miteco.gob.es/es/agua/participacion-publica/pp-rd-medidas-inundacion-jul2026.html" target="_blank" rel="noopener">ficha de información pública</a>. Cuando se apruebe, habrá que contrastar estos textos con el definitivo.</li>' +
+      '<ul><li><b>Norma a la que se refiere.</b> Las referencias al «artículo 23.2» que aparecen en esta pantalla son las del <b>Proyecto de Real Decreto por el que se adoptan medidas de gestión de los riesgos de inundación</b> (Ministerio para la Transición Ecológica y el Reto Demográfico; información pública del 16/07/2026 al 16/09/2026). Es un proyecto y <b>aún no se ha aprobado</b>: añade un artículo 23 al Real Decreto 903/2010, de evaluación y gestión de riesgos de inundación, y pediría a los ayuntamientos situados en áreas de riesgo potencial significativo de inundación (ARPSI) un programa municipal de adaptación. Texto del proyecto: <a href="https://www.miteco.gob.es/content/dam/miteco/es/agua/participacion-publica/anexos/20260716-proyecto-rd-gestion-riesgo-inundaciones.pdf" target="_blank" rel="noopener">documento oficial (PDF)</a> · <a href="https://www.miteco.gob.es/es/agua/participacion-publica/pp-rd-medidas-inundacion-jul2026.html" target="_blank" rel="noopener">ficha de información pública</a>. Cuando se apruebe, habrá que contrastar estos textos con el definitivo.</li>' +
       '<li><b>Qué incluye.</b> <b>Todos</b> los edificios del Catastro cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio, sea cual sea su uso: servicios públicos, industrial, comercial, vivienda y agrario. Con el filtro «Todos los usos» puedes elegir qué ver. Un edificio que no esté dibujado en la cartografía del Catastro (obra reciente o sin declarar) no puede aparecer aquí. Si el ayuntamiento detecta alguno, el titular puede regularizarlo con la declaración de alteraciones catastrales (modelo 900D, Orden HAC/1293/2018); cuando el Catastro lo incorpore, aparecerá en este cruce al actualizar los datos.</li>' +
       '<li><b>Edificios que Catastro no tiene.</b> Con el botón «➕ Añadir edificio que no está en Catastro» el ayuntamiento marca su ubicación en el mapa y completa su ficha. Figuran aparte en el resumen.</li>' +
       '<li><b>«Toca» no es «está afectado».</b> Quiere decir que una parte de la huella del edificio cae dentro de la zona; el porcentaje indica cuánta. Que un edificio toque la zona no dice nada sobre su vulnerabilidad real.</li>' +
       '<li><b>Tres fuentes, tres colores.</b> En azul, lo que dice la ficha de <b>Catastro</b> (oficial). En morado, la <b>pista de OpenStreetMap</b> (no oficial, solo para orientar). En verde, lo que <b>comprueba y escribe el ayuntamiento</b>.</li>' +
       '<li><b>Por qué debe completarlo el ayuntamiento.</b> El proyecto de Real Decreto citado arriba pide identificar «edificios públicos, equipamientos básicos y zonas comerciales» en zona inundable (art. 23.2.b), pero no define qué es un «equipamiento básico». Cita ejemplos (hospitales, centros escolares o sanitarios, residencias, centros deportivos cubiertos, parques de bomberos…; y, como servicios públicos esenciales, también centros deportivos descubiertos, depuradoras e instalaciones de Protección Civil). Decidir en cuál encaja cada edificio es una comprobación que hace quien lo conoce.</li>' +
       '<li><b>Dónde se guarda lo que escribas.</b> Solo en este navegador y en este ordenador. Para conservarlo o pasarlo a otro equipo, usa los botones de exportar. Si se borran los datos del navegador, se pierde.</li>' +
-      '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (artículo 23.2.b del proyecto de Real Decreto citado arriba) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li></ul></details>';
+      '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (artículo 23.2.b del proyecto de Real Decreto citado arriba) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li>' +
+      '<li><b>También puede servir de ayuda consultar:</b> <a href="https://app.powerbi.com/view?r=eyJrIjoiMDE2M2QxODUtYjZiZC00ZjgwLTgxOTctZWQ1YzhlZmEwNjkwIiwidCI6ImIwOTViNzZhLTAzZDYtNGM4Yi04N2QwLWUxYTA2ZTc3OTYwYyIsImMiOjl9" target="_blank" rel="noopener">SIS_MLA, Sistema de Información de Sostenibilidad en el Mapa Local Asturiano</a> (Cátedra Concepción Arenal, Universidad de Oviedo), un visor público e informativo sobre la sostenibilidad y los Objetivos de Desarrollo Sostenible (Agenda 2030) en los concejos asturianos.</li></ul></details>';
   }
 
   function fichaArt23HTML() {
@@ -467,8 +468,8 @@
       var v = 0; l.forEach(function (f) { v += (f.properties.viviendas || 0); });
       return { n: l.length, v: v };
     }
-    var h = '<details class="e-expl e-art23d"><summary>Resumen para el programa municipal de adaptación · artículo 23.2 del proyecto de Real Decreto sobre riesgos de inundación (sin aprobar)</summary>' +
-      '<p class="e-sub" style="margin:4px 0 8px;">Los apartados 23.2.b, c y d son los del <b>Proyecto de Real Decreto por el que se adoptan medidas de gestión de los riesgos de inundación</b> (MITECO, 16/07/2026), <a href="https://www.miteco.gob.es/content/dam/miteco/es/agua/participacion-publica/anexos/20260716-proyecto-rd-gestion-riesgo-inundaciones.pdf" target="_blank" rel="noopener">texto oficial</a>. Está sin aprobar.</p>' +
+    var h = '<details class="e-expl e-art23d"><summary>Resumen para el programa municipal de adaptación · artículo 23.2 del proyecto de Real Decreto sobre riesgos de inundación (aún no se ha aprobado)</summary>' +
+      '<p class="e-sub" style="margin:4px 0 8px;">Los apartados 23.2.b, c y d son los del <b>Proyecto de Real Decreto por el que se adoptan medidas de gestión de los riesgos de inundación</b> (MITECO, 16/07/2026), <a href="https://www.miteco.gob.es/content/dam/miteco/es/agua/participacion-publica/anexos/20260716-proyecto-rd-gestion-riesgo-inundaciones.pdf" target="_blank" rel="noopener">texto oficial</a>. Aún no se ha aprobado.</p>' +
       '<table class="e-art23"><thead><tr><th>Apartado del art. 23.2</th><th>Uso según Catastro</th>' + ESC.map(function (e) { return '<th>' + e[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
     FILAS.forEach(function (fl) {
       h += '<tr><td>' + esc(fl[1]) + '</td><td>' + esc(fl[0]) + '</td>';
@@ -624,9 +625,34 @@
       }
     });
   }
+  var btnVolver = null;
+  function quitarBtnVolver() { if (btnVolver && btnVolver.parentNode) btnVolver.parentNode.removeChild(btnVolver); btnVolver = null; }
+  function ponerBtnVolver(refs) {
+    quitarBtnVolver();
+    btnVolver = document.createElement('button');
+    btnVolver.type = 'button';
+    btnVolver.textContent = refs && refs.length === 1 ? '← Volver a la ficha de este edificio' : '← Volver a la lista de edificios';
+    btnVolver.style.cssText = 'position:fixed;left:16px;bottom:80px;z-index:100000;background:#f3d27a;color:#1a1a1a;border:2px solid #8a5a00;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.5);';
+    btnVolver.addEventListener('click', function () {
+      quitarBtnVolver();
+      var ref = refs && refs.length === 1 ? refs[0] : null;
+      if (ref && datos) {
+        var vis = datos.filter(pasaFiltro), i = vis.map(function (f) { return f.properties.ref; }).indexOf(ref);
+        if (i < 0) { busqueda = ''; filtroEstado = 'Todos'; filtroCons = 'Conservación: todas'; filtroZona = 'Todas'; filtroGrupo = 'Todos los usos'; vis = datos; i = vis.map(function (f) { return f.properties.ref; }).indexOf(ref); }
+        if (i >= mostrados) mostrados = i + 1;
+      }
+      window.abrirEdificios();
+      if (ref) setTimeout(function () {
+        var c = panel && panel.querySelector('.e-item[data-ref="' + ref.replace(/"/g, '') + '"]');
+        if (c && c.scrollIntoView) c.scrollIntoView({ block: 'start' });
+      }, 120);
+    });
+    document.body.appendChild(btnVolver);
+  }
   function irAlMapa(refs) {
     var mapa = getMapa();
     irATab('panel-calle');
+    ponerBtnVolver(refs);
     setTimeout(function () {
       try { mapa.invalidateSize(); } catch (e) {}
       if (!capaMapa) return;
@@ -899,7 +925,7 @@
     panel.addEventListener('input', manejarInput);
     // si se pulsa cualquier pestaña, este panel se oculta (los demás ya hacen su propia gestión de .active)
     document.querySelectorAll('.tab-btn').forEach(function (b) {
-      b.addEventListener('click', function () { panel.classList.remove('active'); }, true);
+      b.addEventListener('click', function () { panel.classList.remove('active'); quitarBtnVolver(); }, true);
     });
   }
 
