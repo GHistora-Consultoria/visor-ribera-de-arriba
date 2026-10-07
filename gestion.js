@@ -878,7 +878,7 @@
     pend.forEach(function (f) { origenes[f.properties.origen] = (origenes[f.properties.origen] || 0) + 1; });
     h += '<div class="g-barra"><select data-accion="sug-origen" title="Origen"><option value="Todas">Todas (' + pend.length + ')</option>' +
       Object.keys(origenes).map(function (o) { return '<option value="' + esc(o) + '"' + (o === sugOrigen ? ' selected' : '') + '>' + esc(o) + ' (' + origenes[o] + ')</option>'; }).join('') +
-      '</select><button data-accion="sug-ocultar">🙈 Quitar marca del mapa</button>';
+      '</select><button data-accion="sug-ver-todas">📍 Ver todas en el mapa</button><button data-accion="sug-ocultar">🙈 Quitar marca del mapa</button>';
     var nDesc = Object.keys(descartadas).length;
     if (nDesc) h += '<button data-accion="sug-restaurar">↩️ Recuperar descartadas (' + nDesc + ')</button>';
     h += '</div>';
@@ -910,8 +910,38 @@
     if (c) c.innerHTML = htmlSug();
   }
 
-  function quitarMarcaSug() { if (sugCapa) sugCapa.clearLayers(); }
+  var sugMulti = false;
+  function quitarMarcaSug() { sugMulti = false; if (sugCapa) sugCapa.clearLayers(); }
+  function verTodasSug() {
+    var mapa = getMapa();
+    if (!mapa || typeof L === 'undefined') return;
+    var lista = sugPendientes().filter(function (f) { return sugOrigen === 'Todas' || f.properties.origen === sugOrigen; });
+    if (!lista.length) { alert('No hay sugerencias por revisar con este filtro.'); return; }
+    if (!sugCapa) sugCapa = L.layerGroup().addTo(mapa);
+    sugCapa.clearLayers();
+    sugMulti = true;
+    var pts = [];
+    lista.forEach(function (f) {
+      var p = f.properties, c = f.geometry.coordinates, id = p.id;
+      var pop = document.createElement('div');
+      pop.innerHTML = '<b>💡 ' + esc(p.titulo) + '</b><br>' + esc(p.origen) + '<br>' + esc(p.motivo) +
+        '<br><button type="button" class="g-pop-add" style="margin-top:8px;padding:5px 10px;cursor:pointer;">➕ Añadir a seguimiento</button>' +
+        ' <button type="button" class="g-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">🙈 Quitar todas</button>';
+      pop.querySelector('.g-pop-add').addEventListener('click', function () { anadirSug(id); });
+      pop.querySelector('.g-pop-q').addEventListener('click', quitarMarcaSug);
+      L.circleMarker([c[1], c[0]], { radius: 9, color: '#7e57c2', weight: 3, dashArray: '5,4', fillColor: '#b39ddb', fillOpacity: 0.45 })
+        .bindPopup(pop, { minWidth: 230, maxWidth: 300, autoPanPadding: [30, 30] }).addTo(sugCapa);
+      pts.push([c[1], c[0]]);
+    });
+    var tab = document.querySelector('.tab-btn[data-panel="panel-calle"]');
+    if (tab) tab.click();
+    setTimeout(function () {
+      mapa.invalidateSize();
+      if (pts.length === 1) mapa.setView(pts[0], 17); else mapa.fitBounds(pts, { maxZoom: 17, padding: [60, 60] });
+    }, 150);
+  }
   function verSug(id) {
+    sugMulti = false;
     var f = sugPorId(id), mapa = getMapa();
     if (!f || !mapa || typeof L === 'undefined') return;
     var c = f.geometry.coordinates, p = f.properties;
@@ -959,11 +989,12 @@
       historial: [{ f: hoyISO(), t: 'Creado desde sugerencia «' + p.origen + '» como «Pendiente»' }]
     });
     items.push(it);
-    guardar(); quitarMarcaSug(); pintarMapa(); render();
+    guardar(); if (!sugMulti) quitarMarcaSug(); pintarMapa(); render();
   }
   function manejarSug(acc, b) {
     var id = b.getAttribute('data-sid');
     if (acc === 'sug-ver') verSug(id);
+    else if (acc === 'sug-ver-todas') verTodasSug();
     else if (acc === 'sug-add') anadirSug(id);
     else if (acc === 'sug-desc') { descartadas[id] = true; guardarDescartes(); actualizarSug(); }
     else if (acc === 'sug-sig') { sugPag++; actualizarSug(); }
@@ -1078,7 +1109,7 @@
     else if (acc === 'ocultar-todos') { visibles = {}; pintarMapa(); render(); }
     else if (acc === 'mostrar-todos') {
       var lista = listaFiltrada();
-      if (!lista.length) return;
+      if (!lista.length) { alert('Todavía no hay seguimientos en la lista. Para ver las sugerencias del visor en el mapa, usa «Ver todas en el mapa» dentro del cuadro «Sugerencias del visor».'); return; }
       lista.forEach(function (i) { visibles[i.id] = true; });
       pintarMapa(); render();
       var tabM = document.querySelector('.tab-btn[data-panel="panel-calle"]');
