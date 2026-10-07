@@ -296,7 +296,7 @@
       h += '<span class="e-foto"><button type="button" class="e-foto-img" data-accion="foto-ver" data-fid="' + esc(f.id) + '" title="Ver ampliada"><img data-fid="' + esc(f.id) + '" alt="Foto del ' + esc(fechaES(f.f)) + '"></button>' +
         '<button type="button" class="e-foto-x" data-accion="foto-del" data-ref="' + ref + '" data-fid="' + esc(f.id) + '" title="Eliminar foto">✖</button></span>';
     });
-    if (x.fotos.length < MAX_FOTOS) h += '<label class="e-fotobtn">📷 Añadir foto<input type="file" accept="image/*" multiple data-accion="foto-add" data-ref="' + ref + '" style="display:none"></label>';
+    if (x.fotos.length < MAX_FOTOS) h += '<button type="button" data-accion="foto-abrir">📷 Añadir foto</button><input type="file" accept="image/*" multiple data-accion="foto-add" data-ref="' + ref + '" style="display:none">';
     return h + '</div></div></div>';
   }
   function insignias(ref, p) {
@@ -309,15 +309,18 @@
       '<h4>' + (p.enlace ? '<a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">' + ref + '</a>' : ref) +
       (p.complejo ? ' · complejo ' + esc(p.complejo) : '') + '<span class="e-ins-lugar" data-ref="' + ref + '">' + insignias(p.ref, p) + '</span></h4>' +
       '<div class="e-chips">' + chips(p) + '</div>' + bloqueCatastro(p) + bloqueOsm(p) + bloqueAyto(p) +
-      '<button type="button" data-accion="mapa" data-ref="' + ref + '">🗺️ Ver en el mapa</button></div>';
+      '<button type="button" class="e-btn-mapa" data-accion="' + (resaltados[p.ref] ? 'mapa-quitar' : 'mapa') + '" data-ref="' + ref + '">' + (resaltados[p.ref] ? '✖ Quitar resalte del mapa' : '🗺️ Ver en el mapa') + '</button>' +
+      (p.complejo ? ' <button type="button" data-accion="mapa-complejo" data-cx="' + esc(p.complejo) + '">🗺️ Resaltar todo el complejo ' + esc(p.complejo) + '</button>' : '') + '</div>';
   }
 
   /* ---------- panel ---------- */
-  var panel, contenido, filtroEstado = 'Todos', filtroZona = 'Todas', busqueda = '';
+  var panel, contenido, filtroEstado = 'Todos', filtroZona = 'Todas', filtroGrupo = 'Todos los usos', busqueda = '', mostrados = 40, PASO = 40;
+  var GRUPOS = ['Todos los usos', 'Servicios públicos', 'Industrial', 'Comercial y oficinas', 'Residencial', 'Agrario', 'Sin clasificar'];
   function pasaFiltro(f) {
     var p = f.properties;
     if (filtroEstado === 'Pendientes' && verificado(p.ref)) return false;
     if (filtroEstado === 'Verificados' && !verificado(p.ref)) return false;
+    if (filtroGrupo !== 'Todos los usos' && (p.grupo || 'Sin clasificar') !== filtroGrupo) return false;
     if (filtroZona === 'T10' && !p.T10) return false;
     if (filtroZona === 'T100' && !p.T100) return false;
     if (filtroZona === 'ZFP' && !p.ZFP) return false;
@@ -335,36 +338,44 @@
     var t10 = datos.filter(function (f) { return f.properties.T10; }).length;
     var zf = datos.filter(function (f) { return f.properties.ZFP; }).length;
     function c(v, t) { return '<div class="e-caja"><b>' + v + '</b><span>' + t + '</span></div>'; }
-    return c(n, 'edificios en la lista') + c(ok + ' de ' + n, 'verificados por el ayuntamiento') + c(cx, 'con uso en la ficha de Catastro') + c(t10, 'tocan T10 (inundación frecuente)') + c(zf, 'tocan la zona de flujo preferente');
+    var np = datos.filter(function (f) { return f.properties.grupo !== 'Residencial' && f.properties.grupo !== 'Agrario'; }).length;
+    return c(n, 'edificios del Catastro que tocan T500') + c(np, 'no son vivienda ni agrarios') + c(ok + ' de ' + n, 'verificados por el ayuntamiento') + c(t10, 'tocan T10 (inundación frecuente)') + c(zf, 'tocan la zona de flujo preferente');
   }
   function explicacionHTML() {
     return '<details class="e-expl" open><summary>¿Qué es esta lista y cómo leerla?</summary>' +
-      '<ul><li><b>Qué incluye.</b> Edificios del Catastro de uso «servicios públicos», sin uso asignado o con una pista de OpenStreetMap, cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio. No incluye todavía los edificios de uso comercial o industrial, ni las viviendas.</li>' +
+      '<ul><li><b>Qué incluye.</b> <b>Todos</b> los edificios del Catastro cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio, sea cual sea su uso: servicios públicos, industrial, comercial, vivienda y agrario. Con el filtro «Todos los usos» puedes elegir qué ver. Un edificio que aún no esté en el Catastro (obra reciente o sin declarar) no aparece aquí, y conviene que el ayuntamiento lo tenga en cuenta.</li>' +
       '<li><b>«Toca» no es «está afectado».</b> Quiere decir que una parte de la huella del edificio cae dentro de la zona; el porcentaje indica cuánta. Que un edificio toque la zona no dice nada sobre su vulnerabilidad real.</li>' +
       '<li><b>Tres fuentes, tres colores.</b> En azul, lo que dice la ficha de <b>Catastro</b> (oficial). En morado, la <b>pista de OpenStreetMap</b> (no oficial, solo para orientar). En verde, lo que <b>comprueba y escribe el ayuntamiento</b>.</li>' +
       '<li><b>Por qué debe completarlo el ayuntamiento.</b> El proyecto de Real Decreto (sin aprobar) pide identificar «edificios públicos, equipamientos básicos y zonas comerciales» en zona inundable (art. 23.2.b), pero no define qué es un «equipamiento básico». Cita ejemplos (hospitales, centros escolares o sanitarios, residencias, centros deportivos cubiertos, parques de bomberos…; y, como servicios públicos esenciales, también centros deportivos descubiertos, depuradoras e instalaciones de Protección Civil). Decidir en cuál encaja cada edificio es una comprobación que hace quien lo conoce.</li>' +
       '<li><b>Dónde se guarda lo que escribas.</b> Solo en este navegador y en este ordenador. Para conservarlo o pasarlo a otro equipo, usa los botones de exportar. Si se borran los datos del navegador, se pierde.</li>' +
-      '<li><b>Aviso.</b> Esto no sustituye al informe de la Confederación Hidrográfica del Cantábrico ni a un análisis de riesgo.</li></ul></details>';
+      '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (art. 23.2.b del proyecto) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li></ul></details>';
   }
   function barraHTML() {
     function op(l, a) { return l.map(function (o) { return '<option' + (o === a ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join(''); }
     return '<div class="e-barra"><select data-filtro="estado">' + op(['Todos', 'Pendientes', 'Verificados'], filtroEstado) + '</select>' +
+      '<select data-filtro="grupo">' + op(GRUPOS, filtroGrupo) + '</select>' +
       '<select data-filtro="zona">' + op(['Todas', 'T10', 'T100', 'ZFP', 'Sin uso en Catastro'], filtroZona) + '</select>' +
       '<input type="search" data-filtro="busca" placeholder="Buscar por referencia, uso, nombre…" value="' + esc(busqueda) + '"></div>' +
       '<div class="e-barra"><button type="button" class="e-primario" data-accion="csv">⬇️ Exportar CSV</button>' +
       '<button type="button" data-accion="geojson">⬇️ Exportar GeoJSON</button>' +
       '<button type="button" data-accion="completa">💾 Copia completa con fotos</button>' +
-      '<label class="e-fotobtn" style="margin:0;">📂 Importar copia<input type="file" accept=".json,application/json" data-accion="importar" style="display:none"></label>' +
-      '<button type="button" data-accion="mapa-todos">🗺️ Ver todos en el mapa</button></div>';
+      '<button type="button" data-accion="importar-abrir">📂 Importar copia</button>' +
+      '<input type="file" id="e-input-import" accept=".json,application/json" data-accion="importar" style="display:none">' +
+      '</div><div class="e-barra"><button type="button" data-accion="mapa-todos">🗺️ Ver todos en el mapa</button>' +
+      '<button type="button" data-accion="mapa-quitar-todo">🧹 Quitar resaltes del mapa</button>' +
+      '<span class="e-sub" id="e-estado-mapa" style="margin:0;"></span></div>';
   }
   function pintarLista() {
     if (!panel) return;
     var cont = document.getElementById('e-lista');
     if (!cont) return pintar();
     var vis = datos.filter(pasaFiltro);
-    cont.innerHTML = vis.length ? vis.map(tarjeta).join('') : '<p class="e-sub">Ningún edificio con estos filtros.</p>';
+    var cortar = vis.slice(0, mostrados);
+    cont.innerHTML = vis.length ? cortar.map(tarjeta).join('') +
+      (vis.length > mostrados ? '<div class="e-barra" style="justify-content:center;"><button type="button" class="e-primario" data-accion="mas">Mostrar ' + Math.min(PASO, vis.length - mostrados) + ' más (' + mostrados + ' de ' + vis.length + ' con estos filtros)</button></div>' : '<p class="e-sub">' + vis.length + ' edificios con estos filtros.</p>')
+      : '<p class="e-sub">Ningún edificio con estos filtros.</p>';
     var rs = document.getElementById('e-resumen'); if (rs) rs.innerHTML = resumenHTML();
-    cargarMiniaturas(); actualizarCaja();
+    cargarMiniaturas(); actualizarCaja(); actualizarBotonesMapa();
   }
   function pintar() {
     if (!panel) return;
@@ -392,17 +403,20 @@
     var ov = document.getElementById('modal-overlay'); if (ov) ov.classList.remove('activo');
     if (!panel) montar();
     mostrarPanel();
-    if (ref) { busqueda = ref; filtroEstado = 'Todos'; filtroZona = 'Todas'; }
+    if (ref) { busqueda = ref; filtroEstado = 'Todos'; filtroZona = 'Todas'; filtroGrupo = 'Todos los usos'; mostrados = PASO; }
     pintar();
     if (!datos) cargarDatos(function () { pintar(); });
   };
 
   /* ---------- mapa ---------- */
-  var capaMapa = null;
+  var capaMapa = null, resaltados = {}, verTodos = false;
+  var COLOR_RESALTE = '#00e5ff';
   function getMapa() { return window.mapaTerraPropio || null; }
-  function estiloDe(f) {
-    var ok = verificado(f.properties.ref);
-    return { color: ok ? '#30e36b' : '#ff9f0a', weight: 3, fillColor: ok ? '#30e36b' : '#ff9f0a', fillOpacity: 0.35 };
+  function nResaltados() { return Object.keys(resaltados).length; }
+  function estiloDe(f, resaltado) {
+    var ok = verificado(f.properties.ref), c = ok ? '#30e36b' : '#ff9f0a';
+    if (resaltado) return { color: COLOR_RESALTE, weight: 5, opacity: 1, fillColor: c, fillOpacity: 0.5 };
+    return { color: c, weight: 2, opacity: 0.9, fillColor: c, fillOpacity: 0.3 };
   }
   function popupDe(f) {
     var p = f.properties, d = document.createElement('div'), x = reg[p.ref] || {};
@@ -411,30 +425,80 @@
       (verificado(p.ref) ? '<br>Ayuntamiento: <b>' + esc(x.tipo) + '</b>' : '<br>⏳ Pendiente de verificar') +
       '<br>' + (p.T10 ? 'Toca T10 · ' : '') + (p.T100 ? 'Toca T100 · ' : '') + 'Toca T500' + (p.ZFP ? ' · Toca flujo preferente' : '') +
       '<br><button type="button" class="e-pop-a" style="margin-top:8px;padding:5px 10px;cursor:pointer;">Abrir ficha</button> ' +
-      '<button type="button" class="e-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">Quitar del mapa</button>';
+      '<button type="button" class="e-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">' + (resaltados[p.ref] ? 'Quitar resalte' : 'Resaltar') + '</button>';
     d.querySelector('.e-pop-a').addEventListener('click', function () { window.abrirEdificios(p.ref); });
-    d.querySelector('.e-pop-q').addEventListener('click', quitarDelMapa);
+    d.querySelector('.e-pop-q').addEventListener('click', function () {
+      if (resaltados[p.ref]) delete resaltados[p.ref]; else resaltados[p.ref] = true;
+      var m = getMapa(); if (m) m.closePopup();
+      pintarCapaMapa(); actualizarBotonesMapa();
+    });
     return d;
   }
-  function quitarDelMapa() { if (capaMapa && getMapa()) { getMapa().removeLayer(capaMapa); } capaMapa = null; }
-  function verEnMapa(ref) {
+  function actualizarBotonesMapa() {
+    if (!panel) return;
+    var bs = panel.querySelectorAll('.e-btn-mapa');
+    for (var k = 0; k < bs.length; k++) {
+      var ref = bs[k].getAttribute('data-ref'), on = !!resaltados[ref];
+      bs[k].setAttribute('data-accion', on ? 'mapa-quitar' : 'mapa');
+      bs[k].textContent = on ? '✖ Quitar resalte del mapa' : '🗺️ Ver en el mapa';
+    }
+    var t = document.getElementById('e-estado-mapa');
+    if (t) t.textContent = nResaltados() ? nResaltados() + ' edificio(s) resaltado(s) en el mapa' + (verTodos ? ' (se muestran todos)' : '') : (verTodos ? 'Se muestran todos en el mapa' : '');
+  }
+  /* Dibuja la capa: los resaltados (borde cian + aro) y, si se pide, todos los demás en suave. Persiste al cerrar el popup. */
+  function pintarCapaMapa() {
     var mapa = getMapa();
-    if (!mapa || typeof L === 'undefined') { alert('El mapa todavía no está listo. Prueba de nuevo en unos segundos.'); return; }
-    if (!datos) return;
-    quitarDelMapa();
-    capaMapa = L.geoJSON({ type: 'FeatureCollection', features: datos }, {
-      style: estiloDe,
-      onEachFeature: function (f, lyr) { lyr.bindPopup(function () { return popupDe(f); }, { minWidth: 220, maxWidth: 300 }); }
-    }).addTo(mapa);
+    if (!mapa || typeof L === 'undefined' || !datos) return;
+    if (capaMapa) { mapa.removeLayer(capaMapa); capaMapa = null; }
+    var feats = datos.filter(function (f) { return verTodos || resaltados[f.properties.ref]; });
+    if (!feats.length) return;
+    capaMapa = L.featureGroup().addTo(mapa);
+    feats.forEach(function (f) {
+      var res = !!resaltados[f.properties.ref];
+      var lyr = L.geoJSON(f, { style: function () { return estiloDe(f, res); } });
+      lyr.eachLayer(function (l) { l.bindPopup(function () { return popupDe(f); }, { minWidth: 220, maxWidth: 300 }); l.feature = f; l.addTo(capaMapa); });
+      if (res) {
+        var c = lyr.getBounds().getCenter(), rad = Math.max(14, 0.75 * Math.sqrt(f.properties.huella_m2 || 100));
+        L.circle(c, { radius: rad, color: COLOR_RESALTE, weight: 3, dashArray: '6 6', fill: false, interactive: false }).addTo(capaMapa);
+      }
+    });
+  }
+  function irAlMapa(refs) {
+    var mapa = getMapa();
     irATab('panel-calle');
     setTimeout(function () {
       try { mapa.invalidateSize(); } catch (e) {}
-      var objetivo = null;
-      if (ref) capaMapa.eachLayer(function (l) { if (l.feature.properties.ref === ref) objetivo = l; });
-      if (objetivo) { mapa.fitBounds(objetivo.getBounds(), { maxZoom: 19, padding: [60, 60] }); objetivo.openPopup(); }
-      else mapa.fitBounds(capaMapa.getBounds(), { maxZoom: 16, padding: [40, 40] });
+      if (!capaMapa) return;
+      var objetivo = null, caja = null;
+      capaMapa.eachLayer(function (l) {
+        if (!l.feature || refs.indexOf(l.feature.properties.ref) < 0) return;
+        objetivo = objetivo || l;
+        caja = caja ? caja.extend(l.getBounds()) : L.latLngBounds(l.getBounds().getSouthWest(), l.getBounds().getNorthEast());
+      });
+      if (caja) mapa.fitBounds(caja, { maxZoom: 19, padding: [60, 60] });
+      if (objetivo && refs.length === 1) objetivo.openPopup();
     }, 250);
   }
+  function mapaListo() {
+    if (!getMapa() || typeof L === 'undefined') { alert('El mapa todavía no está listo. Prueba de nuevo en unos segundos.'); return false; }
+    return !!datos;
+  }
+  function verEnMapa(ref) {
+    if (!mapaListo()) return;
+    resaltados[ref] = true; pintarCapaMapa(); actualizarBotonesMapa(); irAlMapa([ref]);
+  }
+  function resaltarComplejo(cx) {
+    if (!mapaListo()) return;
+    var refs = datos.filter(function (f) { return f.properties.complejo === cx; }).map(function (f) { return f.properties.ref; });
+    refs.forEach(function (r2) { resaltados[r2] = true; });
+    pintarCapaMapa(); actualizarBotonesMapa(); irAlMapa(refs);
+  }
+  function verTodosEnMapa() {
+    if (!mapaListo()) return;
+    verTodos = true; pintarCapaMapa(); actualizarBotonesMapa(); irAlMapa(datos.map(function (f) { return f.properties.ref; }));
+  }
+  function quitarResalte(ref) { delete resaltados[ref]; pintarCapaMapa(); actualizarBotonesMapa(); }
+  function quitarTodoDelMapa() { resaltados = {}; verTodos = false; pintarCapaMapa(); actualizarBotonesMapa(); }
 
   /* ---------- exportar / importar ---------- */
   function descargar(nombre, tipo, contenido) {
@@ -512,8 +576,14 @@
     var b = e.target.closest('[data-accion]'); if (!b) return;
     var acc = b.getAttribute('data-accion'), ref = b.getAttribute('data-ref'), fid = b.getAttribute('data-fid');
     if (acc === 'volver') irATab('panel-demo');
+    else if (acc === 'mas') { mostrados += PASO; pintarLista(); }
     else if (acc === 'mapa') verEnMapa(ref);
-    else if (acc === 'mapa-todos') verEnMapa(null);
+    else if (acc === 'mapa-quitar') quitarResalte(ref);
+    else if (acc === 'mapa-complejo') resaltarComplejo(b.getAttribute('data-cx'));
+    else if (acc === 'mapa-todos') verTodosEnMapa();
+    else if (acc === 'mapa-quitar-todo') quitarTodoDelMapa();
+    else if (acc === 'importar-abrir') { var inp = document.getElementById('e-input-import'); if (inp) inp.click(); }
+    else if (acc === 'foto-abrir') { var fi2 = b.parentNode.querySelector('input[type=file]'); if (fi2) fi2.click(); }
     else if (acc === 'csv') exportarCSV();
     else if (acc === 'geojson') exportarGeoJSON();
     else if (acc === 'completa') exportarCompleto();
@@ -533,13 +603,13 @@
     }
     var rs = document.getElementById('e-resumen'); if (rs) rs.innerHTML = resumenHTML();
     actualizarCaja();
-    if (capaMapa) capaMapa.eachLayer(function (l) { if (l.feature && l.feature.properties.ref === ref) l.setStyle(estiloDe(l.feature)); });
+    if (capaMapa) pintarCapaMapa();
   }
   function manejarChange(e) {
     var t = e.target, fl = t.getAttribute('data-filtro'), campo = t.getAttribute('data-campo'), acc = t.getAttribute('data-accion');
     if (fl) {
-      if (fl === 'estado') filtroEstado = t.value; else if (fl === 'zona') filtroZona = t.value; else busqueda = t.value;
-      pintarLista(); return;
+      if (fl === 'estado') filtroEstado = t.value; else if (fl === 'zona') filtroZona = t.value; else if (fl === 'grupo') filtroGrupo = t.value; else busqueda = t.value;
+      mostrados = PASO; pintarLista(); return;
     }
     if (acc === 'foto-add') { subirFotos(t, t.getAttribute('data-ref')); return; }
     if (acc === 'importar') { importarCopia(t); return; }
@@ -555,7 +625,7 @@
   }
   function manejarInput(e) {
     var t = e.target;
-    if (t.getAttribute('data-filtro') === 'busca') { busqueda = t.value; clearTimeout(manejarInput.tm); manejarInput.tm = setTimeout(pintarLista, 250); }
+    if (t.getAttribute('data-filtro') === 'busca') { busqueda = t.value; mostrados = PASO; clearTimeout(manejarInput.tm); manejarInput.tm = setTimeout(pintarLista, 250); }
   }
 
   function montar() {
