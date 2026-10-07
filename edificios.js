@@ -12,6 +12,8 @@
   var URL_DATOS = 'edificios_inundables.geojson';
   var FECHA_CATASTRO = '07/10/2026'; // fecha en que se consultó Catastro para generar edificios_inundables.geojson (cambiar al regenerar)
   var MAX_FOTOS = 6;
+  var GRUPO_MANUAL = 'Añadido por el ayuntamiento';
+  var ZONAS_MANUAL = ['Sin comprobar', 'T10 (inundación frecuente)', 'T100', 'T500', 'Fuera de las zonas inundables'];
   var DB_FOTOS = 'ghistora_edificios_fotos';
   var PENDIENTE = 'Pendiente de verificar';
   var TIPOS = [PENDIENTE,
@@ -64,7 +66,24 @@
   function verificado(ref) { var x = reg[ref]; return !!(x && x.tipo && x.tipo !== PENDIENTE); }
 
   /* ---------- datos ---------- */
-  var datos = null, cargando = false, errorDatos = '', esperando = [];
+  var datos = null, datosCat = null, cargando = false, errorDatos = '', esperando = [];
+  function featuresManuales() {
+    var out = [];
+    Object.keys(reg).forEach(function (id) {
+      var x = reg[id];
+      if (!x || !x.manual || typeof x.manual.lat !== 'number' || typeof x.manual.lon !== 'number') return;
+      var m = x.manual, z = m.zona || 'Sin comprobar';
+      var t10 = z.indexOf('T10 ') === 0, t100 = t10 || z === 'T100', t500 = t100 || z === 'T500';
+      out.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [m.lon, m.lat] }, properties: {
+        ref: id, manual: true, grupo: GRUPO_MANUAL, uso_inspire: '', estado: 'sin dato', huella_m2: parseFloat(m.sup) || 0,
+        viviendas: parseInt(m.viv, 10) || 0, T10: t10, T100: t100, T500: t500, ZFP: m.zfp === 'Sí', pct_T500: null,
+        zona_manual: z, zfp_manual: m.zfp || 'Sin comprobar', motivo: m.motivo || '', creado: m.creado || '',
+        complejo: '', suelo: '', osm_cat: '', osm_nombre: '', cat_uso: '', cat_destino: '', cat_sup_m2: '', cat_anio: '', cat_dir: '', cat_n_inmuebles: 0, cat_aviso: '', enlace: '' } });
+    });
+    out.sort(function (a, b) { return a.properties.ref < b.properties.ref ? 1 : -1; });
+    return out;
+  }
+  function reconstruirDatos() { if (datosCat) datos = featuresManuales().concat(datosCat); }
   function cargarDatos(cb) {
     if (datos) return cb && cb();
     if (cb) esperando.push(cb);
@@ -74,10 +93,11 @@
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return resp.json();
     }).then(function (j) {
-      datos = (j.features || []).slice().sort(function (a, b) {
+      datosCat = (j.features || []).slice().sort(function (a, b) {
         var ca = a.properties.complejo || 'ZZ', cb2 = b.properties.complejo || 'ZZ';
         return ca < cb2 ? -1 : ca > cb2 ? 1 : (b.properties.huella_m2 - a.properties.huella_m2);
       });
+      reconstruirDatos();
       cargando = false; actualizarCaja();
       var l = esperando; esperando = []; l.forEach(function (f) { f(); });
     }).catch(function (e) {
@@ -89,9 +109,9 @@
   function actualizarCaja() {
     var v = document.getElementById('ed-caja-val'), s = document.getElementById('ed-caja-sub');
     if (!v || !datos) return;
-    var n = datos.length, ok = datos.filter(function (f) { return verificado(f.properties.ref); }).length;
+    var n = datosCat.length, nm = datos.length - n, ok = datos.filter(function (f) { return verificado(f.properties.ref); }).length;
     v.textContent = n + ' edificios';
-    s.textContent = 'tocan la zona inundable T500; ' + ok + ' verificados por el ayuntamiento (en este navegador)';
+    s.textContent = 'del Catastro tocan la zona inundable T500; ' + ok + ' verificados por el ayuntamiento' + (nm ? '; ' + nm + ' añadidos por el ayuntamiento' : '') + ' (en este navegador)';
   }
 
   /* ---------- estilos ---------- */
@@ -251,6 +271,16 @@
   }
   function chips(p) {
     var h = '';
+    if (p.manual) {
+      if (p.T10) h += '<span class="e-chip e-t10">En T10 (frecuente)</span>';
+      if (p.T100 && !p.T10) h += '<span class="e-chip e-t100">En T100</span>';
+      if (p.T500 && !p.T100) h += '<span class="e-chip e-t500">En T500</span>';
+      if (!p.T500) h += '<span class="e-chip">Zona inundable: ' + (p.zona_manual === 'Sin comprobar' ? 'sin comprobar' : 'fuera de las zonas') + '</span>';
+      if (p.ZFP) h += '<span class="e-chip e-zfp">En zona de flujo preferente</span>';
+      if (p.huella_m2) h += '<span class="e-chip">Superficie aprox.: ' + num(p.huella_m2, 0) + ' m²</span>';
+      if (p.viviendas) h += '<span class="e-chip">Viviendas: ' + num(p.viviendas) + '</span>';
+      return h;
+    }
     if (p.T10) h += '<span class="e-chip e-t10">Toca T10 (frecuente)</span>';
     if (p.T100) h += '<span class="e-chip e-t100">Toca T100</span>';
     h += '<span class="e-chip e-t500">Toca T500' + (p.pct_T500 != null ? ' · ' + num(p.pct_T500, 0) + ' % de la huella' : '') + '</span>';
@@ -260,7 +290,20 @@
     h += '<span class="e-chip" title="Estado de conservación según Catastro (INSPIRE), no si está ocupado">Estado: ' + esc(p.estado) + '</span>';
     return h;
   }
+  function bloqueManual(p) {
+    var ref = esc(p.ref), x = reg[p.ref] || {}, m = x.manual || {};
+    function op(l, a) { return l.map(function (o) { return '<option' + (o === a ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join(''); }
+    return '<div class="e-bloque e-cat" style="background:rgba(255,193,7,.10);border-color:rgba(255,193,7,.55);"><b class="e-tit">No consta en Catastro · añadido por el ayuntamiento' + (m.creado ? ' el ' + esc(fechaES(m.creado)) : '') + '</b>' +
+      'Este edificio no figura en la cartografía del Catastro consultada, por eso no ha entrado en el cruce. La ubicación es la del punto marcado en el mapa. Si es una construcción nueva o sin declarar, puede regularizarse con la declaración de alteraciones catastrales (modelo 900D).' +
+      '<div class="e-fila"><div><label>¿En qué zona inundable está?</label><select data-manual="zona" data-ref="' + ref + '">' + op(ZONAS_MANUAL, m.zona || 'Sin comprobar') + '</select></div>' +
+      '<div><label>¿En zona de flujo preferente?</label><select data-manual="zfp" data-ref="' + ref + '">' + op(['Sin comprobar', 'Sí', 'No'], m.zfp || 'Sin comprobar') + '</select></div></div>' +
+      '<div class="e-fila"><div><label>Superficie aproximada (m²)</label><input type="text" inputmode="decimal" maxlength="9" data-manual="sup" data-ref="' + ref + '" value="' + esc(m.sup || '') + '"></div>' +
+      '<div><label>Viviendas (si es residencial)</label><input type="text" inputmode="numeric" maxlength="4" data-manual="viv" data-ref="' + ref + '" value="' + esc(m.viv || '') + '"></div></div>' +
+      '<label>Motivo por el que se añade</label><select data-manual="motivo" data-ref="' + ref + '">' + op(['', 'No aparece en el Catastro', 'Aparece en el Catastro con otro uso o referencia', 'Otro (explicar en las notas)'], m.motivo || '') + '</select>' +
+      '<div style="margin-top:8px;"><button type="button" data-accion="manual-del" data-ref="' + ref + '">🗑 Eliminar este edificio añadido</button></div></div>';
+  }
   function bloqueCatastro(p) {
+    if (p.manual) return bloqueManual(p);
     var h = '<div class="e-bloque e-cat"><b class="e-tit">Catastro (fuente oficial)</b>';
     if (p.cat_uso) {
       h += 'Uso principal: <b>' + esc(p.cat_uso) + '</b>';
@@ -278,6 +321,7 @@
     return h + '</div>';
   }
   function bloqueOsm(p) {
+    if (p.manual) return '';
     if (!p.osm_cat && !p.osm_nombre) return '';
     var o = osmTexto(p);
     return '<div class="e-bloque e-osm"><b class="e-tit">Pista de OpenStreetMap (no oficial)</b>' +
@@ -304,12 +348,13 @@
   }
   function insignias(ref, p) {
     return (verificado(ref) ? '<span class="e-ins e-ins-ok">✔ Verificado por el ayuntamiento</span>' : '<span class="e-ins e-ins-no">⏳ Pendiente de verificar</span>') +
+      (p.manual ? '<span class="e-ins e-ins-cx" style="background:#fff3d6;color:#8a5a00;border-color:#ffb300;">➕ Añadido por el ayuntamiento</span>' : '') +
       (p.cat_uso ? '<span class="e-ins e-ins-cx">Catastro: ' + esc(p.cat_uso) + '</span>' : '');
   }
   function tarjeta(f) {
     var p = f.properties, ref = esc(p.ref);
     return '<div class="e-item' + (verificado(p.ref) ? ' e-ok' : '') + '" data-ref="' + ref + '">' +
-      '<h4>' + (p.enlace ? '<a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">' + ref + '</a>' : ref) +
+      '<h4>' + (p.manual ? ref : (p.enlace ? '<a href="' + esc(p.enlace) + '" target="_blank" rel="noopener">' + ref + '</a>' : ref)) +
       (p.complejo ? ' · complejo ' + esc(p.complejo) : '') + '<span class="e-ins-lugar" data-ref="' + ref + '">' + insignias(p.ref, p) + '</span></h4>' +
       '<div class="e-chips">' + chips(p) + '</div>' + bloqueCatastro(p) + bloqueOsm(p) + bloqueAyto(p) +
       '<button type="button" class="e-btn-mapa" data-accion="' + (resaltados[p.ref] ? 'mapa-quitar' : 'mapa') + '" data-ref="' + ref + '">' + (resaltados[p.ref] ? '✖ Quitar resalte del mapa' : '🗺️ Ver en el mapa') + '</button>' +
@@ -318,7 +363,7 @@
 
   /* ---------- panel ---------- */
   var panel, contenido, filtroEstado = 'Todos', filtroZona = 'Todas', filtroGrupo = 'Todos los usos', busqueda = '', mostrados = 40, PASO = 40;
-  var GRUPOS = ['Todos los usos', 'Servicios públicos', 'Industrial', 'Comercial y oficinas', 'Residencial', 'Agrario', 'Sin clasificar'];
+  var GRUPOS = ['Todos los usos', 'Servicios públicos', 'Industrial', 'Comercial y oficinas', 'Residencial', 'Agrario', 'Sin clasificar', GRUPO_MANUAL];
   function pasaFiltro(f) {
     var p = f.properties;
     if (filtroEstado === 'Pendientes' && verificado(p.ref)) return false;
@@ -327,7 +372,7 @@
     if (filtroZona === 'T10' && !p.T10) return false;
     if (filtroZona === 'T100' && !p.T100) return false;
     if (filtroZona === 'ZFP' && !p.ZFP) return false;
-    if (filtroZona === 'Sin uso en Catastro' && p.cat_uso) return false;
+    if (filtroZona === 'Sin uso en Catastro' && (p.cat_uso || p.manual)) return false;
     if (busqueda) {
       var x = reg[p.ref] || {};
       var t = [p.ref, p.complejo, p.cat_uso, p.cat_destino, p.cat_dir, p.osm_cat, p.osm_nombre, x.tipo, x.detalle, x.notas].join(' ').toLowerCase();
@@ -336,17 +381,18 @@
     return true;
   }
   function resumenHTML() {
-    var n = datos.length, ok = datos.filter(function (f) { return verificado(f.properties.ref); }).length;
+    var n = datosCat.length, nm = datos.length - n, ok = datos.filter(function (f) { return verificado(f.properties.ref); }).length;
     var cx = datos.filter(function (f) { return f.properties.cat_uso; }).length;
     var t10 = datos.filter(function (f) { return f.properties.T10; }).length;
     var zf = datos.filter(function (f) { return f.properties.ZFP; }).length;
     function c(v, t) { return '<div class="e-caja"><b>' + v + '</b><span>' + t + '</span></div>'; }
-    var np = datos.filter(function (f) { return f.properties.grupo !== 'Residencial' && f.properties.grupo !== 'Agrario'; }).length;
-    return c(n, 'edificios del Catastro que tocan T500') + c(np, 'no son vivienda ni agrarios') + c(ok + ' de ' + n, 'verificados por el ayuntamiento') + c(t10, 'tocan T10 (inundación frecuente)') + c(zf, 'tocan la zona de flujo preferente');
+    var np = datosCat.filter(function (f) { return f.properties.grupo !== 'Residencial' && f.properties.grupo !== 'Agrario'; }).length;
+    return c(n, 'edificios del Catastro que tocan T500') + c(np, 'no son vivienda ni agrarios') + c(ok + ' de ' + datos.length, 'verificados por el ayuntamiento') + (nm ? c(nm, 'añadidos por el ayuntamiento') : '') + c(t10, 'tocan T10 (inundación frecuente)') + c(zf, 'tocan la zona de flujo preferente');
   }
   function explicacionHTML() {
     return '<details class="e-expl" open><summary>¿Qué es esta lista y cómo leerla?</summary>' +
       '<ul><li><b>Qué incluye.</b> <b>Todos</b> los edificios del Catastro cuya huella toca la zona inundable de baja probabilidad (T500) del Ministerio, sea cual sea su uso: servicios públicos, industrial, comercial, vivienda y agrario. Con el filtro «Todos los usos» puedes elegir qué ver. Un edificio que no esté dibujado en la cartografía del Catastro (obra reciente o sin declarar) no puede aparecer aquí. Si el ayuntamiento detecta alguno, el titular puede regularizarlo con la declaración de alteraciones catastrales (modelo 900D, Orden HAC/1293/2018); cuando el Catastro lo incorpore, aparecerá en este cruce al actualizar los datos.</li>' +
+      '<li><b>Edificios que Catastro no tiene.</b> Con el botón «➕ Añadir edificio que no está en Catastro» el ayuntamiento marca su ubicación en el mapa y completa su ficha. Figuran aparte en el resumen.</li>' +
       '<li><b>«Toca» no es «está afectado».</b> Quiere decir que una parte de la huella del edificio cae dentro de la zona; el porcentaje indica cuánta. Que un edificio toque la zona no dice nada sobre su vulnerabilidad real.</li>' +
       '<li><b>Tres fuentes, tres colores.</b> En azul, lo que dice la ficha de <b>Catastro</b> (oficial). En morado, la <b>pista de OpenStreetMap</b> (no oficial, solo para orientar). En verde, lo que <b>comprueba y escribe el ayuntamiento</b>.</li>' +
       '<li><b>Por qué debe completarlo el ayuntamiento.</b> El proyecto de Real Decreto (sin aprobar) pide identificar «edificios públicos, equipamientos básicos y zonas comerciales» en zona inundable (art. 23.2.b), pero no define qué es un «equipamiento básico». Cita ejemplos (hospitales, centros escolares o sanitarios, residencias, centros deportivos cubiertos, parques de bomberos…; y, como servicios públicos esenciales, también centros deportivos descubiertos, depuradoras e instalaciones de Protección Civil). Decidir en cuál encaja cada edificio es una comprobación que hace quien lo conoce.</li>' +
@@ -354,6 +400,20 @@
       '<li><b>Para qué sirve.</b> Es una base de trabajo para ordenar el programa municipal de adaptación (art. 23.2.b del proyecto) y para llegar con los datos preparados a la consulta con la Confederación Hidrográfica del Cantábrico, organismo competente en zonas inundables.</li></ul></details>';
   }
 
+  function fichaArt23HTML() {
+    var a = reg.__art23 || {};
+    function inp(k, l, ph) { return '<div><label>' + l + '</label><input type="text" inputmode="numeric" maxlength="8" data-art23="' + k + '" value="' + esc(a[k] || '') + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '></div>'; }
+    return '<div class="e-bloque e-ayto"><b class="e-tit">Ayuntamiento: datos que completa con sus propios registros (art. 23.2.c y 23.2.d)</b>' +
+      'Los datos de población los aporta el ayuntamiento con el padrón municipal. Este visor no los trae ni los consulta.' +
+      '<label>Población residente en cada zona (habitantes)</label><div class="e-fila" style="grid-template-columns:repeat(4,1fr);">' +
+      inp('pob_T10', 'En T10') + inp('pob_T100', 'En T100') + inp('pob_T500', 'En T500') + inp('pob_ZFP', 'En flujo preferente') + '</div>' +
+      '<div class="e-fila"><div><label>Fecha del padrón utilizado</label><input type="date" data-art23="pob_fecha" value="' + esc(a.pob_fecha || '') + '"></div>' +
+      '<div><label>Lo confirma (nombre o servicio)</label><input type="text" maxlength="80" data-art23="pob_por" value="' + esc(a.pob_por || '') + '"></div></div>' +
+      '<label>Tipología y características de las edificaciones residenciales (23.2.c)</label><textarea rows="2" maxlength="1500" data-art23="tipologia">' + esc(a.tipologia || '') + '</textarea>' +
+      '<label>Zonas industriales identificadas, tipologías y riesgos tecnológicos y ambientales asociados (23.2.d)</label><textarea rows="3" maxlength="2000" data-art23="industrial">' + esc(a.industrial || '') + '</textarea>' +
+      '<label>Notas</label><textarea rows="2" maxlength="1500" data-art23="notas">' + esc(a.notas || '') + '</textarea>' +
+      '<div style="margin-top:8px;"><button type="button" data-accion="art23-csv">⬇️ Exportar resumen y datos (CSV)</button></div></div>';
+  }
   function resumenArt23HTML() {
     var ESC = [['T10', 'T10 (frecuente)'], ['T100', 'T100 (media)'], ['T500', 'T500 (baja)'], ['ZFP', 'Flujo preferente']];
     var FILAS = [
@@ -362,7 +422,8 @@
       ['Residencial', 'c) Edificaciones residenciales'],
       ['Industrial', 'd) Zonas industriales'],
       ['Agrario', 'No figura en el art. 23.2'],
-      ['Sin clasificar', 'Sin uso en los datos de edificios']];
+      ['Sin clasificar', 'Sin uso en los datos de edificios'],
+      [GRUPO_MANUAL, 'Añadidos por el ayuntamiento (no constan en Catastro)']];
     function cuenta(grupo, esc) {
       var l = datos.filter(function (f) { return (f.properties.grupo || 'Sin clasificar') === grupo && f.properties[esc]; });
       var v = 0; l.forEach(function (f) { v += (f.properties.viviendas || 0); });
@@ -374,7 +435,7 @@
       h += '<tr><td>' + esc(fl[1]) + '</td><td>' + esc(fl[0]) + '</td>';
       ESC.forEach(function (e) {
         var c = cuenta(fl[0], e[0]);
-        h += '<td class="n">' + c.n + (fl[0] === 'Residencial' && c.n ? '<small>' + num(c.v) + ' viviendas</small>' : '') + '</td>';
+        h += '<td class="n">' + c.n + (c.v > 0 ? '<small>' + num(c.v) + ' viviendas</small>' : '') + '</td>';
       });
       h += '</tr>';
     });
@@ -389,7 +450,8 @@
       '. El estado de conservación no dice si el edificio está habitado.</p>' +
       '<ul><li><b>Cada cifra cuenta edificios cuya huella toca la zona</b>, no edificios afectados. Las viviendas son las que figuran en Catastro dentro de esos edificios.</li>' +
       '<li><b>Población (art. 23.2.c).</b> Catastro registra viviendas, no personas. El número de habitantes residentes en zona inundable lo completa el ayuntamiento con el padrón municipal.</li>' +
-      '<li><b>Zonas industriales (art. 23.2.d).</b> La fila cuenta edificios con uso industrial en Catastro (muchos son almacenes pequeños). Qué conjuntos constituyen una «zona industrial» y sus riesgos tecnológicos y ambientales lo valora el ayuntamiento.</li></ul></details>';
+      '<li><b>Cada fila cuenta cada zona por separado.</b> Un edificio en T10 también está en T100 y en T500, así que no se pueden sumar las columnas.</li>' +
+      '<li><b>Zonas industriales (art. 23.2.d).</b> La fila cuenta edificios con uso industrial en Catastro (muchos son almacenes pequeños). Qué conjuntos constituyen una «zona industrial» y sus riesgos tecnológicos y ambientales lo valora el ayuntamiento.</li></ul>' + fichaArt23HTML() + '</details>';
     return h;
   }
   function barraHTML() {
@@ -398,6 +460,7 @@
       '<select data-filtro="grupo">' + op(GRUPOS, filtroGrupo) + '</select>' +
       '<select data-filtro="zona">' + op(['Todas', 'T10', 'T100', 'ZFP', 'Sin uso en Catastro'], filtroZona) + '</select>' +
       '<input type="search" data-filtro="busca" placeholder="Buscar por referencia, uso, nombre…" value="' + esc(busqueda) + '"></div>' +
+      '<div class="e-barra"><button type="button" class="e-primario" data-accion="anadir">➕ Añadir edificio que no está en Catastro</button></div>' +
       '<div class="e-barra"><button type="button" class="e-primario" data-accion="csv">⬇️ Exportar CSV</button>' +
       '<button type="button" data-accion="geojson">⬇️ Exportar GeoJSON</button>' +
       '<button type="button" data-accion="completa">💾 Copia completa con fotos</button>' +
@@ -417,6 +480,8 @@
       (vis.length > mostrados ? '<div class="e-barra" style="justify-content:center;"><button type="button" class="e-primario" data-accion="mas">Mostrar ' + Math.min(PASO, vis.length - mostrados) + ' más (' + mostrados + ' de ' + vis.length + ' con estos filtros)</button></div>' : '<p class="e-sub">' + vis.length + ' edificios con estos filtros.</p>')
       : '<p class="e-sub">Ningún edificio con estos filtros.</p>';
     var rs = document.getElementById('e-resumen'); if (rs) rs.innerHTML = resumenHTML();
+    var a23 = document.getElementById('e-art23');
+    if (a23) { var d0 = a23.querySelector('details'), ab = d0 ? d0.open : true; a23.innerHTML = resumenArt23HTML(); var d1 = a23.querySelector('details'); if (d1 && !ab) d1.open = false; }
     cargarMiniaturas(); actualizarCaja(); actualizarBotonesMapa();
   }
   function pintar() {
@@ -428,7 +493,7 @@
       h += '<div class="e-sub">' + (errorDatos ? 'No se pudieron cargar los datos (' + esc(errorDatos) + '). Si abres el visor como archivo local, sírvelo desde un servidor o desde la web publicada.' : 'Cargando datos…') + '</div></div>';
       contenido.innerHTML = h; return;
     }
-    h += explicacionHTML() + resumenArt23HTML() + '<div class="e-cajas" id="e-resumen">' + resumenHTML() + '</div>' + barraHTML() + '<div id="e-lista"></div></div>';
+    h += explicacionHTML() + '<div id="e-art23">' + resumenArt23HTML() + '</div><div class="e-cajas" id="e-resumen">' + resumenHTML() + '</div>' + barraHTML() + '<div id="e-lista"></div></div>';
     contenido.innerHTML = h;
     pintarLista();
   }
@@ -463,9 +528,9 @@
   function popupDe(f) {
     var p = f.properties, d = document.createElement('div'), x = reg[p.ref] || {};
     d.innerHTML = '<b>' + esc(p.ref) + '</b>' + (p.complejo ? ' · complejo ' + esc(p.complejo) : '') +
-      '<br>Catastro: ' + esc(p.cat_uso || 'sin uso en la ficha') +
+      (p.manual ? '<br>Añadido por el ayuntamiento (no consta en Catastro)' : '<br>Catastro: ' + esc(p.cat_uso || 'sin uso en la ficha')) +
       (verificado(p.ref) ? '<br>Ayuntamiento: <b>' + esc(x.tipo) + '</b>' : '<br>⏳ Pendiente de verificar') +
-      '<br>' + (p.T10 ? 'Toca T10 · ' : '') + (p.T100 ? 'Toca T100 · ' : '') + 'Toca T500' + (p.ZFP ? ' · Toca flujo preferente' : '') +
+      '<br>' + (p.manual ? (p.T500 ? 'Zona: ' + esc(p.zona_manual) : 'Zona inundable: ' + (p.zona_manual === 'Sin comprobar' ? 'sin comprobar' : 'fuera de las zonas')) : (p.T10 ? 'Toca T10 · ' : '') + (p.T100 ? 'Toca T100 · ' : '') + 'Toca T500') + (p.ZFP ? ' · Flujo preferente' : '') +
       '<br><button type="button" class="e-pop-a" style="margin-top:8px;padding:5px 10px;cursor:pointer;">Abrir ficha</button> ' +
       '<button type="button" class="e-pop-q" style="margin-top:8px;padding:5px 10px;cursor:pointer;">' + (resaltados[p.ref] ? 'Quitar resalte' : 'Resaltar') + '</button>';
     d.querySelector('.e-pop-a').addEventListener('click', function () { window.abrirEdificios(p.ref); });
@@ -497,7 +562,7 @@
     capaMapa = L.featureGroup().addTo(mapa);
     feats.forEach(function (f) {
       var res = !!resaltados[f.properties.ref];
-      var lyr = L.geoJSON(f, { style: function () { return estiloDe(f, res); } });
+      var lyr = L.geoJSON(f, { style: function () { return estiloDe(f, res); }, pointToLayer: function (ft, ll) { return L.circleMarker(ll, { radius: res ? 11 : 8 }); } });
       lyr.eachLayer(function (l) { l.bindPopup(function () { return popupDe(f); }, { minWidth: 220, maxWidth: 300 }); l.feature = f; l.addTo(capaMapa); });
       if (res) {
         var c = lyr.getBounds().getCenter(), rad = Math.max(14, 0.75 * Math.sqrt(f.properties.huella_m2 || 100));
@@ -515,7 +580,8 @@
       capaMapa.eachLayer(function (l) {
         if (!l.feature || refs.indexOf(l.feature.properties.ref) < 0) return;
         objetivo = objetivo || l;
-        caja = caja ? caja.extend(l.getBounds()) : L.latLngBounds(l.getBounds().getSouthWest(), l.getBounds().getNorthEast());
+        var bb = l.getBounds ? l.getBounds() : L.latLngBounds([l.getLatLng(), l.getLatLng()]);
+        caja = caja ? caja.extend(bb) : L.latLngBounds(bb.getSouthWest(), bb.getNorthEast());
       });
       if (caja) mapa.fitBounds(caja, { maxZoom: 19, padding: [60, 60] });
       if (objetivo && refs.length === 1) objetivo.openPopup();
@@ -542,6 +608,55 @@
   function quitarResalte(ref) { delete resaltados[ref]; pintarCapaMapa(); actualizarBotonesMapa(); }
   function quitarTodoDelMapa() { resaltados = {}; verTodos = false; pintarCapaMapa(); actualizarBotonesMapa(); }
 
+  /* ---------- añadir edificio que no está en Catastro ---------- */
+  var modoAnadir = null;
+  function siguienteIdManual() {
+    var max = 0;
+    Object.keys(reg).forEach(function (k) { var m = /^MANUAL-(\d+)$/.exec(k); if (m) max = Math.max(max, parseInt(m[1], 10)); });
+    var n = String(max + 1); while (n.length < 3) n = '0' + n;
+    return 'MANUAL-' + n;
+  }
+  function cancelarAnadir() {
+    if (!modoAnadir) return;
+    var mapa = getMapa();
+    if (mapa) { mapa.off('click', modoAnadir.click); try { mapa.getContainer().style.cursor = ''; } catch (e) {} }
+    document.removeEventListener('keydown', modoAnadir.tecla);
+    if (modoAnadir.banner && modoAnadir.banner.parentNode) modoAnadir.banner.parentNode.removeChild(modoAnadir.banner);
+    modoAnadir = null;
+  }
+  function crearManual(lat, lon) {
+    var id = siguienteIdManual();
+    reg[id] = { tipo: '', detalle: '', por: '', fecha: '', notas: '', fotos: [], manual: { lat: Math.round(lat * 1e6) / 1e6, lon: Math.round(lon * 1e6) / 1e6, zona: 'Sin comprobar', zfp: 'Sin comprobar', sup: '', viv: '', motivo: '', creado: hoyISO() } };
+    guardar(); reconstruirDatos(); resaltados[id] = true;
+    pintarCapaMapa(); actualizarBotonesMapa(); actualizarCaja();
+    window.abrirEdificios(id);
+  }
+  function iniciarAnadir() {
+    if (!getMapa() || typeof L === 'undefined') { alert('El mapa todavía no está listo. Prueba de nuevo en unos segundos.'); return; }
+    if (!datos) return;
+    cancelarAnadir();
+    var mapa = getMapa();
+    irATab('panel-calle');
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:100001;background:#1a2a44;color:#fff;border:2px solid #ffc107;border-radius:8px;padding:10px 14px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;gap:12px;align-items:center;max-width:92vw;';
+    banner.innerHTML = '<span>📍 Haz clic en el mapa, sobre el edificio que quieres añadir.</span><button type="button" style="padding:5px 10px;cursor:pointer;">Cancelar</button>';
+    document.body.appendChild(banner);
+    var estado = { banner: banner };
+    estado.click = function (ev) { var ll = ev.latlng; cancelarAnadir(); crearManual(ll.lat, ll.lng); };
+    estado.tecla = function (ev) { if (ev.key === 'Escape') cancelarAnadir(); };
+    banner.querySelector('button').addEventListener('click', cancelarAnadir);
+    document.addEventListener('keydown', estado.tecla);
+    modoAnadir = estado;
+    setTimeout(function () { try { mapa.invalidateSize(); mapa.getContainer().style.cursor = 'crosshair'; } catch (e) {} mapa.on('click', estado.click); }, 400);
+  }
+  function eliminarManual(ref) {
+    var x = reg[ref]; if (!x || !x.manual) return;
+    if (!confirm('¿Eliminar «' + ref + '» y sus fotos? Esta acción no se puede deshacer.')) return;
+    (x.fotos || []).forEach(function (f) { borrarFoto(f.id); });
+    delete reg[ref]; delete resaltados[ref];
+    guardar(); reconstruirDatos(); pintarLista(); pintarCapaMapa(); actualizarBotonesMapa(); actualizarCaja();
+  }
+
   /* ---------- exportar / importar ---------- */
   function descargar(nombre, tipo, contenido) {
     var blob = new Blob([contenido], { type: tipo }), a = document.createElement('a');
@@ -552,12 +667,32 @@
   function celda(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"'; }
   function filaDatos(f) {
     var p = f.properties, x = reg[p.ref] || {}, o = osmTexto(p);
-    return { referencia_catastral: p.ref, complejo: p.complejo, uso_catastro: p.cat_uso, destino_catastro: p.cat_destino, superficie_catastro_m2: p.cat_sup_m2,
+    return { id: p.ref, origen: p.manual ? 'Añadido por el ayuntamiento (no consta en Catastro)' : 'Catastro', referencia_catastral: p.manual ? '' : p.ref, complejo: p.complejo, uso_catastro: p.cat_uso, destino_catastro: p.cat_destino, superficie_catastro_m2: p.cat_sup_m2,
       anio_catastro: p.cat_anio, direccion_catastro: p.cat_dir, uso_en_datos_de_edificios: p.uso_inspire, estado_conservacion: p.estado, huella_m2: p.huella_m2,
       toca_T10: p.T10 ? 'sí' : 'no', toca_T100: p.T100 ? 'sí' : 'no', toca_T500: p.T500 ? 'sí' : 'no', pct_huella_T500: p.pct_T500,
       toca_zona_flujo_preferente: p.ZFP ? 'sí' : 'no', clase_suelo: p.suelo, pista_osm_no_oficial: o.cats, nombre_osm: o.noms,
       ayto_que_es: x.tipo || PENDIENTE, ayto_detalle: x.detalle || '', ayto_confirma: x.por || '', ayto_fecha: x.fecha || '', ayto_notas: x.notas || '',
-      n_fotos: (x.fotos || []).length, enlace_catastro: p.enlace };
+      n_fotos: (x.fotos || []).length, enlace_catastro: p.enlace,
+      manual_zona: p.manual ? p.zona_manual : '', manual_flujo_preferente: p.manual ? p.zfp_manual : '', manual_viviendas: p.manual ? p.viviendas : '', manual_motivo: p.manual ? p.motivo : '' };
+  }
+  function exportarArt23CSV() {
+    var a = reg.__art23 || {}, L2 = [];
+    var ESC = [['T10', 'T10'], ['T100', 'T100'], ['T500', 'T500'], ['ZFP', 'flujo preferente']];
+    L2.push(['Apartado art. 23.2', 'Uso', 'Zona', 'Edificios', 'Viviendas']);
+    var grupos = ['Servicios públicos', 'Comercial y oficinas', 'Residencial', 'Industrial', 'Agrario', 'Sin clasificar', GRUPO_MANUAL];
+    var ap = { 'Servicios públicos': 'b', 'Comercial y oficinas': 'b', 'Residencial': 'c', 'Industrial': 'd' };
+    grupos.forEach(function (g) {
+      ESC.forEach(function (e) {
+        var l = datos.filter(function (f) { return (f.properties.grupo || 'Sin clasificar') === g && f.properties[e[0]]; }), v = 0;
+        l.forEach(function (f) { v += f.properties.viviendas || 0; });
+        L2.push([ap[g] || '', g, e[1], l.length, v]);
+      });
+    });
+    L2.push([]);
+    L2.push(['Datos del ayuntamiento', 'Valor']);
+    [['Población en T10', 'pob_T10'], ['Población en T100', 'pob_T100'], ['Población en T500', 'pob_T500'], ['Población en flujo preferente', 'pob_ZFP'], ['Fecha del padrón', 'pob_fecha'], ['Lo confirma', 'pob_por'],
+     ['Tipología de las edificaciones residenciales', 'tipologia'], ['Zonas industriales y riesgos', 'industrial'], ['Notas', 'notas']].forEach(function (c) { L2.push([c[0], a[c[1]] || '']); });
+    descargar('resumen_art23_ribera_de_arriba_' + hoyISO() + '.csv', 'text/csv;charset=utf-8', '﻿' + L2.map(function (f) { return f.map(celda).join(';'); }).join('\r\n'));
   }
   function exportarCSV() {
     var filas = datos.map(filaDatos), cab = Object.keys(filas[0]);
@@ -593,7 +728,8 @@
       var d;
       try { d = JSON.parse(fr.result); } catch (e) { alert('El archivo no es una copia válida.'); return; }
       if (!d || d.formato !== 'ghistora-edificios-copia-completa' || typeof d.registros !== 'object') { alert('Este archivo no es una copia completa de edificios.'); return; }
-      var refs = Object.keys(d.registros);
+      var refs = Object.keys(d.registros).filter(function (k) { return k !== '__art23'; });
+      var a23 = d.registros.__art23;
       if (!confirm('Se van a cargar los datos de ' + refs.length + ' edificio(s). Si ya tenías datos de esos mismos edificios en este navegador, se sustituirán. ¿Continuar?')) return;
       var fotosD = (d.fotos && typeof d.fotos === 'object') ? d.fotos : {}, pendientes = [], fallos = 0;
       refs.forEach(function (ref) {
@@ -601,8 +737,13 @@
         var fotos = (Array.isArray(s.fotos) ? s.fotos : []).filter(function (f) { return f && typeof f.id === 'string' && typeof fotosD[f.id] === 'string'; });
         fotos.forEach(function (f) { pendientes.push({ id: f.id, ref: ref }); });
         reg[ref] = { tipo: String(s.tipo || ''), detalle: String(s.detalle || ''), por: String(s.por || ''), fecha: String(s.fecha || ''), notas: String(s.notas || ''), fotos: fotos };
+        var sm = s.manual;
+        if (/^MANUAL-\d+$/.test(ref) && sm && typeof sm.lat === 'number' && typeof sm.lon === 'number') {
+          reg[ref].manual = { lat: sm.lat, lon: sm.lon, zona: ZONAS_MANUAL.indexOf(sm.zona) >= 0 ? sm.zona : 'Sin comprobar', zfp: ['Sí', 'No'].indexOf(sm.zfp) >= 0 ? sm.zfp : 'Sin comprobar', sup: String(sm.sup || '').slice(0, 9), viv: String(sm.viv || '').slice(0, 4), motivo: String(sm.motivo || '').slice(0, 80), creado: String(sm.creado || '').slice(0, 10) };
+        }
       });
-      guardar();
+      if (a23 && typeof a23 === 'object') { reg.__art23 = {}; ['pob_T10', 'pob_T100', 'pob_T500', 'pob_ZFP', 'pob_fecha', 'pob_por', 'tipologia', 'industrial', 'notas'].forEach(function (k) { reg.__art23[k] = String(a23[k] || '').slice(0, 2000); }); }
+      guardar(); reconstruirDatos();
       (function sig(n) {
         if (n >= pendientes.length) { input.value = ''; pintarLista(); alert('Copia cargada: ' + refs.length + ' edificio(s)' + (fallos ? ' (' + fallos + ' foto(s) no se pudieron guardar)' : '') + '.'); return; }
         fetch(fotosD[pendientes[n].id]).then(function (rr) { return rr.blob(); }).then(function (blob) {
@@ -619,6 +760,9 @@
     var acc = b.getAttribute('data-accion'), ref = b.getAttribute('data-ref'), fid = b.getAttribute('data-fid');
     if (acc === 'volver') irATab('panel-demo');
     else if (acc === 'mas') { mostrados += PASO; pintarLista(); }
+    else if (acc === 'anadir') iniciarAnadir();
+    else if (acc === 'manual-del') eliminarManual(ref);
+    else if (acc === 'art23-csv') exportarArt23CSV();
     else if (acc === 'mapa') verEnMapa(ref);
     else if (acc === 'mapa-quitar') quitarResalte(ref);
     else if (acc === 'mapa-complejo') resaltarComplejo(b.getAttribute('data-cx'));
@@ -652,6 +796,12 @@
     if (fl) {
       if (fl === 'estado') filtroEstado = t.value; else if (fl === 'zona') filtroZona = t.value; else if (fl === 'grupo') filtroGrupo = t.value; else busqueda = t.value;
       mostrados = PASO; pintarLista(); return;
+    }
+    var am = t.getAttribute('data-art23'), mm = t.getAttribute('data-manual');
+    if (am) { if (!reg.__art23) reg.__art23 = {}; reg.__art23[am] = t.value; guardar(); return; }
+    if (mm) {
+      var xm = reg[t.getAttribute('data-ref')]; if (!xm || !xm.manual) return;
+      xm.manual[mm] = t.value; guardar(); reconstruirDatos(); pintarLista(); if (capaMapa) pintarCapaMapa(); return;
     }
     if (acc === 'foto-add') { subirFotos(t, t.getAttribute('data-ref')); return; }
     if (acc === 'importar') { importarCopia(t); return; }
